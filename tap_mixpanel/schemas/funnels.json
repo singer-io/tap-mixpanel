@@ -29,18 +29,18 @@
               },
               "avg_time": {
                 "type": ["null", "number"],
-                "multipleOf": 1e-18
+                "multipleOf": 1e-20
               },
               "goal": {
                 "type": ["null", "string"]
               },
               "overall_conv_ratio": {
                 "type": ["null", "number"],
-                "multipleOf": 1e-18
+                "multipleOf": 1e-20
               },
               "step_conv_ratio": {
                 "type": ["null", "number"],
-                "multipleOf": 1e-18
+                "multipleOf": 1e-20
               },
               "event": {
                 "type": ["null", "string"]

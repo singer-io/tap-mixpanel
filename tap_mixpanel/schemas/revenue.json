@@ -18,7 +18,7 @@
     },
     "amount": {
       "type": ["null", "number"],
-      "multipleOf": 1e-2
+      "multipleOf": 1e-20
     }
   }
 }
