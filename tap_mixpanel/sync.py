@@ -5,7 +5,7 @@ import pytz
 import singer
 from singer import metrics, metadata, Transformer, utils
 from singer.utils import strptime_to_utc
-from tap_mixpanel.transform import transform_json
+from tap_mixpanel.transform import transform_record
 from tap_mixpanel.streams import STREAMS
 
 
@@ -69,6 +69,7 @@ def process_records(catalog, #pylint: disable=too-many-branches
     with metrics.record_counter(stream_name) as counter:
         for record in records:
             # Transform record for Singer.io
+            # LOGGER.info('Process record = {}'.format(record)) # COMMENT OUT
             with Transformer() as transformer:
                 try:
                     transformed_record = transformer.transform(
@@ -155,8 +156,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                 attribution_window))
         elif delta_days >= 365:
             delta_days = 365
-            LOGGER.info("WARNING: Start date or bookmark greater than 1 year maxiumum.")
-            LOGGER.info("WARNING: Setting bookmark start to 1 year ago.")
+            LOGGER.warning("WARNING: Start date or bookmark greater than 1 year maxiumum.")
+            LOGGER.warning("WARNING: Setting bookmark start to 1 year ago.")
 
         start_window = now_datetime - timedelta(days=delta_days)
         end_window = start_window + timedelta(days=days_interval)
@@ -168,12 +169,18 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
         diff_sec = (end_window - start_window).seconds
         days_interval = math.ceil(diff_sec / (3600 * 24)) # round-up difference to days
 
-    # Initialize counters
-    endpoint_total = 0
-    total_records = 0
+    # LOOP order: Date Windows, Parent IDs, Page
+    # Initialize counter
+    endpoint_total = 0 # Total for ALL: parents, date windows, and pages
 
     # Begin date windowing loop
     while start_window < now_datetime:
+        # Initialize counters
+        date_total = 0 # Total records for a date window
+        parent_total = 0 # Total records for parent ID
+        total_records = 0 # Total records for all pages
+        record_count = 0 # Total processed for page
+
         params = static_params # adds in endpoint specific, sort, filter params
 
         if bookmark_query_field_from and bookmark_query_field_to:
@@ -208,13 +215,17 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
 
         for parent_record in parent_data:
             parent_id = parent_record.get(parent_id_field)
-            LOGGER.info('Stream: {}, parent_id: {}'.format(stream_name, parent_id))
+            LOGGER.info('START: Stream: {}, parent_id: {}'.format(stream_name, parent_id))
 
             # pagination: loop thru all pages of data using next (if not None)
             page = 0 # First page is page=0, second page is page=1, ...
             offset = 0
             limit = 250 # Default page_size
-            total_records = 0
+            # Initialize counters
+            parent_total = 0 # Total records for parent ID
+            total_records = 0 # Total records for all pages
+            record_count = 0 # Total processed for page
+
             session_id = 'initial'
             if pagination:
                 params['page_size'] = limit
@@ -238,61 +249,61 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
 
                 # API request data
                 data = {}
-                data = data = client.request(
-                    method=api_method,
-                    url=url,
-                    path=path,
-                    params=querystring,
-                    endpoint=stream_name)
 
-                # time_extracted: datetime when the data was extracted from the API
-                time_extracted = utils.now()
-                if not data or data is None or data == {} or data == []:
-                    LOGGER.info('No data for URL: {}'.format(full_url))
-                    # No data results
-                else: # has data
-                    # Transform data with transform_json from transform.py
-                    # The data_key identifies the array/list of records below the <root> element
-                    # LOGGER.info('data = {}'.format(data)) # TESTING, comment out
-                    transformed_data = [] # initialize the record list
+                # Export has a streaming api call
+                if stream_name == 'export':
+                    data = client.request_export(
+                        method=api_method,
+                        url=url,
+                        path=path,
+                        params=querystring,
+                        endpoint=stream_name)
 
-                    # Endpoints: funnels, revenue return results as dictionary for each date
-                    # Standardize results to a list/array
-                    if date_dictionary and data_key in data:
-                        results = {}
-                        results_list = []
-                        for key, val in data[data_key].items():
-                            # skip $overall summary
-                            if key != '$overall':
-                                val['date'] = key
-                                val['datetime'] = '{}T00:00:00Z'.format(key)
-                                results_list.append(val)
-                        results[data_key] = results_list
-                        data = results
+                    # time_extracted: datetime when the data was extracted from the API
+                    time_extracted = utils.now()
+                    transformed_data = []
+                    for record in data:
+                        if record and str(record) != '':
+                            # transform reocord and append to transformed_data array
+                            # LOGGER.info('record = {}'.format(record)) # COMMENT OUT
+                            transformed_record = transform_record(record, stream_name, \
+                                project_timezone)
+                            transformed_data.append(transformed_record)
 
-                    # Cohorts endpoint returns results as a list/array (no data_key)
-                    # All other endpoints have a data_key
-                    if data_key is None or data_key == '.':
-                        transformed_data = transform_json(data, stream_name, project_timezone)
-                    elif data_key in data:
-                        transformed_data = transform_json(
-                            data[data_key], stream_name, project_timezone, parent_record)
-
-                    # LOGGER.info('transformed_data = {}'.format(transformed_data))  # COMMENT OUT
-                    if not transformed_data or transformed_data is None:
-                        LOGGER.info('No transformed data for data = {}'.format(data))
-                        # No transformed data results
-                    else: # has transformed data
-                        for record in transformed_data:
+                            # Check for missing keys
                             for key in id_fields:
-                                val = record.get(key)
+                                val = transformed_record.get(key)
                                 if val == '' or not val:
                                     LOGGER.error('Error: Missing Key')
                                     LOGGER.error(' Missing key {} in record: {}'.format(
                                         key, record))
                                     raise 'Missing Key'
 
-                        # Process records and get the max_bookmark_value and record_count
+                            if len(transformed_data) == limit:
+                                # Process full batch (limit = 250) records
+                                #   and get the max_bookmark_value and record_count
+                                max_bookmark_value, record_count = process_records(
+                                    catalog=catalog,
+                                    stream_name=stream_name,
+                                    records=transformed_data,
+                                    time_extracted=time_extracted,
+                                    bookmark_field=bookmark_field,
+                                    max_bookmark_value=max_bookmark_value,
+                                    last_datetime=last_datetime)
+                                LOGGER.info('Stream {}, batch processed {} records'.format(
+                                    stream_name, record_count))
+
+                                total_records = total_records + record_count
+                                parent_total = parent_total + record_count
+                                date_total = date_total + record_count
+                                endpoint_total = endpoint_total + record_count
+                                transformed_data = []
+                                # End if (batch = limit 250)
+                            # End if record
+                        # End has export_data records loop
+
+                    # Process remaining, partial batch
+                    if len(transformed_data) > 0:
                         max_bookmark_value, record_count = process_records(
                             catalog=catalog,
                             stream_name=stream_name,
@@ -304,40 +315,137 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                         LOGGER.info('Stream {}, batch processed {} records'.format(
                             stream_name, record_count))
 
-                        # set total_records and pagination fields
-                        if page == 0:
+                        total_records = total_records + record_count
+                        parent_total = parent_total + record_count
+                        date_total = date_total + record_count
+                        endpoint_total = endpoint_total + record_count
+                        # End if transformed_data
+
+                    # Export does not provide pagination; session_id = None breaks out of loop.
+                    session_id = None
+                    # End export stream API call
+
+                else: # stream_name != 'export`
+                    data = client.request(
+                        method=api_method,
+                        url=url,
+                        path=path,
+                        params=querystring,
+                        endpoint=stream_name)
+
+                    # time_extracted: datetime when the data was extracted from the API
+                    time_extracted = utils.now()
+                    if not data or data is None or data == {} or data == []:
+                        LOGGER.info('No data for URL: {}'.format(full_url))
+                        # No data results
+                    else: # has data
+                        # Transform data with transform_json from transform.py
+                        # The data_key identifies the array/list of records below the <root> element
+                        # LOGGER.info('data = {}'.format(data)) # TESTING, comment out
+                        transformed_data = [] # initialize the record list
+
+                        # Endpoints: funnels, revenue return results as dictionary for each date
+                        # Standardize results to a list/array
+                        if date_dictionary and data_key in data:
+                            results = {}
+                            results_list = []
+                            for key, val in data[data_key].items():
+                                # skip $overall summary
+                                if key != '$overall':
+                                    val['date'] = key
+                                    val['datetime'] = '{}T00:00:00Z'.format(key)
+                                    results_list.append(val)
+                            results[data_key] = results_list
+                            data = results
+
+                        # Cohorts endpoint returns results as a list/array (no data_key)
+                        # All other endpoints have a data_key
+                        if data_key is None or data_key == '.':
+                            data_key = 'results'
+                            new_data = {
+                                'results': data
+                            }
+                            data = new_data
+
+                        transformed_data = []
+                        # Loop through result records
+                        for record in data[data_key]:
+                            # transform reocord and append to transformed_data array
+                            transformed_record = transform_record(
+                                record, stream_name, project_timezone, parent_record)
+                            transformed_data.append(transformed_record)
+
+                            # Check for missing keys
+                            for key in id_fields:
+                                val = transformed_record.get(key)
+                                if val == '' or not val:
+                                    LOGGER.error('Error: Missing Key')
+                                    LOGGER.error(' Missing key {} in record: {}'.format(
+                                        key, transformed_record))
+                                    raise 'Missing Key'
+
+                            # End data record loop
+
+                        if not transformed_data or transformed_data is None or \
+                            transformed_data == []:
+                            LOGGER.info('No transformed data for data = {}'.format(data))
+                            # No transformed data results
+                        else: # has transformed data
+                            # Process records and get the max_bookmark_value and record_count
+                            max_bookmark_value, record_count = process_records(
+                                catalog=catalog,
+                                stream_name=stream_name,
+                                records=transformed_data,
+                                time_extracted=time_extracted,
+                                bookmark_field=bookmark_field,
+                                max_bookmark_value=max_bookmark_value,
+                                last_datetime=last_datetime)
+                            LOGGER.info('Stream {}, batch processed {} records'.format(
+                                stream_name, record_count))
+
+                            # set total_records and pagination fields
+                            if page == 0:
+                                if isinstance(data, dict):
+                                    total_records = data.get('total', record_count)
+                                else:
+                                    total_records = record_count
+                            parent_total = parent_total + record_count
+                            date_total = date_total + record_count
+                            endpoint_total = endpoint_total + record_count
                             if isinstance(data, dict):
-                                total_records = data.get('total', record_count)
+                                session_id = data.get('session_id', None)
+
+                            # to_rec: to record; ending record for the batch page
+                            if pagination:
+                                to_rec = offset + limit
+                                if to_rec > total_records:
+                                    to_rec = total_records
                             else:
-                                total_records = record_count
-                        if isinstance(data, dict):
-                            session_id = data.get('session_id', None)
+                                to_rec = record_count
 
-                        # to_rec: to record; ending record for the batch page
-                        if pagination:
-                            to_rec = offset + limit
-                            if to_rec > total_records:
-                                to_rec = total_records
-                        else:
-                            to_rec = record_count
+                            LOGGER.info('Synced Stream: {}, page: {}, {} to {} of total: {}'.format(
+                                stream_name,
+                                page,
+                                offset,
+                                to_rec,
+                                total_records))
+                            # End has transformed data
+                        # End has data results
 
-                        LOGGER.info('Synced Stream: {}, page: {}, {} to {} of total: {}'.format(
-                            stream_name,
-                            page,
-                            offset,
-                            to_rec,
-                            total_records))
-                    # End has transformed data
-                # End has data results
-
-                # Pagination: increment the offset by the limit (batch-size) and page
-                offset = offset + limit
-                page = page + 1
-                endpoint_total = endpoint_total + total_records
-                # End page/batch loop
-
+                    # Pagination: increment the offset by the limit (batch-size) and page
+                    offset = offset + limit
+                    page = page + 1
+                    # End page/batch loop
+                # End stream != 'export'
+            LOGGER.info('FINISHED: Stream: {}, parent_id: {}'.format(stream_name, parent_id))
+            LOGGER.info('  Total records for parent: {}'.format(parent_total))
             # End parent record loop
 
+        LOGGER.info('FINISHED Sync for Stream: {}{}'.format(
+            stream_name,
+            ', Date window from: {} to {}'.format(from_date, to_date) \
+                if bookmark_query_field_from else ''))
+        LOGGER.info('  Total records for date window: {}'.format(date_total))
         # Increment date window
         start_window = end_window
         next_end_window = end_window + timedelta(days=days_interval)
@@ -388,7 +496,7 @@ def sync(client, config, catalog, state, start_date):
         endpoint_config = STREAMS[stream_name]
         path = endpoint_config.get('path', stream_name)
         bookmark_field = next(iter(endpoint_config.get('replication_keys', [])), None)
-        total_records = sync_endpoint(
+        endpoint_total = sync_endpoint(
             client=client,
             catalog=catalog,
             state=state,
@@ -403,6 +511,6 @@ def sync(client, config, catalog, state, start_date):
         )
 
         update_currently_syncing(state, None)
-        LOGGER.info('FINISHED Syncing: {}, total_records: {}'.format(
+        LOGGER.info('FINISHED Syncing: {}, Total endpoint records: {}'.format(
             stream_name,
-            total_records))
+            endpoint_total))

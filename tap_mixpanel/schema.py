@@ -37,7 +37,7 @@ def get_schema(client, properties_flag, stream_name):
             results = properties.get('results', {})
             for key, val in results.items():
                 if key[0:1] == '$':
-                    new_key = key.replace('$', 'mp_reserved_')
+                    new_key = 'mp_reserved_{}'.format(key[2:])
                 else:
                     new_key = key
 
@@ -82,7 +82,7 @@ def get_schema(client, properties_flag, stream_name):
                     schema['properties'][new_key]['items'] = {}
 
     if stream_name == 'export':
-        # Event properties endpoint: 
+        # Event properties endpoint:
         #  https://developer.mixpanel.com/docs/data-export-api#section-hr-span-style-font-family-courier-top-span
         results = client.request(
             method='GET',
@@ -92,7 +92,7 @@ def get_schema(client, properties_flag, stream_name):
             endpoint='event_properties')
         for key, val in results.items():
             if key[0:1] == '$':
-                new_key = key.replace('$', 'mp_reserved_')
+                new_key = 'mp_reserved_{}'.format(key[2:])
             else:
                 new_key = key
 

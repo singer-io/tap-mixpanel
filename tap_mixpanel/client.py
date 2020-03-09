@@ -137,7 +137,7 @@ class MixpanelClient(object):
         if url and path:
             url = '{}/{}'.format(url, path)
         elif path and not url:
-            url = 'https://mixpanel.com/api/2.0/{}'
+            url = 'https://mixpanel.com/api/2.0/{}'.format(path)
 
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']
@@ -159,12 +159,11 @@ class MixpanelClient(object):
         kwargs['headers']['Authorization'] = 'Basic {}'.format(
             str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
         with metrics.http_request_timer(endpoint) as timer:
-            response = self.__session.request(
-                method=method,
-                url=url,
-                params=params,
-                json=json,
-                **kwargs)
+            response = self.__session.request(method=method,
+                                              url=url,
+                                              params=params,
+                                              json=json,
+                                              **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code >= 500:
@@ -173,25 +172,68 @@ class MixpanelClient(object):
         if response.status_code != 200:
             raise_for_error(response)
 
-        # export endpoint returns jsonl results; other endpoints return json with array of results
-        # jsonlines reference: https://jsonlines.readthedocs.io/en/latest/
-        if endpoint == 'export':
-            results_dict = {}
-            results = []
-
-            if response.text != '':
-                file_like_object = io.StringIO(response.text)
-                reader = jsonlines.Reader(file_like_object)
-                for record in reader.iter(allow_none=True, skip_empty=True):
-                    results.append(record)
-                results_dict['results'] = results
-                return results_dict
-
-            else:
-                LOGGER.warning('/export API response empty')
-                results_dict['results'] = results
-                return results_dict
-
-        else:
-            response_json = response.json()
+        response_json = response.json()
         return response_json
+
+
+    @backoff.on_exception(backoff.expo,
+                          (Server5xxError, ConnectionError, Server429Error),
+                          max_tries=7,
+                          factor=3)
+    def request_export(self, method, url=None, path=None, params=None, json=None, **kwargs):
+        if not self.__verified:
+            self.__verified = self.check_access()
+
+        if url and path:
+            url = '{}/{}'.format(url, path)
+        elif path and not url:
+            url = 'https://data.mixpanel.com/api/2.0/{}'.format(path)
+
+        if 'endpoint' in kwargs:
+            endpoint = kwargs['endpoint']
+            del kwargs['endpoint']
+        else:
+            endpoint = 'export'
+
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        kwargs['headers']['Accept'] = 'application/json'
+
+        if self.__user_agent:
+            kwargs['headers']['User-Agent'] = self.__user_agent
+
+        if method == 'POST':
+            kwargs['headers']['Content-Type'] = 'application/json'
+
+        kwargs['headers']['Authorization'] = 'Basic {}'.format(
+            str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
+        with metrics.http_request_timer(endpoint) as timer:
+            with self.__session.request(method=method,
+                                        url=url,
+                                        params=params,
+                                        json=json,
+                                        stream=True,
+                                        timeout=180,
+                                        **kwargs) as response:
+
+                if response.status_code >= 500:
+                    raise Server5xxError()
+
+                if response.status_code != 200:
+                    raise_for_error(response)
+
+                # export endpoint returns jsonl results; 
+                #  other endpoints return json with array of results
+                #  jsonlines reference: https://jsonlines.readthedocs.io/en/latest/
+
+                if response.text == '':
+                    LOGGER.warning('/export API response empty')
+                    yield None
+                else:
+                    file_like_object = io.StringIO(response.text)
+                    reader = jsonlines.Reader(file_like_object)
+                    for record in reader.iter(allow_none=True, skip_empty=True):
+                        yield record
+
+            timer.tags[metrics.Tag.http_status_code] = response.status_code

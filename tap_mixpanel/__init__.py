@@ -43,8 +43,8 @@ def main():
     if delta_days >= 365:
         delta_days = 365
         start_date = strftime(now_dttm - timedelta(days=delta_days))
-        LOGGER.info("WARNING: start_date greater than 1 year maxiumum for API.")
-        LOGGER.info("WARNING: Setting start_date to 1 year ago, {}".format(start_date))
+        LOGGER.warning("WARNING: start_date greater than 1 year maxiumum for API.")
+        LOGGER.warning("WARNING: Setting start_date to 1 year ago, {}".format(start_date))
 
 
     with MixpanelClient(parsed_args.config['api_secret'],

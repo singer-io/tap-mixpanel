@@ -184,7 +184,7 @@ More details may be found in the [Mixpanel API Authentication](https://developer
     ```
     Pylint test resulted in the following score:
     ```bash
-    Your code has been rated at 9.64/10
+    Your code has been rated at 9.67/10
     ```
 
     To [check the tap](https://github.com/singer-io/singer-tools#singer-check-tap) and verify working:
@@ -195,23 +195,23 @@ More details may be found in the [Mixpanel API Authentication](https://developer
     Check tap resulted in the following:
     ```bash
     The output is valid.
-    It contained 13708 messages for 7 streams.
+    It contained 15697 messages for 7 streams.
 
-        7 schema messages
-    13684 record messages
-        17 state messages
+          7 schema messages
+      15661 record messages
+        29 state messages
 
     Details by stream:
     +----------------+---------+---------+
     | stream         | records | schemas |
     +----------------+---------+---------+
-    | revenue        | 23      | 1       |
-    | export         | 1036    | 1       |
+    | revenue        | 134     | 1       |
+    | export         | 2811    | 1       |
+    | funnels        | 132     | 1       |
     | cohort_members | 454     | 1       |
-    | funnels        | 46      | 1       |
     | engage         | 12119   | 1       |
     | cohorts        | 5       | 1       |
-    | annotations    | 1       | 1       |
+    | annotations    | 6       | 1       |
     +----------------+---------+---------+
 
     ```
