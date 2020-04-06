@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 import math
 import json
 import pytz
@@ -140,8 +140,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     write_schema(catalog, stream_name)
 
     # windowing: loop through date days_interval date windows from last_datetime to now_datetime
-    now_datetime = utils.now()
     tzone = pytz.timezone(project_timezone)
+    now_datetime = datetime.now(tzone)
 
     if bookmark_query_field_from and bookmark_query_field_to:
         # days_interval from config date_window_size, default = 60; passed to function from sync
@@ -187,8 +187,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             # Request dates need to be normalized to project timezone or else errors may occur
             # Errors occur when from_date is > 365 days ago
             #   and when to_date > today (in project timezone)
-            from_date = '{}'.format(tzone.normalize(start_window))[0:10]
-            to_date = '{}'.format(tzone.normalize(end_window))[0:10]
+            from_date = '{}'.format(start_window.astimezone(tzone))[0:10]
+            to_date = '{}'.format(end_window.astimezone(tzone))[0:10]
             LOGGER.info('START Sync for Stream: {}{}'.format(
                 stream_name,
                 ', Date window from: {} to {}'.format(from_date, to_date) \
