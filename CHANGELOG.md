@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.5
+  * Fix a memory-leak for the export stream [#3](https://github.com/singer-io/tap-mixpanel/pull/3)
+
 ## 0.0.4
   * Change `sync.py` date windowing start/end dates to provide dates in local `project_timezone` to eliminate error of requesting data for future dates.
 
