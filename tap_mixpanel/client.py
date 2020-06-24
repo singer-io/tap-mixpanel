@@ -249,12 +249,6 @@ class MixpanelClient(object):
         # export endpoint returns jsonl results; 
         #  other endpoints return json with array of results
         #  jsonlines reference: https://jsonlines.readthedocs.io/en/latest/
-
-        if response.text == '':
-            LOGGER.warning('/export API response empty')
-            yield None
-        else:
-            file_like_object = io.StringIO(response.text)
-            reader = jsonlines.Reader(file_like_object)
-            for record in reader.iter(allow_none=True, skip_empty=True):
-                yield record
+        reader = jsonlines.Reader(response.iter_lines())
+        for record in reader.iter(allow_none=True, skip_empty=True):
+            yield record
