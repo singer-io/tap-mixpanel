@@ -1,3 +1,8 @@
+# emacs generated files
+\#*\#
+.\#*
+*~
+
 /.vscode/*
 /.ipynb_checkpoints/*
 config/

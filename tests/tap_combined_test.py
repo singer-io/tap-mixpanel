@@ -4,7 +4,9 @@ Test tap combined
 
 import unittest
 import os
-from .test_configuration import config
+from datetime import datetime as dt
+from datetime import timedelta
+from test_configuration import config
 from tap_tester import menagerie
 import tap_tester.runner as runner
 import tap_tester.connections as connections
@@ -13,6 +15,7 @@ from tap_tester.scenario import SCENARIOS
 
 class TapCombinedTest(unittest.TestCase):
     """ Test the tap combined """
+    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
 
     def name(self):
         return config['test_name']
@@ -29,7 +32,9 @@ class TapCombinedTest(unittest.TestCase):
         return set(config['streams'].keys())
 
     def expected_sync_streams(self):
-        return set(config['streams'].keys())
+        return set(config['streams'].keys()).difference({
+            'export' # Rate limited, start_date must be recent enough to avoid this
+        })
 
     def expected_pks(self):
         return config['streams']
@@ -37,11 +42,18 @@ class TapCombinedTest(unittest.TestCase):
     def get_properties(self):
         """Configuration properties required for the tap."""
         properties_dict = {}
-        props = config['properties']
-        for prop in props:
-            properties_dict[prop] = os.getenv(props[prop])
-        
+        properties_dict.update({
+            'start_date': self.get_start_date(),
+            'date_window_size': '7',
+            'attribution_window': '14',
+            'project_timezone': 'UTC',
+            'select_properties_by_default': 'false',
+        })
+
         return properties_dict
+
+    def get_start_date(self):
+        return dt.strftime(dt.utcnow() - timedelta(days=1), self.START_DATE_FORMAT)
 
     def get_credentials(self):
         """Authentication information for the test account. Username is expected as a property."""
@@ -54,15 +66,11 @@ class TapCombinedTest(unittest.TestCase):
 
     def setUp(self):
         missing_envs = []
-        props = config['properties']
         creds = config['credentials']
 
-        for prop in props:
-            if os.getenv(props[prop]) == None:
-                missing_envs.append(prop)
         for cred in creds:
             if os.getenv(creds[cred]) == None:
-                missing_envs.append(cred)
+                missing_envs.append(creds[cred])
 
         if len(missing_envs) != 0:
             raise Exception("set " + ", ".join(missing_envs))
