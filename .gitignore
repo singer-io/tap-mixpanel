@@ -1,3 +1,8 @@
+# emacs generated files
+\#*\#
+.\#*
+*~
+
 /.vscode/*
 /.ipynb_checkpoints/*
 config/
@@ -18,5 +23,4 @@ build/
 tap_mixpanel/.vscode/settings.json
 *.ipynb
 .DS_Store
-test_configuration.py
 tap_target_commands.sh
