@@ -27,7 +27,6 @@ def write_record(stream_name, record, time_extracted):
         singer.messages.write_record(stream_name, record, time_extracted=time_extracted)
     except OSError as err:
         LOGGER.error('OS Error writing record for: {}'.format(stream_name))
-        LOGGER.error('record: {}'.format(record))
         raise err
 
 
@@ -69,7 +68,6 @@ def process_records(catalog, #pylint: disable=too-many-branches
     with metrics.record_counter(stream_name) as counter:
         for record in records:
             # Transform record for Singer.io
-            # LOGGER.info('Process record = {}'.format(record)) # COMMENT OUT
             with Transformer() as transformer:
                 try:
                     transformed_record = transformer.transform(
@@ -78,8 +76,6 @@ def process_records(catalog, #pylint: disable=too-many-branches
                         stream_metadata)
                 except Exception as err:
                     LOGGER.error('Error: {}'.format(err))
-                    LOGGER.error('Error record: {}'.format(json.dumps(
-                        record, sort_keys=True, indent=2)))
                     LOGGER.error(' for schema: {}'.format(json.dumps(
                         schema, sort_keys=True, indent=2)))
                     raise err
@@ -265,7 +261,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                     for record in data:
                         if record and str(record) != '':
                             # transform reocord and append to transformed_data array
-                            # LOGGER.info('record = {}'.format(record)) # COMMENT OUT
                             transformed_record = transform_record(record, stream_name, \
                                 project_timezone)
                             transformed_data.append(transformed_record)
@@ -275,8 +270,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                                 val = transformed_record.get(key)
                                 if val == '' or not val:
                                     LOGGER.error('Error: Missing Key')
-                                    LOGGER.error(' Missing key {} in record: {}'.format(
-                                        key, record))
                                     raise 'Missing Key'
 
                             if len(transformed_data) == limit:
@@ -380,8 +373,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                                 val = transformed_record.get(key)
                                 if val == '' or not val:
                                     LOGGER.error('Error: Missing Key')
-                                    LOGGER.error(' Missing key {} in record: {}'.format(
-                                        key, transformed_record))
                                     raise 'Missing Key'
 
                             # End data record loop
