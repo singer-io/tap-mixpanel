@@ -37,7 +37,7 @@ def get_schema(client, properties_flag, stream_name):
             results = properties.get('results', {})
             for key, val in results.items():
                 if key[0:1] == '$':
-                    new_key = 'mp_reserved_{}'.format(key[2:])
+                    new_key = 'mp_reserved_{}'.format(key[1:])
                 else:
                     new_key = key
 
@@ -92,7 +92,7 @@ def get_schema(client, properties_flag, stream_name):
             endpoint='event_properties')
         for key, val in results.items():
             if key[0:1] == '$':
-                new_key = 'mp_reserved_{}'.format(key[2:])
+                new_key = 'mp_reserved_{}'.format(key[1:])
             else:
                 new_key = key
 

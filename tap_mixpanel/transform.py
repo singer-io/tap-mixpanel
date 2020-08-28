@@ -13,7 +13,7 @@ def denest_properties(record, properties_node):
     if properties:
         for key, val in record[properties_node].items():
             if key[0:1] == '$':
-                new_key = 'mp_reserved_{}'.format(key[2:])
+                new_key = 'mp_reserved_{}'.format(key[1:])
                 # change this to regex
             else:
                 new_key = key
