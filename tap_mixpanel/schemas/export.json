@@ -2,6 +2,9 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "mp_reserved_insert_id": {
+      "type": ["null", "string"]
+    },
     "event": {
       "type": ["null", "string"]
     },
