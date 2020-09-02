@@ -11,7 +11,7 @@ LOGGER = singer.get_logger()
 
 # Timeout reference: https://developer.mixpanel.com/docs/jql-api-reference#section-api-limits
 # Queries will timeout after 2 minutes of runtime
-TIMEOUT_SECS = 120
+TIMEOUT_SECS = 240
 
 
 class ReadTimeoutError(Exception):
@@ -246,7 +246,7 @@ class MixpanelClient(object):
         if response.status_code != 200:
             raise_for_error(response)
 
-        # export endpoint returns jsonl results; 
+        # export endpoint returns jsonl results;
         #  other endpoints return json with array of results
         #  jsonlines reference: https://jsonlines.readthedocs.io/en/latest/
         reader = jsonlines.Reader(response.iter_lines())
