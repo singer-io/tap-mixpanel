@@ -14,6 +14,12 @@ setup(name='tap-mixpanel',
           'singer-python==5.9.0',
           'jsonlines==1.2.0'
       ],
+      extras_require={
+        'dev': [
+            'pytest', 
+            'requests_mock',
+        ]
+      },
       entry_points='''
           [console_scripts]
           tap-mixpanel=tap_mixpanel:main
