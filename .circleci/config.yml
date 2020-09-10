@@ -44,7 +44,7 @@ jobs:
                      --email=harrison+sandboxtest@stitchdata.com \
                      --password=$SANDBOX_PASSWORD \
                      --client-id=50 \
-                     tests/tap_combined_test.py
+                     tests/tap_tester/tap_combined_test.py
 
 workflows:
   version: 2
