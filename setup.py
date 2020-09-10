@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='tap-mixpanel',
-      version='0.0.5',
+      version='0.0.6',
       description='Singer.io tap for extracting data from the mixpanel API',
       author='jeff.huth@bytecode.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
