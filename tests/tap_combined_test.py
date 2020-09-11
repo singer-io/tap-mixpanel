@@ -32,9 +32,7 @@ class TapCombinedTest(unittest.TestCase):
         return set(config['streams'].keys())
 
     def expected_sync_streams(self):
-        return set(config['streams'].keys()).difference({
-            'export' # Rate limited, start_date must be recent enough to avoid this
-        })
+        return set(config['streams'].keys())
 
     def expected_pks(self):
         return config['streams']
