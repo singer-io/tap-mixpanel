@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.6
+  * Adjust backoff and timeout handling
+
 ## 0.0.5
   * Fix a memory-leak for the export stream [#3](https://github.com/singer-io/tap-mixpanel/pull/3)
 

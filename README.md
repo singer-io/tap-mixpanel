@@ -215,6 +215,20 @@ More details may be found in the [Mixpanel API Authentication](https://developer
     +----------------+---------+---------+
 
     ```
+
+    #### Unit Tests
+
+    Unit tests may be run with the following.
+
+    ```
+    python -m pytest --verbose
+    ```
+
+    Note, you may need to install test dependencies.
+
+    ```
+    pip install -e .'[dev]'
+    ```
 ---
 
 Copyright &copy; 2019 Stitch
