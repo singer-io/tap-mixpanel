@@ -21,7 +21,7 @@ STREAMS = {
         'path': 'export',
         'data_key': 'results',
         'api_method': 'GET',
-        'key_properties': ['event', 'time', 'distinct_id'],
+        'key_properties': [],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['time'],
         'bookmark_query_field_from': 'from_date',
