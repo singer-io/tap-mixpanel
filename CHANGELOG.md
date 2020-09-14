@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+  * Bumping patch version to avoid conflict with old pypi uploaded version 1.0.0 in May 2017
+
 ## 1.0.0
   * Major version bump intended to release changes from 0.0.6
   * Plus [PR #6 to change export stream to be append-only with no primary key](https://github.com/singer-io/tap-mixpanel/pull/6)
