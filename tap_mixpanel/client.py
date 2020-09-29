@@ -97,6 +97,7 @@ class MixpanelClient(object):
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
+        self.disable_engage_endpoint = False
 
     def __enter__(self):
         self.__verified = self.check_access()
@@ -129,7 +130,13 @@ class MixpanelClient(object):
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: {}'.format(err))
             raise ReadTimeoutError
-        if response.status_code != 200:
+
+        if response.status_code == 402:
+            # 402 Payment Requirement does not indicate a permissions or authentication error
+            self.disable_engage_endpoint = True
+            LOGGER.warning('Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
+            return True
+        elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
             raise_for_error(response)
         else:
