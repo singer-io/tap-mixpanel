@@ -137,8 +137,6 @@ class MixpanelClient(object):
             return True
         elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
-            import ipdb; ipdb.set_trace()
-            1+1
             raise_for_error(response)
         else:
             return True
