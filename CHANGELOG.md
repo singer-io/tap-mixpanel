@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.2
+  * Allows the tap to proceed when the Engage endpoint is unavailable due to a HTTP 402 payment required [#12](https://github.com/singer-io/tap-mixpanel/pull/12)
+
 ## 1.0.1
   * Bumping patch version to avoid conflict with old pypi uploaded version 1.0.0 in May 2017
 
