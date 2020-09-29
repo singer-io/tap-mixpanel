@@ -97,6 +97,7 @@ class MixpanelClient(object):
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
+        self.disable_engage_endpoint = False
 
     def __enter__(self):
         self.__verified = self.check_access()
