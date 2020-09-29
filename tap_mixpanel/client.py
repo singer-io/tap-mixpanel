@@ -129,8 +129,16 @@ class MixpanelClient(object):
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: {}'.format(err))
             raise ReadTimeoutError
-        if response.status_code != 200:
+
+        if response.status_code == 402:
+            # 402 Payment Requirement does not indicate a permissions or authentication error
+            self.disable_engage_endpoint = True
+            LOGGER.warning('Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
+            return True
+        elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
+            import ipdb; ipdb.set_trace()
+            1+1
             raise_for_error(response)
         else:
             return True

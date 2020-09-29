@@ -2,6 +2,9 @@ import os
 import json
 from singer import metadata
 from tap_mixpanel.streams import STREAMS
+import singer
+
+LOGGER = singer.get_logger()
 
 # Reference:
 # https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
@@ -109,6 +112,11 @@ def get_schemas(client, properties_flag):
     field_metadata = {}
 
     for stream_name, stream_metadata in STREAMS.items():
+        # When the client detects disable_engage_endpoint, skip discovering the stream
+        if stream_name == 'engage' and client.disable_engage_endpoint:
+            LOGGER.warning('Mixpanel returned a 402 indicating the Engage endpoint and stream is unavailable. Skipping.')
+            continue
+
         schema = get_schema(client, properties_flag, stream_name)
 
         schemas[stream_name] = schema
