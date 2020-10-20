@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+  * Make `date_window_size` not a required config field. Defaults to 30 [#13](https://github.com/singer-io/tap-mixpanel/pull/13)
+
 ## 1.0.2
   * Allows the tap to proceed when the Engage endpoint is unavailable due to a HTTP 402 payment required [#12](https://github.com/singer-io/tap-mixpanel/pull/12)
 
