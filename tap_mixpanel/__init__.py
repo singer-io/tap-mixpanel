@@ -16,7 +16,6 @@ LOGGER = singer.get_logger()
 REQUIRED_CONFIG_KEYS = [
     'project_timezone',
     'api_secret',
-    'date_window_size',
     'attribution_window',
     'start_date',
     'user_agent'
