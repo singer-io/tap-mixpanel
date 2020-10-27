@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+  * Remove page_size param to shorten processing time [#15](https://github.com/singer-io/tap-mixpanel/pull/15)
+
 ## 1.1.0
   * Make `date_window_size` not a required config field. Defaults to 30 [#13](https://github.com/singer-io/tap-mixpanel/pull/13)
 
