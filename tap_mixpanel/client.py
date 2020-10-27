@@ -116,7 +116,7 @@ class MixpanelClient(object):
             raise Exception('Error: Missing api_secret in tap config.json.')
         headers = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
-        url = 'https://mixpanel.com/api/2.0/engage?page_size=1'
+        url = 'https://mixpanel.com/api/2.0/engage'
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
