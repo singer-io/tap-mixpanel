@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+  * Make the `engage` stream's schema be an `anyOf` the possible types [#18](https://github.com/singer-io/tap-mixpanel/pull/18)
+
 ## 1.1.1
   * Remove page_size param to shorten processing time [#15](https://github.com/singer-io/tap-mixpanel/pull/15)
 
