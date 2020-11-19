@@ -44,45 +44,47 @@ def get_schema(client, properties_flag, stream_name):
                 else:
                     new_key = key
 
-                # Defaults
-                this_type = ['null', 'string']
-                this_format = None
-                this_multiple_of = None
-                this_additional_properties = None
-                this_required = None
-                this_items = False
-
                 # property_type: string, number, boolean, datetime, object, list
                 # Reference:
                 # https://help.mixpanel.com/hc/en-us/articles/115004547063-Properties-Supported-Data-Types
                 property_type = val.get('type')
-                if property_type == 'boolean':
-                    this_type = ['null', 'boolean']
-                elif property_type == 'number':
-                    this_type = ['null', 'number']
-                    this_multiple_of = 1e-20
-                elif property_type == 'datetime':
-                    this_format = 'date-time'
-                elif property_type == 'object':
-                    this_type = ['null', 'object']
-                    this_additional_properties = True
-                elif property_type == 'list':
-                    this_type = ['null', 'array']
-                    this_required = False
-                    this_items = True
-                schema['properties'][new_key] = {}
-                schema['properties'][new_key]['type'] = this_type
-                if this_format:
-                    schema['properties'][new_key]['format'] = this_format
-                if this_multiple_of:
-                    schema['properties'][new_key]['multipleOf'] = this_multiple_of
-                if this_additional_properties:
-                    schema['properties'][new_key]['additionalProperties'] = \
-                        this_additional_properties
-                if this_required:
-                    schema['properties'][new_key]['required'] = this_required
-                if this_items:
-                    schema['properties'][new_key]['items'] = {}
+
+                types = {
+                    'boolean': {
+                        'type': ['null', 'boolean']
+                    },
+                    'number': {
+                        'type': ['null', 'number'],
+                        'multipleOf': 1e-20
+                    },
+                    'datetime': {
+                        'type': ['null', 'string'],
+                        'format': 'date-time'
+                    },
+                    'object': {
+                        'type': ['null', 'object'],
+                        'additionalProperties': True
+                    },
+                    'list': {
+                        'type': ['null', 'array'],
+                        'required': False,
+                        'items': {}
+                    },
+                    'string': {
+                        'type': ['null', 'string']
+                    }
+                }
+
+                if property_type in types.keys():
+                    # Make the types a list containing all types starting with the one returned to us by the API
+                    this_type = [types.pop(property_type)]
+                    this_type += list(types.values())
+
+                else:
+                    this_type = list(types.values())
+
+
+                schema['properties'][new_key] = {'anyOf': this_type}
 
     if stream_name == 'export':
         # Event properties endpoint:
