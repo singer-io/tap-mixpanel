@@ -12,10 +12,9 @@ jobs:
           command: |
             python3 -m venv /usr/local/share/virtualenvs/tap-mixpanel
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-            pip install --upgrade pip
-            pip install --upgrade setuptools
+            pip install -U 'pip<19.2' 'setuptools<51.0.0'
             pip install .[dev]
-      # TODO: Fails pylint a lot, skipping for now
+      # TODO: Fails pylint a lot, skipping for now (https://stitchdata.atlassian.net/browse/SRCE-4606)
       #- run:
       #    name: 'pylint tap'
       #    command: |
@@ -55,7 +54,7 @@ workflows:
   build_daily:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 17 * * *"
           filters:
             branches:
               only:
