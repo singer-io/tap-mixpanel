@@ -253,7 +253,6 @@ class MixpanelClient(object):
                                             params=params,
                                             json=json,
                                             stream=True,
-                                            timeout=REQUEST_TIMEOUT,
                                             **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
