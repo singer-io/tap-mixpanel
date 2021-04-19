@@ -232,7 +232,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             if pagination:
                 params['limit'] = limit
 
-            while offset <= total_records and session_id is not None:
+
+            while record_count >= limit:
                 if pagination and page != 0:
                     params['session_id'] = session_id
                     params['page'] = page
