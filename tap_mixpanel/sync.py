@@ -215,6 +215,12 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
 
             # pagination: loop thru all pages of data using next (if not None)
             page = 0 # First page is page=0, second page is page=1, ...
+
+            if 'page' in params:
+                del params['page']
+            if 'session_id' in params:
+                del params['session_id']
+
             offset = 0
             limit = 250 # Default page_size
             # Initialize counters
