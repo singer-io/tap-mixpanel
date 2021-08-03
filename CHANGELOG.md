@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.2
+  * Add a timeout on requests [#20](https://github.com/singer-io/tap-mixpanel/pull/20)
+
 ## 1.2.1
   * Fix the query params for the `engage` and `cohort_members` streams to fetch all records [#24](https://github.com/singer-io/tap-mixpanel/pull/24)
 
