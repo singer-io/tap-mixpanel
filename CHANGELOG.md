@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+  * Fix the query params for the `engage` and `cohort_members` streams to fetch all records [#24](https://github.com/singer-io/tap-mixpanel/pull/24)
+
 ## 1.2.0
   * Make the `engage` stream's schema be an `anyOf` the possible types [#18](https://github.com/singer-io/tap-mixpanel/pull/18)
 
