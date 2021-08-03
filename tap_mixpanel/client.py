@@ -3,13 +3,14 @@ import io
 import backoff
 import jsonlines
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, Timeout
 from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
 
 BACKOFF_MAX_TRIES_REQUEST = 7
+REQUEST_TIMEOUT = 300
 
 
 class ReadTimeoutError(Exception):
@@ -108,7 +109,7 @@ class MixpanelClient(object):
 
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError),
+                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
                           max_tries=5,
                           factor=2)
     def check_access(self):
@@ -126,6 +127,7 @@ class MixpanelClient(object):
         try:
             response = self.__session.get(
                 url=url,
+                timeout=REQUEST_TIMEOUT,
                 headers=headers)
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: {}'.format(err))
@@ -145,9 +147,9 @@ class MixpanelClient(object):
 
     @backoff.on_exception(
         backoff.expo,
-        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError),
+        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
         max_tries=BACKOFF_MAX_TRIES_REQUEST,
-        factor=3, 
+        factor=3,
         logger=LOGGER)
     def perform_request(self,
                         method,
@@ -158,11 +160,12 @@ class MixpanelClient(object):
                         **kwargs):
         try:
             response = self.__session.request(method=method,
-                                          url=url,
-                                          params=params,
-                                          json=json,
-                                          stream=stream,
-                                          **kwargs)
+                                              url=url,
+                                              params=params,
+                                              json=json,
+                                              stream=stream,
+                                              timeout=REQUEST_TIMEOUT,
+                                              **kwargs)
 
             if response.status_code >= 500:
                 raise Server5xxError()
@@ -246,11 +249,11 @@ class MixpanelClient(object):
             str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(method=method,
-                                        url=url,
-                                        params=params,
-                                        json=json,
-                                        stream=True,
-                                        **kwargs)
+                                            url=url,
+                                            params=params,
+                                            json=json,
+                                            stream=True,
+                                            **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
             # export endpoint returns jsonl results;
