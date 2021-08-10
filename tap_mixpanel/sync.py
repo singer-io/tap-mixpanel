@@ -2,6 +2,7 @@ from datetime import timedelta, datetime, timezone
 import math
 import json
 import pytz
+import urllib
 import singer
 from singer import metrics, metadata, Transformer, utils
 from singer.utils import strptime_to_utc
@@ -112,7 +113,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                   bookmark_field=None,
                   project_timezone=None,
                   days_interval=None,
-                  attribution_window=None):
+                  attribution_window=None,
+                  export_events = None):
 
     # Get endpoint_config fields
     url = endpoint_config.get('url')
@@ -235,6 +237,11 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                 querystring = '&'.join(['%s=%s' % (key, value) for (key, value) \
                     in params.items()]).replace(
                         '[parent_id]', str(parent_id))
+
+                if stream_name == 'export' and export_events:
+                    event = json.dumps([export_events] if isinstance(export_events, str) else export_events)
+                    url_encoded = urllib.parse.quote(event)
+                    querystring += f'&event={url_encoded}'
 
                 full_url = '{}/{}{}'.format(
                     url,
@@ -498,7 +505,8 @@ def sync(client, config, catalog, state, start_date):
             bookmark_field=bookmark_field,
             project_timezone=config.get('project_timezone', 'UTC'),
             days_interval=int(config.get('date_window_size', '30')),
-            attribution_window=int(config.get('attribution_window', '5'))
+            attribution_window=int(config.get('attribution_window', '5')),
+            export_events=config.get('export_events')
         )
 
         update_currently_syncing(state, None)
