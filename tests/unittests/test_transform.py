@@ -7,6 +7,19 @@ from datetime import datetime, timedelta
 
 UTC = pytz.utc
 
+def my_transform(record, project_timezone):
+    time_int = record.get("time")
+
+    my_timezone = pytz.timezone(project_timezone)
+
+    adjusted_epoch = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC).astimezone(my_timezone)
+
+    new_time = adjusted_epoch + timedelta(seconds=time_int)
+
+    record["time"] = new_time.astimezone(UTC).strftime("%04Y-%m-%dT%H:%M:%S.000000Z")
+
+    return record
+
 
 class TestTransformEventTimes(unittest.TestCase):
 
@@ -35,6 +48,36 @@ class TestTransformEventTimes(unittest.TestCase):
         record = {"time": input_time.timestamp()}
 
         actual = transform_event_times(record, project_timezone)
+
+        expected = {"time": input_time.astimezone(UTC).strftime("%04Y-%m-%dT%H:%M:%S.000000Z")}
+
+        self.assertEqual(expected, actual)
+
+    def test_my_utc_now(self):
+        #input_time = datetime.now().astimezone(UTC)
+        input_time = datetime.utcnow()
+
+        record = {"time": input_time.timestamp()}
+
+        project_timezone = "UTC"
+
+        actual = my_transform(record, project_timezone)
+
+        expected = {"time": input_time.strftime("%04Y-%m-%dT%H:%M:%S.000000Z")}
+
+        self.assertEqual(expected, actual)
+
+    def test_my_eastern_time(self):
+        project_timezone = "US/Eastern"
+
+        EASTERN = pytz.timezone(project_timezone)
+
+        # This gives us 2021-08-12T11:00:00-4:00
+        input_time = EASTERN.localize(datetime(2021, 8, 12, 11, 0, 0))
+
+        record = {"time": input_time.timestamp()}
+
+        actual = my_transform(record, project_timezone)
 
         expected = {"time": input_time.astimezone(UTC).strftime("%04Y-%m-%dT%H:%M:%S.000000Z")}
 
