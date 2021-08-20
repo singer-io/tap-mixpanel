@@ -2,16 +2,17 @@
 Test tap combined
 """
 
-import unittest
 import os
-import pytz
+import unittest
 from datetime import datetime as dt
 from datetime import timedelta
+
 import dateutil.parser
-from tap_tester import menagerie
-import tap_tester.runner as runner
+import pytz
+
 import tap_tester.connections as connections
-from tap_tester.scenario import SCENARIOS
+import tap_tester.runner as runner
+from tap_tester import menagerie
 
 
 class TestMixPanelBase(unittest.TestCase):
@@ -37,9 +38,9 @@ class TestMixPanelBase(unittest.TestCase):
         """The expected streams and metadata about the streams"""
         return {
             'export': {
-            'table-key-properties': set(),
-            'forced-replication-method': 'INCREMENTAL',
-            'valid-replication-keys': {'time'},
+                'table-key-properties': set(),
+                'forced-replication-method': 'INCREMENTAL',
+                'valid-replication-keys': {'time'},
             },
             'engage': {
                 'table-key-properties': {"distinct_id"},
@@ -70,7 +71,7 @@ class TestMixPanelBase(unittest.TestCase):
                 'forced-replication-method': 'FULL_TABLE'
             }
         }
-    
+
     def setUp(self):
         missing_envs = []
         creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
@@ -142,7 +143,7 @@ class TestMixPanelBase(unittest.TestCase):
             auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) or v.get(self.REPLICATION_KEYS, set()) \
                 or v.get(self.FOREIGN_KEYS, set())
         return auto_fields
-    
+
     def full_table(self):
         return {
             "engage": {},
@@ -168,12 +169,15 @@ class TestMixPanelBase(unittest.TestCase):
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
         found_catalogs = menagerie.get_catalogs(conn_id)
-        self.assertGreater(len(found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
+        self.assertGreater(len(
+            found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
 
-        found_catalog_names = set(map(lambda c: c['stream_name'], found_catalogs))
+        found_catalog_names = set(
+            map(lambda c: c['stream_name'], found_catalogs))
 
         subset = self.expected_streams().issubset(found_catalog_names)
-        self.assertTrue(subset, msg="Expected check streams are not subset of discovered catalog")
+        self.assertTrue(
+            subset, msg="Expected check streams are not subset of discovered catalog")
         print("discovered schemas are OK")
 
         return found_catalogs
@@ -199,10 +203,10 @@ class TestMixPanelBase(unittest.TestCase):
             sum(sync_record_count.values()), 0,
             msg="failed to replicate any data: {}".format(sync_record_count)
         )
-        print("total replicated row count: {}".format(sum(sync_record_count.values())))
+        print("total replicated row count: {}".format(
+            sum(sync_record_count.values())))
 
         return sync_record_count
-
 
     def perform_and_verify_table_and_field_selection(self, conn_id, test_catalogs, select_all_fields=True):
         """
@@ -211,24 +215,28 @@ class TestMixPanelBase(unittest.TestCase):
         Verify this results in the expected streams selected and all or no
         fields selected for those streams.
         """
-        
+
         # Select all available fields or select no fields from all testable streams
-        self.select_all_streams_and_fields(conn_id, test_catalogs, select_all_fields)
+        self.select_all_streams_and_fields(
+            conn_id, test_catalogs, select_all_fields)
 
         catalogs = menagerie.get_catalogs(conn_id)
 
-        #Ensure our selection affects the catalog
+        # Ensure our selection affects the catalog
         expected_selected = [tc.get('stream_name') for tc in test_catalogs]
-        
+
         for cat in catalogs:
-            catalog_entry = menagerie.get_annotated_schema(conn_id, cat['stream_id'])
+            catalog_entry = menagerie.get_annotated_schema(
+                conn_id, cat['stream_id'])
 
             # Verify all testable streams are selected
             selected = catalog_entry.get('annotated-schema').get('selected')
-            print("Validating selection on {}: {}".format(cat['stream_name'], selected))
+            print("Validating selection on {}: {}".format(
+                cat['stream_name'], selected))
             if cat['stream_name'] not in expected_selected:
-                self.assertFalse(selected, msg="Stream selected, but not testable.")
-                continue # Skip remaining assertions if we aren't selecting this stream
+                self.assertFalse(
+                    selected, msg="Stream selected, but not testable.")
+                continue  # Skip remaining assertions if we aren't selecting this stream
             self.assertTrue(selected, msg="Stream not selected.")
 
             if select_all_fields:
@@ -240,8 +248,10 @@ class TestMixPanelBase(unittest.TestCase):
                     self.assertTrue(field_selected, msg="Field not selected.")
             else:
                 # Verify only automatic fields are selected
-                expected_automatic_fields = self.expected_automatic_fields().get(cat['stream_name'])
-                selected_fields = self.get_selected_fields_from_metadata(catalog_entry['metadata'])
+                expected_automatic_fields = self.expected_automatic_fields().get(
+                    cat['stream_name'])
+                selected_fields = self.get_selected_fields_from_metadata(
+                    catalog_entry['metadata'])
                 self.assertEqual(expected_automatic_fields, selected_fields)
 
     def get_selected_fields_from_metadata(self, metadata):
@@ -249,17 +259,18 @@ class TestMixPanelBase(unittest.TestCase):
         for field in metadata:
             is_field_metadata = len(field['breadcrumb']) > 1
             inclusion_automatic_or_selected = (
-                field['metadata']['selected'] is True or \
+                field['metadata']['selected'] is True or
                 field['metadata']['inclusion'] == 'automatic'
             )
             if is_field_metadata and inclusion_automatic_or_selected:
                 selected_fields.add(field['breadcrumb'][1])
         return selected_fields
-        
+
     def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
+            schema = menagerie.get_annotated_schema(
+                conn_id, catalog['stream_id'])
 
             non_selected_properties = []
             if not select_all_fields:
@@ -288,10 +299,11 @@ class TestMixPanelBase(unittest.TestCase):
             except ValueError:
                 continue
 
-        raise NotImplementedError("Tests do not account for dates of this format: {}".format(date_value))
+        raise NotImplementedError(
+            "Tests do not account for dates of this format: {}".format(date_value))
 
     ##########################################################################
-    ### Tap Specific Methods
+    # Tap Specific Methods
     ##########################################################################
 
     def convert_state_to_utc(self, date_str):
@@ -313,7 +325,8 @@ class TestMixPanelBase(unittest.TestCase):
 
         except ValueError:
             try:
-                date_stripped = dt.strptime(dtime, self.BOOKMARK_COMPARISON_FORMAT)
+                date_stripped = dt.strptime(
+                    dtime, self.BOOKMARK_COMPARISON_FORMAT)
                 return_date = date_stripped + timedelta(days=days)
 
                 return dt.strftime(return_date, self.BOOKMARK_COMPARISON_FORMAT)
@@ -322,5 +335,4 @@ class TestMixPanelBase(unittest.TestCase):
                 return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
 
     def is_incremental(self, stream):
-        return not stream in self.full_table() 
-
+        return not stream in self.full_table()

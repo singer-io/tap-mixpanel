@@ -1,17 +1,12 @@
 """
 Test tap combined
 """
-
-import unittest
-import os
 import re
-from datetime import datetime as dt
-from datetime import timedelta
-from tap_tester import menagerie
-import tap_tester.runner as runner
+
 import tap_tester.connections as connections
-from tap_tester.scenario import SCENARIOS
 from base import TestMixPanelBase
+from tap_tester.scenario import SCENARIOS
+
 
 class MixPanelDiscoverTest(TestMixPanelBase):
     """
@@ -40,14 +35,14 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         conn_id = connections.ensure_connection(self, payload_hook=None)
 
         # Verify that there are catalogs found
-        found_catalogs = found_catalogs = self.run_and_verify_check_mode(conn_id)
+        found_catalogs = found_catalogs = self.run_and_verify_check_mode(
+            conn_id)
 
         # Verify stream names follow naming convention
         # streams should only have lowercase alphas and underscores
         found_catalog_names = {c['tap_stream_id'] for c in found_catalogs}
         self.assertTrue(all([re.fullmatch(r"[a-z_]+",  name) for name in found_catalog_names]),
                         msg="One or more streams don't follow standard naming")
-        
 
         for stream in streams_to_test:
             with self.subTest(stream=stream):
@@ -59,14 +54,18 @@ class MixPanelDiscoverTest(TestMixPanelBase):
 
                 # collecting expected values
                 expected_primary_keys = self.expected_pks()[stream]
-                expected_replication_keys = self.expected_replication_keys()[stream]
+                expected_replication_keys = self.expected_replication_keys()[
+                    stream]
                 expected_automatic_fields = expected_primary_keys
-                expected_replication_method = self.expected_replication_method()[stream]
+                expected_replication_method = self.expected_replication_method()[
+                    stream]
 
                 # collecting actual values...
-                schema_and_metadata = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
+                schema_and_metadata = menagerie.get_annotated_schema(
+                    conn_id, catalog['stream_id'])
                 metadata = schema_and_metadata["metadata"]
-                stream_properties = [item for item in metadata if item.get("breadcrumb") == []]
+                stream_properties = [
+                    item for item in metadata if item.get("breadcrumb") == []]
                 actual_primary_keys = set(
                     stream_properties[0].get(
                         "metadata", {self.PRIMARY_KEYS: []}).get(self.PRIMARY_KEYS, [])
@@ -83,18 +82,18 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 )
 
                 ##########################################################################
-                ### metadata assertions
+                # metadata assertions
                 ##########################################################################
 
                 # verify there is only 1 top level breadcrumb in metadata
                 self.assertTrue(len(stream_properties) == 1,
-                                msg="There is NOT only one top level breadcrumb for {}".format(stream) + \
+                                msg="There is NOT only one top level breadcrumb for {}".format(stream) +
                                 "\nstream_properties | {}".format(stream_properties))
 
                 # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
                 # If replication keys are not specified in metadata, skip this check
                 rep_key_mdata = stream_properties[0].get(
-                        "metadata", {self.REPLICATION_KEYS: []})
+                    "metadata", {self.REPLICATION_KEYS: []})
                 if self.REPLICATION_KEYS in rep_key_mdata:
                     if rep_key_mdata.get(self.REPLICATION_KEYS, []):
                         self.assertTrue(actual_replication_method == self.INCREMENTAL,
@@ -104,7 +103,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                         self.assertTrue(actual_replication_method == self.FULL,
                                         msg="Expected FULL replication "
                                         "since there is no replication key")
-                    
+
                     # verify the actual replication matches our expected replication method
                     self.assertEqual(
                         self.expected_replication_method().get(stream, None),
@@ -114,7 +113,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                             self.expected_replication_method().get(stream, None)))
 
                 print(stream_properties[0].get(
-                        "metadata", {self.REPLICATION_KEYS: []}))
+                    "metadata", {self.REPLICATION_KEYS: []}))
                 # verify replication key(s)
                 self.assertEqual(
                     set(stream_properties[0].get(
@@ -130,10 +129,11 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 self.assertSetEqual(
                     expected_primary_keys, actual_primary_keys,
                 )
-                
+
                 # verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
-                self.assertSetEqual(expected_automatic_fields, actual_automatic_fields)
+                self.assertSetEqual(expected_automatic_fields,
+                                    actual_automatic_fields)
 
                 # verify that all other fields have inclusion of available
                 # This assumes there are no unsupported fields for SaaS sources
@@ -144,4 +144,3 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                          and item.get("breadcrumb", ["properties", None])[1]
                          not in actual_automatic_fields}),
                     msg="Not all non key properties are set to available in metadata")
-
