@@ -37,7 +37,7 @@ jobs:
             source dev_env.sh
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             PYTHONPATH=$PYTHONPATH:/usr/local/share/virtualenvs/tap-mixpanel/lib/python3.5/site-packages/ \
-            run-test --tap=tap-mixpanel tests
+            run-test --tap=tap-mixpanel tests/tap-tester
 
 workflows:
   version: 2
