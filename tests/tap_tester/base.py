@@ -96,8 +96,7 @@ class TestMixPanelBase(unittest.TestCase):
             'date_window_size': '30',
             'attribution_window': '30',
             'project_timezone': 'US/Pacific',
-            'select_properties_by_default': 'false',
-            'page_size': self.API_LIMIT
+            'select_properties_by_default': 'false'
         })
 
         return properties_dict

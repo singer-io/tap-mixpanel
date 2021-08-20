@@ -17,7 +17,7 @@ class MixPanelPaginationTest(TestMixPanelBase):
         fetch of data.  For instance if you have a limit of 250 records ensure
         that 251 (or more) records have been posted for that stream.
         """
-        page_size = 1
+        page_size = 250
         streams_to_test = self.expected_streams()
         
         conn_id = connections.ensure_connection(self)
