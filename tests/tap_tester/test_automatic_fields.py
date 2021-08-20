@@ -1,6 +1,3 @@
-"""
-Test tap combined
-"""
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from base import TestMixPanelBase

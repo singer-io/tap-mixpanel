@@ -70,6 +70,7 @@ class TestMixPanelBase(unittest.TestCase):
                 'table-key-properties': {"date"},
                 'forced-replication-method': 'FULL_TABLE'
             }
+
         }
 
     def setUp(self):
