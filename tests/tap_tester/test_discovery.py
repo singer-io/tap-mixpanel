@@ -5,7 +5,6 @@ import re
 
 import tap_tester.connections as connections
 from base import TestMixPanelBase
-from tap_tester.scenario import SCENARIOS
 
 
 class MixPanelDiscoverTest(TestMixPanelBase):
