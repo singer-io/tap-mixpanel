@@ -78,6 +78,10 @@ def raise_for_error(response):
                 # There is nothing we can do here since Mixpanel has neither sent
                 # us a 2xx response nor a response content.
                 return
+            if response.status_code == 429:
+                print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+                print(response.json())
+                print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
             response = response.json()
             if ('error' in response) or ('errorCode' in response):
                 message = '%s: %s' % (response.get('error', str(error)),
