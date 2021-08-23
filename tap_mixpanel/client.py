@@ -59,6 +59,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     402: MixpanelRequestFailedError,
     403: MixpanelForbiddenError,
     404: MixpanelNotFoundError,
+    429: Server429Error,
     500: MixpanelInternalServiceError}
 
 
