@@ -2,17 +2,17 @@
 This module defines the stream classes and their individual sync logic.
 """
 
-from datetime import timedelta, datetime, timezone
-import math
 import json
+import math
+from datetime import datetime, timedelta
+
 import pytz
 import singer
-from typing import Iterator
-from singer import metrics, metadata, Transformer, utils
+from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
-from tap_mixpanel.client import MixpanelClient, MixpanelError
-from tap_mixpanel.transform import transform_record
 
+from tap_mixpanel.client import MixpanelClient
+from tap_mixpanel.transform import transform_record
 
 LOGGER = singer.get_logger()
 
@@ -333,8 +333,6 @@ class MixPanel:
             record_count = 0  # Total processed for page
 
             params = self.params  # adds in endpoint specific, sort, filter params
-            LOGGER.info(
-                f'******************{self.bookmark_query_field_from} ***** {self.bookmark_query_field_from}')
 
             if self.bookmark_query_field_from and self.bookmark_query_field_to:
                 # Request dates need to be normalized to project timezone or else errors may occur
@@ -353,9 +351,6 @@ class MixPanel:
                 )
                 params[self.bookmark_query_field_from] = from_date
                 params[self.bookmark_query_field_to] = to_date
-
-            LOGGER.info(
-                f'******************{params}')
 
             # funnels and cohorts have a parent endpoint with parent_data and parent_id_field
             if self.parent_path and self.parent_id_field:

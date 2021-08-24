@@ -1,12 +1,5 @@
-from datetime import timedelta, datetime, timezone
-import math
-import json
-import pytz
 import singer
-from singer import metrics, metadata, Transformer, utils
-from tap_mixpanel.client import MixpanelClient
-from singer.utils import strptime_to_utc
-from tap_mixpanel.transform import transform_record
+
 from tap_mixpanel.streams import STREAMS
 
 LOGGER = singer.get_logger()
