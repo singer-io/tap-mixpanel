@@ -102,7 +102,7 @@ class TestMixPanelBase(unittest.TestCase):
         return properties_dict
 
     def get_start_date(self):
-        return dt.strftime(dt.utcnow() - timedelta(days=700), self.START_DATE_FORMAT)
+        return dt.strftime(dt.utcnow() - timedelta(days=30), self.START_DATE_FORMAT)
 
     def get_credentials(self):
         """Authentication information for the test account. Api secret is expected as a property."""
