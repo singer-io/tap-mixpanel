@@ -1,11 +1,12 @@
 import base64
 import io
+
 import backoff
 import jsonlines
 import requests
+import singer
 from requests.exceptions import ConnectionError, Timeout
 from singer import metrics
-import singer
 
 LOGGER = singer.get_logger()
 
@@ -62,37 +63,62 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     429: Server429Error,
     500: MixpanelInternalServiceError}
 
+ERROR_CODE_EXCEPTION_MAPPING = {
+    400: {
+        "raise_exception": MixpanelBadRequestError,
+        "message": "A validation exception has occurred."
+    },
+    401: {
+        "raise_exception": MixpanelUnauthorizedError,
+        "message": "Invalid authorization credentials."
+    },
+    402: {
+        "raise_exception": MixpanelRequestFailedError,
+        "message": "Request can not be processed."
+    },
+    403: {
+        "raise_exception": MixpanelForbiddenError,
+        "message": "User doesn't have permission to access the resource."
+    },
+    404: {
+        "raise_exception": MixpanelNotFoundError,
+        "message": "The resource you have specified cannot be found."
+    },
+    429: {
+        "raise_exception": Server429Error,
+        "message": "The API rate limit for your organisation/application pairing has been exceeded."
+    },
+    500: {
+        "raise_exception": MixpanelInternalServiceError,
+        "message": "Server encountered an unexpected condition that prevented it from fulfilling the request."
+    }
+}
+
 
 def get_exception_for_error_code(error_code):
     return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, MixpanelError)
 
+
 def raise_for_error(response):
-    LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,\
-        response.text, response.reason))
+    LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,
+                                                   response.text, response.reason))
+    content_length = len(response.content)
+    if content_length == 0:
+        # There is nothing we can do here since Mixpanel has neither sent
+        # us a 2xx response nor a response content.
+        return
     try:
-        response.raise_for_status()
-    except (requests.HTTPError, requests.ConnectionError) as error:
-        try:
-            content_length = len(response.content)
-            if content_length == 0:
-                # There is nothing we can do here since Mixpanel has neither sent
-                # us a 2xx response nor a response content.
-                return
-            if response.status_code == 429:
-                print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-                print(response.json())
-                print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-            response = response.json()
-            if ('error' in response) or ('errorCode' in response):
-                message = '%s: %s' % (response.get('error', str(error)),
-                                      response.get('message', 'Unknown Error'))
-                error_code = response.get('status')
-                ex = get_exception_for_error_code(error_code)
-                raise ex(message)
-            else:
-                raise MixpanelError(error)
-        except (ValueError, TypeError):
-            raise MixpanelError(error)
+        response_json = response.json()
+    except Exception:
+        response_json = {}
+    if response.status_code != 200:
+        message = "HTTP-error-code: {}, Error: {}".format(
+            response.status_code,
+            response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
+                response.status_code, {})).get("message", "Unknown Error"))
+        exc = ERROR_CODE_EXCEPTION_MAPPING.get(
+                response.status_code, {}).get("raise_exception", MixpanelError)
+        raise exc(message) from None
 
 
 class MixpanelClient(object):
@@ -112,9 +138,9 @@ class MixpanelClient(object):
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
-
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
+                          (Server5xxError, Server429Error,
+                           ReadTimeoutError, ConnectionError, Timeout),
                           max_tries=5,
                           factor=2)
     def check_access(self):
@@ -141,14 +167,14 @@ class MixpanelClient(object):
         if response.status_code == 402:
             # 402 Payment Requirement does not indicate a permissions or authentication error
             self.disable_engage_endpoint = True
-            LOGGER.warning('Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
+            LOGGER.warning(
+                'Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
             return True
         elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
             raise_for_error(response)
         else:
             return True
-
 
     @backoff.on_exception(
         backoff.expo,
@@ -181,7 +207,6 @@ class MixpanelClient(object):
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: {}'.format(err))
             raise ReadTimeoutError(err)
-
 
     def request(self, method, url=None, path=None, params=None, json=None, **kwargs):
         if not self.__verified:
@@ -222,7 +247,6 @@ class MixpanelClient(object):
 
         response_json = response.json()
         return response_json
-
 
     def request_export(self, method, url=None, path=None, params=None, json=None, **kwargs):
         if not self.__verified:
