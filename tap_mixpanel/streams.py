@@ -458,6 +458,7 @@ class Annotations(MixPanel):
     bookmark_query_field_to = "to_date"
     replication_method = "FULL_TABLE"
     params = {}
+    replication_key = None
 
 
 class CohortMembers(MixPanel):
@@ -474,7 +475,8 @@ class CohortMembers(MixPanel):
     pagination = True
     parent_path = "cohorts/list"
     parent_id_field = "id"
-    # params = {}
+    replication_key = None
+    replication_method = "FULL_TABLE"
 
     def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
         """
@@ -501,6 +503,7 @@ class Cohorts(MixPanel):
     data_key = "."
     replication_method = "FULL_TABLE"
     params = {}
+    replication_key = None
 
     def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
         start_window = strptime_to_utc(last_datetime)
@@ -526,6 +529,7 @@ class Engage(MixPanel):
     bookmark_query_field_from = None
     bookmark_query_field_to = None
     params = {}
+    replication_key = None
 
     def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
         """
