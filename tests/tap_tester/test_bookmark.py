@@ -16,9 +16,10 @@ class MixPanelBookMarkTest(TestMixPanelBase):
         """Configuration properties required for the tap."""
 
         return_value = {
-            'start_date': self.get_start_date(),
-            'date_window_size': '7',
-            'attribution_window': '14',
+            'start_date': '2020-02-01T00:00:00Z',
+            'end_date': '2020-03-01T00:00:00Z',
+            'date_window_size': '30',
+            'attribution_window': '5',
             'project_timezone': 'US/Pacific',
             'select_properties_by_default': 'false'
         }
@@ -26,6 +27,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
             return return_value
 
         return_value["start_date"] = self.start_date
+        
         return return_value
 
     def test_run(self):
@@ -108,8 +110,6 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 if expected_replication_method == self.INCREMENTAL:
                     # collect information specific to incremental streams from syncs 1 & 2
                     replication_key = next(iter(expected_replication_keys[stream]))
-                    # first_bookmark_value = first_bookmark_key_value.get(replication_key)
-                    # second_bookmark_value = second_bookmark_key_value.get(replication_key)
                     first_bookmark_value_utc = self.convert_state_to_utc(first_bookmark_value)
                     second_bookmark_value_utc = self.convert_state_to_utc(second_bookmark_value)
 
@@ -132,9 +132,9 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                         )
 
                     for record in second_sync_messages:
-                        # Verify the second sync replication key value is Equal to the first sync bookmark
+                        # Verify the second sync replication key value is Greater or Equal to the first sync bookmark
                         replication_key_value = record.get(replication_key)
-                        self.assertEqual(replication_key_value, first_bookmark_value)
+                        self.assertGreaterEqual(replication_key_value, first_bookmark_value)
 
                         # Verify the second sync bookmark value is the max replication key value for a given stream
                         self.assertLessEqual(

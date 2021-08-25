@@ -14,9 +14,10 @@ class MixPanelStartDateTest(TestMixPanelBase):
         """Configuration properties required for the tap."""
 
         return_value = {
-            'start_date': self.get_start_date(),
-            'date_window_size': '7',
-            'attribution_window': '14',
+            'start_date': '2020-02-01T00:00:00Z',
+            'end_date': '2020-03-01T00:00:00Z',
+            'date_window_size': '30',
+            'attribution_window': '5',
             'project_timezone': 'US/Pacific',
             'select_properties_by_default': 'false'
         }

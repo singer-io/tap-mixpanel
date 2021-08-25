@@ -16,9 +16,10 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
         """Configuration properties required for the tap."""
 
         return_value = {
-            'start_date': self.get_start_date(),
-            'date_window_size': '7',
-            'attribution_window': '14',
+            'start_date': '2020-02-01T00:00:00Z',
+            'end_date': '2020-03-01T00:00:00Z',
+            'date_window_size': '30',
+            'attribution_window': '5',
             'project_timezone': 'US/Pacific',
             'select_properties_by_default': 'false'
         }
@@ -48,7 +49,7 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
                                           if catalog.get('tap_stream_id') in streams_to_test]
 
         self.perform_and_verify_table_and_field_selection(
-            conn_id, test_catalogs_automatic_fields, select_all_fields=False,)
+            conn_id, test_catalogs_automatic_fields, select_all_fields=False)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
         synced_records = runner.get_records_from_target_output()
@@ -66,7 +67,7 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
 
                 # Verify that you get some records for each stream
                 self.assertGreater(
-                    record_count_by_stream.get(stream, -1), 0,
+                    record_count_by_stream.get(stream, 0), 0,
                     msg="The number of records is not over the stream max limit")
 
                 # Verify that only the automatic fields are sent to the target
