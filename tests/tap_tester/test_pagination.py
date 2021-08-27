@@ -7,7 +7,6 @@ class MixPanelPaginationTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_pagination_test"
 
-
     def test_run(self):
         """
         Verify that for each stream you can get multiple pages of data
@@ -17,18 +16,20 @@ class MixPanelPaginationTest(TestMixPanelBase):
         fetch of data.  For instance if you have a limit of 250 records ensure
         that 251 (or more) records have been posted for that stream.
         """
-        page_size = 1
-        streams_to_test = self.expected_streams()
-        
+
+        # Only following below 2 streams support pagination
+        streams_to_test = ['engage', 'cohort_members']
+
         conn_id = connections.ensure_connection(self)
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
-                                      if catalog.get('tap_stream_id') in streams_to_test]
-        
-        self.perform_and_verify_table_and_field_selection(conn_id,test_catalogs_all_fields)
+                                    if catalog.get('tap_stream_id') in streams_to_test]
+
+        self.perform_and_verify_table_and_field_selection(
+            conn_id, test_catalogs_all_fields)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
@@ -36,36 +37,35 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
         synced_records = runner.get_records_from_target_output()
 
-        #Only following below 2 streams support pagination
-        paginated_stream = ['engage', 'cohort_members']
         for stream in streams_to_test:
-            if stream in paginated_stream:
-                with self.subTest(stream=stream):
-                    # expected values
-                    expected_primary_keys = self.expected_pks()
+            with self.subTest(stream=stream):
 
-                    # verify that we can paginate with all fields selected
-                    record_count_sync = record_count_by_stream.get(stream, 0)
-                    self.assertGreater(record_count_sync,self.API_LIMIT,
-                    msg="The number of records is not over the stream max limit")
+                # expected values
+                expected_primary_keys = self.expected_pks()[stream]
 
-                    primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
-                                        for message in synced_records.get(stream).get('messages')
-                                        if message.get('action') == 'upsert']
+                # verify that we can paginate with all fields selected
+                record_count_sync = record_count_by_stream.get(stream, 0)
+                self.assertGreater(record_count_sync, self.API_LIMIT,
+                                   msg="The number of records is not over the stream max limit")
 
-                    # verify that the automatic fields are sent to the target
-                    
+                primary_keys_list = [tuple([message.get('data').get(expected_pk) for expected_pk in expected_primary_keys])
+                                     for message in synced_records.get(stream).get('messages')
+                                     if message.get('action') == 'upsert']
+
+                # verify that the automatic fields are sent to the target
+                self.assertTrue(
+                    actual_fields_by_stream.get(stream, set()).issuperset(
+                        self.expected_automatic_fields().get(stream, set())),
+                    msg="The fields sent to the target don't include all automatic fields")
+
+                if record_count_sync > self.API_LIMIT:
+
+                    primary_keys_list_1 = primary_keys_list[:self.API_LIMIT]
+                    primary_keys_list_2 = primary_keys_list[self.API_LIMIT:2*self.API_LIMIT]
+
+                    primary_keys_page_1 = set(primary_keys_list_1)
+                    primary_keys_page_2 = set(primary_keys_list_2)
+
+                    # Verify by private keys that data is unique for page
                     self.assertTrue(
-                        actual_fields_by_stream.get(stream, set()).issuperset(self.expected_pks().get(stream, set())),
-                        msg="The fields sent to the target don't include all automatic fields")
-                    
-                    if record_count_sync > page_size:
-                        
-                        primary_keys_list_1 = primary_keys_list[:page_size]
-                        primary_keys_list_2 = primary_keys_list[page_size:2*page_size]
-
-                        primary_keys_page_1 = set(primary_keys_list_1)
-                        primary_keys_page_2 = set(primary_keys_list_2)
-
-                        # Verify by private keys that data is unique for page
-                        self.assertTrue(primary_keys_page_1.isdisjoint(primary_keys_page_2))
+                        primary_keys_page_1.isdisjoint(primary_keys_page_2))

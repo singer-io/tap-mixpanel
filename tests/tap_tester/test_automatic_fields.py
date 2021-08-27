@@ -12,31 +12,10 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_automatic_fields_test"
 
-    def get_properties(self, original: bool = True):
-        """Configuration properties required for the tap."""
-
-        return_value = {
-            'start_date': '2020-02-01T00:00:00Z',
-            'end_date': '2020-03-01T00:00:00Z',
-            'date_window_size': '30',
-            'attribution_window': '5',
-            'project_timezone': 'US/Pacific',
-            'select_properties_by_default': 'false'
-        }
-        if original:
-            return return_value
-
-        return_value["start_date"] = self.start_date
-        return return_value
-
     def test_run(self):
         """
-        Verify that for each stream you can get multiple pages of data
+        Verify that for each stream you can get enough data
         when no fields are selected and only the automatic fields are replicated.
-        PREREQUISITE
-        For EACH stream add enough data that you surpass the limit of a single
-        fetch of data.  For instance if you have a limit of 250 records ensure
-        that 251 (or more) records have been posted for that stream.
         """
         streams_to_test = self.expected_streams()
 

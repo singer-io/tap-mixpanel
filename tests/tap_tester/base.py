@@ -23,6 +23,7 @@ class TestMixPanelBase(unittest.TestCase):
     FOREIGN_KEYS = "table-foreign-key-properties"
     REPLICATION_METHOD = "forced-replication-method"
     INCREMENTAL = "INCREMENTAL"
+    FULL_TABLE = "FULL_TABLE"
     API_LIMIT = 250
     TYPE = "platform.mixpanel"
     start_date = ""
@@ -39,40 +40,39 @@ class TestMixPanelBase(unittest.TestCase):
         """The expected streams and metadata about the streams"""
         return {
             'export': {
-            'table-key-properties': set(),
-            'forced-replication-method': 'INCREMENTAL',
-            'valid-replication-keys': {'time'},
-        },
-        'engage': {
-            'table-key-properties': {"distinct_id"},
-            'forced-replication-method': 'FULL_TABLE',
-        },
-        'funnels': {
-            'table-key-properties': {'funnel_id', 'date'},
-            'forced-replication-method': 'INCREMENTAL',
-            'valid-replication-keys': {'datetime'},
-        },
-        'cohorts': {
-            'table-key-properties': {"id"},
-            'forced-replication-method': 'FULL_TABLE',
-        },
-        'cohort_members': {
-            'table-key-properties': {"cohort_id", "distinct_id"},
-            'forced-replication-method': 'FULL_TABLE',
-        },
-        'revenue': {
-            'table-key-properties': {"date"},
-            'forced-replication-method': 'INCREMENTAL',
-            'valid-replication-keys': {'datetime'},
-        },
+                self.PRIMARY_KEYS: set(),
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'time'},
+            },
+            'engage': {
+                self.PRIMARY_KEYS: {"distinct_id"},
+                self.REPLICATION_METHOD: self.FULL_TABLE,
+            },
+            'funnels': {
+                self.PRIMARY_KEYS: {'funnel_id', 'date'},
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'datetime'},
+            },
+            'cohorts': {
+                self.PRIMARY_KEYS: {"id"},
+                self.REPLICATION_METHOD: self.FULL_TABLE,
+            },
+            'cohort_members': {
+                self.PRIMARY_KEYS: {"cohort_id", "distinct_id"},
+                self.REPLICATION_METHOD: self.FULL_TABLE,
+            },
+            'revenue': {
+                self.PRIMARY_KEYS: {"date"},
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'datetime'},
+            },
 
-        'annotations': {
-            'table-key-properties': {"date"},
-            'forced-replication-method': 'FULL_TABLE'
+            'annotations': {
+                self.PRIMARY_KEYS: {"date"},
+                self.REPLICATION_METHOD: self.FULL_TABLE
+            }
         }
 
-        }
-    
     def setUp(self):
         missing_envs = []
         creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
@@ -88,19 +88,22 @@ class TestMixPanelBase(unittest.TestCase):
         """the expected url route ending"""
         return "platform.mixpanel"
 
-    def get_properties(self):
+    def get_properties(self, original: bool = True):
         """Configuration properties required for the tap."""
-        properties_dict = {}
-        properties_dict.update({
-            'start_date': '2020-02-01T00:00:00Z',
-            'end_date': '2020-03-01T00:00:00Z',
+
+        return_value = {
+            'start_date': '2020-02-17T00:00:00Z',
+            'end_date': '2020-04-01T00:00:00Z',
             'date_window_size': '30',
             'attribution_window': '5',
             'project_timezone': 'US/Pacific',
             'select_properties_by_default': 'false'
-        })
+        }
+        if original:
+            return return_value
 
-        return properties_dict
+        return_value["start_date"] = self.start_date
+        return return_value
 
     def get_start_date(self):
         return dt.strftime(dt.utcnow() - timedelta(days=30), self.START_DATE_FORMAT)
@@ -144,18 +147,11 @@ class TestMixPanelBase(unittest.TestCase):
             auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) | v.get(self.REPLICATION_KEYS, set()) \
                 | v.get(self.FOREIGN_KEYS, set())
         return auto_fields
-    
-    def full_table(self):
-        return {
-            "engage": {},
-            "cohorts": {},
-            "cohort_members": {},
-            "annotations": {}
-        }
 
     #########################
     #   Helper Methods      #
     #########################
+
     def run_and_verify_check_mode(self, conn_id):
         """
         Run the tap in check mode and verify it succeeds.
@@ -170,12 +166,15 @@ class TestMixPanelBase(unittest.TestCase):
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
         found_catalogs = menagerie.get_catalogs(conn_id)
-        self.assertGreater(len(found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
+        self.assertGreater(len(
+            found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
 
-        found_catalog_names = set(map(lambda c: c['stream_name'], found_catalogs))
+        found_catalog_names = set(
+            map(lambda c: c['stream_name'], found_catalogs))
 
         subset = self.expected_streams().issubset(found_catalog_names)
-        self.assertTrue(subset, msg="Expected check streams are not subset of discovered catalog")
+        self.assertTrue(
+            subset, msg="Expected check streams are not subset of discovered catalog")
         print("discovered schemas are OK")
 
         return found_catalogs
@@ -201,10 +200,10 @@ class TestMixPanelBase(unittest.TestCase):
             sum(sync_record_count.values()), 0,
             msg="failed to replicate any data: {}".format(sync_record_count)
         )
-        print("total replicated row count: {}".format(sum(sync_record_count.values())))
+        print("total replicated row count: {}".format(
+            sum(sync_record_count.values())))
 
         return sync_record_count
-
 
     def perform_and_verify_table_and_field_selection(self, conn_id, test_catalogs, select_all_fields=True):
         """
@@ -213,24 +212,28 @@ class TestMixPanelBase(unittest.TestCase):
         Verify this results in the expected streams selected and all or no
         fields selected for those streams.
         """
-        
+
         # Select all available fields or select no fields from all testable streams
-        self.select_all_streams_and_fields(conn_id, test_catalogs, select_all_fields)
+        self.select_all_streams_and_fields(
+            conn_id, test_catalogs, select_all_fields)
 
         catalogs = menagerie.get_catalogs(conn_id)
 
-        #Ensure our selection affects the catalog
+        # Ensure our selection affects the catalog
         expected_selected = [tc.get('stream_name') for tc in test_catalogs]
-        
+
         for cat in catalogs:
-            catalog_entry = menagerie.get_annotated_schema(conn_id, cat['stream_id'])
+            catalog_entry = menagerie.get_annotated_schema(
+                conn_id, cat['stream_id'])
 
             # Verify all testable streams are selected
             selected = catalog_entry.get('annotated-schema').get('selected')
-            print("Validating selection on {}: {}".format(cat['stream_name'], selected))
+            print("Validating selection on {}: {}".format(
+                cat['stream_name'], selected))
             if cat['stream_name'] not in expected_selected:
-                self.assertFalse(selected, msg="Stream selected, but not testable.")
-                continue # Skip remaining assertions if we aren't selecting this stream
+                self.assertFalse(
+                    selected, msg="Stream selected, but not testable.")
+                continue  # Skip remaining assertions if we aren't selecting this stream
             self.assertTrue(selected, msg="Stream not selected.")
 
             if select_all_fields:
@@ -242,8 +245,10 @@ class TestMixPanelBase(unittest.TestCase):
                     self.assertTrue(field_selected, msg="Field not selected.")
             else:
                 # Verify only automatic fields are selected
-                expected_automatic_fields = self.expected_automatic_fields().get(cat['stream_name'])
-                selected_fields = self.get_selected_fields_from_metadata(catalog_entry['metadata'])
+                expected_automatic_fields = self.expected_automatic_fields().get(
+                    cat['stream_name'])
+                selected_fields = self.get_selected_fields_from_metadata(
+                    catalog_entry['metadata'])
                 self.assertEqual(expected_automatic_fields, selected_fields)
 
     def get_selected_fields_from_metadata(self, metadata):
@@ -251,17 +256,18 @@ class TestMixPanelBase(unittest.TestCase):
         for field in metadata:
             is_field_metadata = len(field['breadcrumb']) > 1
             inclusion_automatic_or_selected = (
-                field['metadata']['selected'] is True or \
+                field['metadata']['selected'] is True or
                 field['metadata']['inclusion'] == 'automatic'
             )
             if is_field_metadata and inclusion_automatic_or_selected:
                 selected_fields.add(field['breadcrumb'][1])
         return selected_fields
-        
+
     def select_all_streams_and_fields(self, conn_id, catalogs, select_all_fields: bool = True):
         """Select all streams and all fields within streams"""
         for catalog in catalogs:
-            schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
+            schema = menagerie.get_annotated_schema(
+                conn_id, catalog['stream_id'])
 
             non_selected_properties = []
             if not select_all_fields:
@@ -290,10 +296,30 @@ class TestMixPanelBase(unittest.TestCase):
             except ValueError:
                 continue
 
-        raise NotImplementedError("Tests do not account for dates of this format: {}".format(date_value))
+        raise NotImplementedError(
+            "Tests do not account for dates of this format: {}".format(date_value))
+
+    def calculated_states_by_stream(self, current_state):
+        timedelta_by_stream = {stream: [1,0,0]  # {stream_name: [days, hours, minutes], ...}
+                               for stream in self.expected_streams()}
+        
+        stream_to_calculated_state = {stream: "" for stream in current_state['bookmarks'].keys()}
+        for stream, state in current_state['bookmarks'].items():
+    
+            state_as_datetime = dateutil.parser.parse(state)
+            
+            days, hours, minutes = timedelta_by_stream[stream]
+            calculated_state_as_datetime = state_as_datetime - timedelta(days=days, hours=hours, minutes=minutes)
+            
+            state_format = '%Y-%m-%dT%H:%M:%S-00:00'
+            calculated_state_formatted = dt.strftime(calculated_state_as_datetime, state_format)
+            
+            stream_to_calculated_state[stream] = calculated_state_formatted
+
+        return stream_to_calculated_state
 
     ##########################################################################
-    ### Tap Specific Methods
+    # Tap Specific Methods
     ##########################################################################
 
     def convert_state_to_utc(self, date_str):
@@ -315,7 +341,8 @@ class TestMixPanelBase(unittest.TestCase):
 
         except ValueError:
             try:
-                date_stripped = dt.strptime(dtime, self.BOOKMARK_COMPARISON_FORMAT)
+                date_stripped = dt.strptime(
+                    dtime, self.BOOKMARK_COMPARISON_FORMAT)
                 return_date = date_stripped + timedelta(days=days)
 
                 return dt.strftime(return_date, self.BOOKMARK_COMPARISON_FORMAT)
@@ -324,5 +351,4 @@ class TestMixPanelBase(unittest.TestCase):
                 return Exception("Datetime object is not of the format: {}".format(self.START_DATE_FORMAT))
 
     def is_incremental(self, stream):
-        return not stream in self.full_table() 
-
+        return self.expected_metadata().get(stream).get(self.REPLICATION_METHOD) == self.INCREMENTAL

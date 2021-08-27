@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from base import TestMixPanelBase
@@ -7,28 +9,8 @@ from tap_tester import menagerie
 class MixPanelBookMarkTest(TestMixPanelBase):
     """Test tap sets a bookmark and respects it for the next sync of a stream"""
 
-    start_date_1 = ""
-    start_date_2 = ""
     def name(self):
         return "mix_panel_bookmark_test"
-
-    def get_properties(self, original: bool = True):
-        """Configuration properties required for the tap."""
-
-        return_value = {
-            'start_date': '2020-02-01T00:00:00Z',
-            'end_date': '2020-03-01T00:00:00Z',
-            'date_window_size': '30',
-            'attribution_window': '5',
-            'project_timezone': 'US/Pacific',
-            'select_properties_by_default': 'false'
-        }
-        if original:
-            return return_value
-
-        return_value["start_date"] = self.start_date
-        
-        return return_value
 
     def test_run(self):
         """
@@ -41,55 +23,61 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 doubled the amount of data from the start date to the first sync between
                 the first sync and second sync run in this test)
 
-        Verify that only data for incremental streams is sent to the target
+        Verify that for full table stream, all data replicated in sync 1 is replicated again in sync 2.
 
         PREREQUISITE
         For EACH stream that is incrementally replicated there are multiple rows of data with
             different values for the replication key
         """
-        self.start_date_1 = self.get_properties().get('start_date')
-        self.start_date_2 = self.timedelta_formatted(self.start_date_1, days=3)
 
-        self.start_date = self.start_date_1
-
-        streams_to_test = self.expected_streams()
+        expected_streams = self.expected_streams()
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()
 
         ##########################################################################
-        ### First Sync
+        # First Sync
         ##########################################################################
-        conn_id_1 = connections.ensure_connection(self)
+        conn_id = connections.ensure_connection(self)
 
-        found_catalogs = self.run_and_verify_check_mode(conn_id_1)
-
-        # incremental_streams = {key for key, value in self.expected_replication_method().items()
-        #                        if value == self.INCREMENTAL}
+        # Run in check mode
+        found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
-        found_catalogs_1 = [catalog for catalog in found_catalogs
-                                      if catalog.get('tap_stream_id') in streams_to_test]
-        
-        self.perform_and_verify_table_and_field_selection(conn_id_1,found_catalogs_1)
+        catalog_entries = [catalog for catalog in found_catalogs
+                           if catalog.get('tap_stream_id') in expected_streams]
+
+        self.perform_and_verify_table_and_field_selection(
+            conn_id, catalog_entries)
 
         # Run a first sync job using orchestrator
-        first_sync_record_count = self.run_and_verify_sync(conn_id_1)
+        first_sync_record_count = self.run_and_verify_sync(conn_id)
         first_sync_records = runner.get_records_from_target_output()
-        first_sync_bookmarks = menagerie.get_state(conn_id_1)
+        first_sync_bookmarks = menagerie.get_state(conn_id)
 
         ##########################################################################
-        ### Second Sync
+        # Update State Between Syncs
         ##########################################################################
 
-        second_sync_record_count = self.run_and_verify_sync(conn_id_1)
+        new_states = {'bookmarks': dict()}
+        simulated_states = self.calculated_states_by_stream(
+            first_sync_bookmarks)
+        for stream, new_state in simulated_states.items():
+            new_states['bookmarks'][stream] = new_state
+        menagerie.set_state(conn_id, new_states)
+
+        ##########################################################################
+        # Second Sync
+        ##########################################################################
+
+        second_sync_record_count = self.run_and_verify_sync(conn_id)
         second_sync_records = runner.get_records_from_target_output()
-        second_sync_bookmarks = menagerie.get_state(conn_id_1)
+        second_sync_bookmarks = menagerie.get_state(conn_id)
 
         ##########################################################################
-        ### Test By Stream
+        # Test By Stream
         ##########################################################################
 
-        for stream in streams_to_test:
+        for stream in expected_streams:
             with self.subTest(stream=stream):
 
                 # expected values
@@ -99,19 +87,31 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 first_sync_count = first_sync_record_count.get(stream, 0)
                 second_sync_count = second_sync_record_count.get(stream, 0)
                 first_sync_messages = [record.get('data') for record in
-                                       first_sync_records.get(stream, {}).get('messages', [])
+                                       first_sync_records.get(
+                                           stream, {}).get('messages', [])
                                        if record.get('action') == 'upsert']
                 second_sync_messages = [record.get('data') for record in
-                                        second_sync_records.get(stream, {}).get('messages', [])
+                                        second_sync_records.get(
+                                            stream, {}).get('messages', [])
                                         if record.get('action') == 'upsert']
-                first_bookmark_value = first_sync_bookmarks.get('bookmarks', {}).get(stream)
-                second_bookmark_value = second_sync_bookmarks.get('bookmarks', {}).get(stream)
+
+                first_bookmark_value = first_sync_bookmarks.get(
+                    'bookmarks', {stream: None}).get(stream)
+                second_bookmark_value = second_sync_bookmarks.get(
+                    'bookmarks', {stream: None}).get(stream)
 
                 if expected_replication_method == self.INCREMENTAL:
+
                     # collect information specific to incremental streams from syncs 1 & 2
-                    replication_key = next(iter(expected_replication_keys[stream]))
-                    first_bookmark_value_utc = self.convert_state_to_utc(first_bookmark_value)
-                    second_bookmark_value_utc = self.convert_state_to_utc(second_bookmark_value)
+                    replication_key = next(
+                        iter(expected_replication_keys[stream]))
+
+                    first_bookmark_value_utc = self.convert_state_to_utc(
+                        first_bookmark_value)
+                    second_bookmark_value_utc = self.convert_state_to_utc(
+                        second_bookmark_value)
+
+                    simulated_bookmark_minus_lookback = new_states['bookmarks'][stream]
 
                     # Verify the first sync sets a bookmark of the expected form
                     self.assertIsNotNone(first_bookmark_value)
@@ -120,7 +120,9 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                     self.assertIsNotNone(second_bookmark_value)
 
                     # Verify the second sync bookmark is Equal to the first sync bookmark
-                    self.assertEqual(second_bookmark_value, first_bookmark_value) # assumes no changes to data during test
+                    # assumes no changes to data during test
+                    self.assertEqual(second_bookmark_value,
+                                     first_bookmark_value)
 
                     for record in first_sync_messages:
 
@@ -134,7 +136,8 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                     for record in second_sync_messages:
                         # Verify the second sync replication key value is Greater or Equal to the first sync bookmark
                         replication_key_value = record.get(replication_key)
-                        self.assertGreaterEqual(replication_key_value, first_bookmark_value)
+                        self.assertGreaterEqual(replication_key_value, simulated_bookmark_minus_lookback,
+                                                msg="Second sync records do not repect the previous bookmark.")
 
                         # Verify the second sync bookmark value is the max replication key value for a given stream
                         self.assertLessEqual(
@@ -143,7 +146,27 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                         )
 
                     # verify that you get less data the 2nd time around
-                    self.assertGreaterEqual(
-                        first_sync_record_count.get(stream, 0),
-                        second_sync_record_count.get(stream, 0),
+                    self.assertLess(
+                        second_sync_count,
+                        first_sync_count,
                         msg="second syc didn't have less records, bookmark usage not verified")
+
+                elif expected_replication_method == self.FULL_TABLE:
+
+                    # Verify the syncs do not set a bookmark for full table streams
+                    self.assertIsNone(first_bookmark_value)
+                    self.assertIsNone(second_bookmark_value)
+
+                    # Verify the number of records in the second sync is the same as the first
+                    self.assertEqual(second_sync_count, first_sync_count)
+
+                else:
+
+                    raise NotImplementedError(
+                        "INVALID EXPECTATIONS\t\tSTREAM: {} REPLICATION_METHOD: {}".format(
+                            stream, expected_replication_method)
+                    )
+
+                # Verify at least 1 record was replicated in the second sync
+                self.assertGreater(
+                    second_sync_count, 0, msg="We are not fully testing bookmarking for {}".format(stream))
