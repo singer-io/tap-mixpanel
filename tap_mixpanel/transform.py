@@ -32,7 +32,7 @@ def transform_event_times(record, project_timezone):
     naive_time = datetime.time(0, 0)
     date = datetime.date(1970, 1, 1)
     naive_datetime = datetime.datetime.combine(date, naive_time)
-    beginning_datetime = timezone.localize(naive_datetime)
+    beginning_datetime = pytz.utc.localize(naive_datetime).astimezone(timezone)
 
     # Get integer time
     time_int = int(record.get('time'))

@@ -26,6 +26,11 @@ jobs:
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             stitch-validate-json tap_mixpanel/schemas/*.json
       - run:
+          name: 'Unit Tests'
+          command: |
+            source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
+            pytest tests/unittests
+      - run:
           when: always
           name: 'Integration Tests Setup'
           command: |
