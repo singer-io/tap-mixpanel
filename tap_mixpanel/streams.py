@@ -269,35 +269,39 @@ class MixPanel:
         define the params from and to according to the filters provided in
          the bookmark_query_field_from and bookmark_query_field_to
         """
-        if not days_interval:
-            days_interval = 30
+        if self.bookmark_query_field_from and self.bookmark_query_field_to:
+            # days_interval from config date_window_size, default = 60; passed to function from sync
+            if not days_interval:
+                days_interval = 30
 
-        last_dttm = strptime_to_utc(last_datetime)
-        delta_days = (now_datetime - last_dttm).days
-        if delta_days <= attribution_window:
-            delta_days = attribution_window
-            LOGGER.info(
-                "Start bookmark less than {} day attribution window.".format(
-                    attribution_window
-                )
-            )
-        elif delta_days >= 365:
-            delta_days = 365
-            LOGGER.warning(
-                "WARNING: Start date or bookmark greater than 1 year maximum."
-            )
-            LOGGER.warning(
-                "WARNING: Setting bookmark start to 1 year ago.")
+            last_dttm = strptime_to_utc(last_datetime)
+            delta_days = (now_datetime - last_dttm).days
+            if delta_days <= attribution_window:
+                delta_days = attribution_window
+                LOGGER.info("Start bookmark less than {} day attribution window.".format(
+                    attribution_window))
+            elif delta_days >= 365:
+                delta_days = 365
+                LOGGER.warning(
+                    "WARNING: Start date or bookmark greater than 1 year maxiumum.")
+                LOGGER.warning(
+                    "WARNING: Setting bookmark start to 1 year ago.")
 
-        start_window = now_datetime - timedelta(days=delta_days)
-        end_window = start_window + timedelta(days=days_interval)
-        if end_window > now_datetime:
+            start_window = now_datetime - timedelta(days=delta_days)
+            end_window = start_window + timedelta(days=days_interval)
+            if end_window > now_datetime:
+                end_window = now_datetime
+        else:
+            start_window = strptime_to_utc(last_datetime)
             end_window = now_datetime
+            diff_sec = (end_window - start_window).seconds
+            # round-up difference to days
+            days_interval = math.ceil(diff_sec / (3600 * 24))
 
         return start_window, end_window, days_interval
 
     def sync(self, state: dict, catalog, config: dict):
-        # the sync method depending to different endpoints
+        # the sync method depending on different endpoints
 
         bookmark_field = next(iter(self.replication_key), None)
         start_date = config["start_date"]
@@ -458,7 +462,7 @@ class Annotations(MixPanel):
     bookmark_query_field_to = "to_date"
     replication_method = "FULL_TABLE"
     params = {}
-    replication_key = None
+    replication_key = []
 
 
 class CohortMembers(MixPanel):
@@ -475,21 +479,9 @@ class CohortMembers(MixPanel):
     pagination = True
     parent_path = "cohorts/list"
     parent_id_field = "id"
-    replication_key = None
-    replication_method = "FULL_TABLE"
-
-    def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
-        """
-        define the params from and to according to the filters provided in
-         the bookmark_query_field_from and bookmark_query_field_to
-        """
-        start_window = strptime_to_utc(last_datetime)
-        end_window = now_datetime
-        diff_sec = (end_window - start_window).seconds
-        # round-up difference to days
-        days_interval = math.ceil(diff_sec / (3600 * 24))
-
-        return start_window, end_window, days_interval
+    replication_key = []
+    bookmark_query_field_from = None
+    bookmark_query_field_to = None
 
 
 class Cohorts(MixPanel):
@@ -503,16 +495,9 @@ class Cohorts(MixPanel):
     data_key = "."
     replication_method = "FULL_TABLE"
     params = {}
-    replication_key = None
-
-    def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
-        start_window = strptime_to_utc(last_datetime)
-        end_window = now_datetime
-        diff_sec = (end_window - start_window).seconds
-        # round-up difference to days
-        days_interval = math.ceil(diff_sec / (3600 * 24))
-
-        return start_window, end_window, days_interval
+    replication_key = []
+    bookmark_query_field_from = None
+    bookmark_query_field_to = None
 
 
 class Engage(MixPanel):
@@ -529,20 +514,7 @@ class Engage(MixPanel):
     bookmark_query_field_from = None
     bookmark_query_field_to = None
     params = {}
-    replication_key = None
-
-    def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
-        """
-        define the params from and to according to the filters provided in
-         the bookmark_query_field_from and bookmark_query_field_to
-        """
-        start_window = strptime_to_utc(last_datetime)
-        end_window = now_datetime
-        diff_sec = (end_window - start_window).seconds
-        # round-up difference to days
-        days_interval = math.ceil(diff_sec / (3600 * 24))
-
-        return start_window, end_window, days_interval
+    replication_key = []
 
 
 class Export(MixPanel):
