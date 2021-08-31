@@ -111,7 +111,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                     second_bookmark_value_utc = self.convert_state_to_utc(
                         second_bookmark_value)
 
-                    simulated_bookmark_minus_lookback = new_states['bookmarks'][stream]
+                    simulated_bookmark = new_states['bookmarks'][stream]
 
                     # Verify the first sync sets a bookmark of the expected form
                     self.assertIsNotNone(first_bookmark_value)
@@ -136,7 +136,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                     for record in second_sync_messages:
                         # Verify the second sync replication key value is Greater or Equal to the first sync bookmark
                         replication_key_value = record.get(replication_key)
-                        self.assertGreaterEqual(replication_key_value, simulated_bookmark_minus_lookback,
+                        self.assertGreaterEqual(replication_key_value, simulated_bookmark,
                                                 msg="Second sync records do not repect the previous bookmark.")
 
                         # Verify the second sync bookmark value is the max replication key value for a given stream

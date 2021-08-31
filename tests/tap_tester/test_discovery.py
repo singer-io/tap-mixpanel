@@ -88,23 +88,19 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                                 "\nstream_properties | {}".format(stream_properties))
 
                 # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
-                # If replication keys are not specified in metadata, skip this check
-                rep_key_mdata = stream_properties[0].get(
-                    "metadata", {self.REPLICATION_KEYS: []})
-                if self.REPLICATION_KEYS in rep_key_mdata:
-                    if actual_replication_keys:
-                        self.assertTrue(actual_replication_method == self.INCREMENTAL,
-                                        msg="Expected INCREMENTAL replication "
-                                            "since there is a replication key")
-                    else:
-                        self.assertTrue(actual_replication_method == self.FULL_TABLE,
-                                        msg="Expected FULL replication "
-                                        "since there is no replication key")
+                if actual_replication_keys:
+                    self.assertTrue(actual_replication_method == self.INCREMENTAL,
+                                    msg="Expected INCREMENTAL replication "
+                                        "since there is a replication key")
+                else:
+                    self.assertTrue(actual_replication_method == self.FULL_TABLE,
+                                    msg="Expected FULL replication "
+                                    "since there is no replication key")
 
-                    # verify the actual replication matches our expected replication method
-                    self.assertEqual(expected_replication_method, actual_replication_method,
-                                     msg="The actual replication method {} doesn't match the expected {}".format(
-                                         actual_replication_method, expected_replication_method))
+                # verify the actual replication matches our expected replication method
+                self.assertEqual(expected_replication_method, actual_replication_method,
+                                    msg="The actual replication method {} doesn't match the expected {}".format(
+                                        actual_replication_method, expected_replication_method))
 
                 print(stream_properties[0].get(
                     "metadata", {self.REPLICATION_KEYS: []}))
