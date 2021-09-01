@@ -1,5 +1,6 @@
 import tap_tester.connections as connections
 import tap_tester.runner as runner
+import tap_tester.menagerie as menagerie
 from base import TestMixPanelBase
 
 
@@ -9,8 +10,13 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
     def test_run(self):
         """
-        Verify that for each stream you can get multiple pages of data
-        and that when all fields are selected more than the automatic fields are replicated.
+        • Verify that for each stream you can get multiple pages of data
+        • and that when all fields are selected more than the automatic fields are replicated.
+        • Verify no unexpected streams were replicated
+        • Verify that more than just the automatic fields are replicated for each stream. 
+        • verify all fields for each stream are replicated
+        • verify that the automatic fields are sent to the target
+
         PREREQUISITE
         For EACH stream add enough data that you surpass the limit of a single
         fetch of data.  For instance if you have a limit of 250 records ensure
@@ -20,16 +26,32 @@ class MixPanelPaginationTest(TestMixPanelBase):
         # Only following below 2 streams support pagination
         streams_to_test = ['engage', 'cohort_members']
 
+        # Streams to verify all fields tests
+        expected_streams = self.expected_streams()
+        
+        expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
-                                    if catalog.get('tap_stream_id') in streams_to_test]
+                                    if catalog.get('tap_stream_id') in expected_streams]
 
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_all_fields)
+
+        # grab metadata after performing table-and-field selection to set expectations
+        # used for asserting all fields are replicated
+        stream_to_all_catalog_fields = dict()
+        for catalog in test_catalogs_all_fields:
+            stream_id, stream_name = catalog['stream_id'], catalog['stream_name']
+            catalog_entry = menagerie.get_annotated_schema(conn_id, stream_id)
+            fields_from_field_level_md = [md_entry['breadcrumb'][1]
+                                          for md_entry in catalog_entry['metadata']
+                                          if md_entry['breadcrumb'] != []]
+            stream_to_all_catalog_fields[stream_name] = set(
+                fields_from_field_level_md)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
@@ -37,35 +59,69 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
         synced_records = runner.get_records_from_target_output()
 
-        for stream in streams_to_test:
+        # Verify no unexpected streams were replicated
+        synced_stream_names = set(synced_records.keys())
+        self.assertSetEqual(expected_streams, synced_stream_names)
+
+        for stream in expected_streams:
             with self.subTest(stream=stream):
 
                 # expected values
                 expected_primary_keys = self.expected_pks()[stream]
+                expected_all_keys = stream_to_all_catalog_fields[stream]
+                expected_automatic_keys = expected_automatic_fields.get(
+                    stream, set())
 
-                # verify that we can paginate with all fields selected
-                record_count_sync = record_count_by_stream.get(stream, 0)
-                self.assertGreater(record_count_sync, self.API_LIMIT,
-                                   msg="The number of records is not over the stream max limit")
-
-                primary_keys_list = [tuple([message.get('data').get(expected_pk) for expected_pk in expected_primary_keys])
-                                     for message in synced_records.get(stream).get('messages')
-                                     if message.get('action') == 'upsert']
+                # collect actual values
+                messages = synced_records.get(stream)
+                actual_all_keys = [set(message['data'].keys()) for message in messages['messages']
+                                   if message['action'] == 'upsert'][0]
 
                 # verify that the automatic fields are sent to the target
                 self.assertTrue(
                     actual_fields_by_stream.get(stream, set()).issuperset(
-                        self.expected_automatic_fields().get(stream, set())),
+                        expected_automatic_keys),
                     msg="The fields sent to the target don't include all automatic fields")
 
-                if record_count_sync > self.API_LIMIT:
+                # Verify that more than just the automatic fields are replicated for each stream.
+                if stream != "cohort_members":  # cohort_member has just 2 key and both are automatic
+                    self.assertGreater(len(expected_all_keys),
+                                       len(expected_automatic_keys))
 
-                    primary_keys_list_1 = primary_keys_list[:self.API_LIMIT]
-                    primary_keys_list_2 = primary_keys_list[self.API_LIMIT:2*self.API_LIMIT]
+                self.assertTrue(expected_automatic_keys.issubset(
+                    expected_all_keys), msg=f'{expected_automatic_keys-expected_all_keys} is not in "expected_all_keys"')
 
-                    primary_keys_page_1 = set(primary_keys_list_1)
-                    primary_keys_page_2 = set(primary_keys_list_2)
+                # As we can't find the below fields in the docs and also
+                # it won't be generated by mixpanel APIs now so expected.
+                if stream == "export":
+                    expected_all_keys = expected_all_keys - {'labels', 'sampling_factor', 'dataset', 'mp_reserved_duration_s', 'mp_reserved_origin_end',
+                                                             'mp_reserved_origin_start', 'mp_reserved_event_count'}
 
-                    # Verify by private keys that data is unique for page
-                    self.assertTrue(
-                        primary_keys_page_1.isdisjoint(primary_keys_page_2))
+                elif stream == "engage":
+                    expected_all_keys = expected_all_keys - {'Channel Id', 'country', 'signup_date', 'Intercom', 'mp_reserved_campaigns',
+                                                             'age', 'mp_reserved_airship_named_user', 'ChannelId', 'widget', 'featureTier', 'payingClient', 'batcheetahMode'}
+
+                # verify all fields for each stream are replicated
+                self.assertSetEqual(expected_all_keys, actual_all_keys)
+
+                if stream in streams_to_test:
+                    # verify that we can paginate with all fields selected
+                    record_count_sync = record_count_by_stream.get(stream, 0)
+                    self.assertGreater(record_count_sync, self.API_LIMIT,
+                                       msg="The number of records is not over the stream max limit")
+
+                    primary_keys_list = [tuple([message.get('data').get(expected_pk) for expected_pk in expected_primary_keys])
+                                         for message in synced_records.get(stream).get('messages')
+                                         if message.get('action') == 'upsert']
+
+                    if record_count_sync > self.API_LIMIT:
+
+                        primary_keys_list_1 = primary_keys_list[:self.API_LIMIT]
+                        primary_keys_list_2 = primary_keys_list[self.API_LIMIT:2*self.API_LIMIT]
+
+                        primary_keys_page_1 = set(primary_keys_list_1)
+                        primary_keys_page_2 = set(primary_keys_list_2)
+
+                        # Verify by private keys that data is unique for page
+                        self.assertTrue(
+                            primary_keys_page_1.isdisjoint(primary_keys_page_2))

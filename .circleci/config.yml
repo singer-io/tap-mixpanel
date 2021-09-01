@@ -26,6 +26,12 @@ jobs:
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             stitch-validate-json tap_mixpanel/schemas/*.json
       - run:
+          name: 'Unit Tests'
+          command: |
+            source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
+            pip install nose
+            nosetests tests/unittests/
+      - run:
           when: always
           name: 'Integration Tests Setup'
           command: |
