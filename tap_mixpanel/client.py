@@ -50,7 +50,7 @@ class MixpanelForbiddenError(MixpanelError):
     pass
 
 
-class MixpanelInternalServiceError(MixpanelError):
+class MixpanelInternalServiceError(Server5xxError):
     pass
 
 
