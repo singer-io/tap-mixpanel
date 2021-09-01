@@ -1,19 +1,14 @@
-import unittest
 from collections.abc import Generator
 from unittest import mock
-from unittest.mock import Mock, PropertyMock, patch
+from unittest.mock import patch
 
 import backoff
 import requests
 import requests_mock
-import urllib3
-from requests import Session
-from urllib3 import Timeout
-
-import pytest
 from pytest import raises
-from tap_mixpanel import MixpanelClient, client
-from tap_mixpanel.client import MixpanelInternalServiceError, ReadTimeoutError, Server5xxError, Server429Error
+from tap_mixpanel import client
+from tap_mixpanel.client import (ReadTimeoutError, Server5xxError,
+                                 Server429Error)
 from tests.configuration.fixtures import mixpanel_client
 
 
