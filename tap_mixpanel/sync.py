@@ -109,6 +109,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                   stream_name,
                   path,
                   endpoint_config,
+                  end_date,
                   bookmark_field=None,
                   project_timezone=None,
                   days_interval=None,
@@ -138,6 +139,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     # windowing: loop through date days_interval date windows from last_datetime to now_datetime
     tzone = pytz.timezone(project_timezone)
     now_datetime = datetime.now(tzone)
+    if end_date:
+        now_datetime = strptime_to_utc(end_date)
 
     if bookmark_query_field_from and bookmark_query_field_to:
         # days_interval from config date_window_size, default = 60; passed to function from sync
@@ -226,6 +229,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             if pagination:
                 params['page_size'] = limit
 
+            params.pop('session_id',None)
+            params.pop('page',None)
             while offset <= total_records and session_id is not None:
                 if pagination and page != 0:
                     params['session_id'] = session_id
@@ -495,6 +500,7 @@ def sync(client, config, catalog, state, start_date):
             stream_name=stream_name,
             path=path,
             endpoint_config=endpoint_config,
+            end_date=config.get('end_date'),
             bookmark_field=bookmark_field,
             project_timezone=config.get('project_timezone', 'UTC'),
             days_interval=int(config.get('date_window_size', '30')),

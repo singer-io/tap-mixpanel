@@ -134,6 +134,18 @@ def get_schemas(client, properties_flag):
             valid_replication_keys=stream_metadata.get('replication_keys', None),
             replication_method=stream_metadata.get('replication_method', None)
         )
+
+        mdata = metadata.to_map(mdata)
+
+        if stream_metadata.get('replication_keys'):
+                mdata = metadata.write(
+                    mdata,
+                    ('properties', stream_metadata.get('replication_keys')[0]),
+                    'inclusion',
+                    'automatic')
+
+        mdata = metadata.to_list(mdata)
+
         field_metadata[stream_name] = mdata
 
     return schemas, field_metadata

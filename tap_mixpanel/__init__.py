@@ -38,6 +38,8 @@ def main():
     start_date = parsed_args.config['start_date']
     start_dttm = strptime_to_utc(start_date)
     now_dttm = utils.now()
+    if parsed_args.config.get('end_date'):
+        now_dttm = strptime_to_utc(parsed_args.config.get('end_date'))
     delta_days = (now_dttm - start_dttm).days
     if delta_days >= 365:
         delta_days = 365
