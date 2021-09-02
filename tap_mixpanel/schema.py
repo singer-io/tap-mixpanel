@@ -131,16 +131,16 @@ def get_schemas(client, properties_flag):
         mdata = metadata.get_standard_metadata(
             schema=schema,
             key_properties=stream_metadata.key_properties,
-            valid_replication_keys=stream_metadata.replication_key,
+            valid_replication_keys=stream_metadata.replication_keys,
             replication_method=stream_metadata.replication_method
         )
 
         mdata = metadata.to_map(mdata)
 
-        if stream_metadata.get('replication_keys'):
+        if stream_metadata.replication_keys:
                 mdata = metadata.write(
                     mdata,
-                    ('properties', stream_metadata.get('replication_keys')[0]),
+                    ('properties', stream_metadata.replication_keys[0]),
                     'inclusion',
                     'automatic')
 

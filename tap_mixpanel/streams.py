@@ -24,7 +24,7 @@ class MixPanel:
     """
     tap_stream_id = None
     replication_method = None
-    replication_key = []
+    replication_keys = []
     key_properties = []
     to_replicate = True
     date_dictionary = False
@@ -212,7 +212,7 @@ class MixPanel:
                     stream_name=self.tap_stream_id,
                     records=transformed_data,
                     time_extracted=time_extracted,
-                    bookmark_field=next(iter(self.replication_key), None),
+                    bookmark_field=next(iter(self.replication_keys), None),
                     max_bookmark_value=max_bookmark_value,
                     last_datetime=last_datetime)
                 LOGGER.info('Stream {}, batch processed {} records'.format(
@@ -291,7 +291,7 @@ class MixPanel:
     def sync(self, state: dict, catalog, config: dict):
         # the sync method depending on different endpoints
 
-        bookmark_field = next(iter(self.replication_key), None)
+        bookmark_field = next(iter(self.replication_keys), None)
         start_date = config["start_date"]
         project_timezone = config.get("project_timezone", "UTC")
         days_interval = int(config.get("date_window_size", "30"))
@@ -385,7 +385,7 @@ class MixPanel:
                 if self.pagination:
                     params['page_size'] = limit
 
-                # Poped session_id and page number of last parents stream call. 
+                # Poped session_id and page number of last parents stream call.
                 params.pop('session_id', None)
                 params.pop('page', None)
 
@@ -458,7 +458,7 @@ class Annotations(MixPanel):
     bookmark_query_field_to = "to_date"
     replication_method = "FULL_TABLE"
     params = {}
-    replication_key = []
+    replication_keys = []
 
 
 class CohortMembers(MixPanel):
@@ -475,7 +475,8 @@ class CohortMembers(MixPanel):
     pagination = True
     parent_path = "cohorts/list"
     parent_id_field = "id"
-    replication_key = []
+    replication_keys = []
+    replication_method = "FULL_TABLE"
     bookmark_query_field_from = None
     bookmark_query_field_to = None
 
@@ -491,7 +492,7 @@ class Cohorts(MixPanel):
     data_key = "."
     replication_method = "FULL_TABLE"
     params = {}
-    replication_key = []
+    replication_keys = []
     bookmark_query_field_from = None
     bookmark_query_field_to = None
 
@@ -510,7 +511,7 @@ class Engage(MixPanel):
     bookmark_query_field_from = None
     bookmark_query_field_to = None
     params = {}
-    replication_key = []
+    replication_keys = []
 
 
 class Export(MixPanel):
@@ -523,7 +524,7 @@ class Export(MixPanel):
     tap_stream_id = "export"
     path = "export"
     data_key = "results"
-    replication_key = ["time"]
+    replication_keys = ["time"]
     url = "https://data.mixpanel.com/api/2.0"
     bookmark_query_field_from = "from_date"
     bookmark_query_field_to = "to_date"
@@ -569,7 +570,7 @@ class Export(MixPanel):
                         stream_name=self.tap_stream_id,
                         records=transformed_data,
                         time_extracted=time_extracted,
-                        bookmark_field=next(iter(self.replication_key), None),
+                        bookmark_field=next(iter(self.replication_keys), None),
                         max_bookmark_value=max_bookmark_value,
                         last_datetime=last_datetime)
                     LOGGER.info('Stream {}, batch processed {} records'.format(
@@ -591,7 +592,7 @@ class Export(MixPanel):
                 stream_name=self.tap_stream_id,
                 records=transformed_data,
                 time_extracted=time_extracted,
-                bookmark_field=next(iter(self.replication_key), None),
+                bookmark_field=next(iter(self.replication_keys), None),
                 max_bookmark_value=max_bookmark_value,
                 last_datetime=last_datetime)
             LOGGER.info('Stream {}, batch processed {} records'.format(
@@ -620,7 +621,7 @@ class Funnels(MixPanel):
     date_dictionary = True
     bookmark_query_field_from = "from_date"
     bookmark_query_field_to = "to_date"
-    replication_key = ["datetime"]
+    replication_keys = ["datetime"]
     params = {"funnel_id": "[parent_id]", "unit": "day"}
     parent_path = "funnels/list"
     parent_id_field = "funnel_id"
@@ -638,7 +639,7 @@ class Revenue(MixPanel):
     date_dictionary = True
     bookmark_query_field_from = "from_date"
     bookmark_query_field_to = "to_date"
-    replication_key = ["datetime"]
+    replication_keys = ["datetime"]
     params = {"unit": "day"}
     replication_method = "INCREMENTAL"
 
