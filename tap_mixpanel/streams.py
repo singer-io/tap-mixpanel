@@ -51,18 +51,6 @@ class MixPanel:
             LOGGER.error("OS Error writing schema for: {}".format(stream_name))
             raise err
 
-    def get_parent_data(self, bookmark_datetime: datetime = None) -> list:
-        """
-        Returns a list of records from the parent stream.
-
-        :param bookmark_datetime: The datetime object representing the
-            bookmark date
-        :return: A list of records
-        """
-        # pylint: disable=not-callable
-        parent = self.parent(self.client)
-        return parent.get_records(bookmark_datetime, is_parent=True)
-
     def transform_datetime(self, this_dttm):
         with Transformer() as transformer:
             new_dttm = transformer._transform_datetime(this_dttm)
@@ -321,6 +309,10 @@ class MixPanel:
         # windowing: loop through date days_interval date windows from last_datetime to now_datetime
         tzone = pytz.timezone(project_timezone)
         now_datetime = datetime.now(tzone)
+        end_date = config.get('end_date')
+
+        if end_date:
+            now_datetime = strptime_to_utc(end_date)
 
         start_window, end_window, days_interval = self.define_bookmark_filters(
             days_interval, last_datetime, now_datetime, attribution_window)
@@ -392,6 +384,10 @@ class MixPanel:
                 session_id = 'initial'
                 if self.pagination:
                     params['page_size'] = limit
+
+                # Poped session_id and page number of last parents stream call. 
+                params.pop('session_id', None)
+                params.pop('page', None)
 
                 while offset <= total_records and session_id is not None:
                     if self.pagination and page != 0:
