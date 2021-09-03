@@ -1,59 +1,47 @@
 import unittest
+import json
 from unittest import mock
 import requests
 from tap_mixpanel import LOGGER, client
 
-# mock responce
-
-
-class Mockresponse:
-    def __init__(self, resp, status_code, content=[""], headers=None, raise_error=False):
-        self.json_data = resp
-        self.status_code = status_code
-        self.content = content
-        self.headers = headers
-        self.raise_error = raise_error
-        self.text = {}
-        self.reason = "error"
-
-    def prepare(self):
-        return (self.json_data, self.status_code, self.content, self.headers, self.raise_error)
-
-    def raise_for_status(self):
-        if not self.raise_error:
-            return self.status_code
-
-        raise requests.HTTPError("mock sample message")
-
-    def json(self):
-        return self.text
-
+# Mock response
+def get_mock_http_response(content, status_code):
+    contents = content
+    response = requests.Response()
+    response.status_code = status_code
+    response.headers = {}
+    response._content = contents.encode()
+    return response
 
 class TestMixpanelErrorHandling(unittest.TestCase):
 
     def mock_send_400(*args, **kwargs):
-        return Mockresponse("", 400, raise_error=True)
+        return get_mock_http_response("", 400)
+
+    def mock_400_different_timezone(*args, **kwargs):
+        content = " to_date cannot be later than today"
+        return get_mock_http_response(content, 400)
 
     def mock_send_401(*args, **kwargs):
-        return Mockresponse("", 401, raise_error=True)
+        return get_mock_http_response("", 401)
 
     def mock_send_402(*args, **kwargs):
-        return Mockresponse("", 402, raise_error=True)
+        return get_mock_http_response("", 402)
 
     def mock_send_403(*args, **kwargs):
-        return Mockresponse("", 403, raise_error=True)
+        return get_mock_http_response("", 403)
 
     def mock_send_404(*args, **kwargs):
-        return Mockresponse("", 404, raise_error=True)
+        return get_mock_http_response("", 404)
 
     def mock_send_429(*args, **kwargs):
-        return Mockresponse("", 429, raise_error=True)
+        return get_mock_http_response("", 429)
 
     def mock_send_500(*args, **kwargs):
-        return Mockresponse("", 500, raise_error=True)
+        return get_mock_http_response("", 500)
 
     def mock_send_501(*args, **kwargs):
-        return Mockresponse("", 501, raise_error=True)
+        return get_mock_http_response("", 501)
 
     @mock.patch("requests.Session.request", side_effect=mock_send_400)
     def test_request_with_handling_for_400_exception_handling(self, mock_send_400):
@@ -62,6 +50,16 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred."
+            # Verifying the message formed for the custom exception
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=mock_400_different_timezone)
+    def test_request_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone):
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret")
+            mock_client.perform_request('GET')
+        except client.MixpanelBadRequestError as e:
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -105,8 +103,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
+    @mock.patch("time.sleep")
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
-    def test_request_with_handling_for_429_exception_handling(self, mock_send_429):
+    def test_request_with_handling_for_429_exception_handling(self, mock_send_429, mocked_sleep):
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
@@ -115,14 +114,16 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
+    @mock.patch("time.sleep")
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
-    def test_request_with_handling_for_500_exception_handling(self, mock_send_500):
+    def test_request_with_handling_for_500_exception_handling(self, mock_send_500, mocked_sleep):
         with self.assertRaises(client.Server5xxError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
 
+    @mock.patch("time.sleep")
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
-    def test_request_with_handling_for_501_exception_handling(self, mock_send_501):
+    def test_request_with_handling_for_501_exception_handling(self, mock_send_501, mocked_sleep):
         with self.assertRaises(client.Server5xxError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
@@ -135,6 +136,17 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred."
+            # Verifying the message formed for the custom exception
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.get", side_effect=mock_400_different_timezone)
+    def test_check_access_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone):
+        try:
+            tap_stream_id = "tap_mixpanel"
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret")
+            mock_client.check_access()
+        except client.MixpanelBadRequestError as e:
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -168,8 +180,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
+    @mock.patch("time.sleep")
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
-    def test_check_access_with_handling_for_429_exception_handling(self, mock_send_429):
+    def test_check_access_with_handling_for_429_exception_handling(self, mock_send_429, mocked_sleep):
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.check_access()
@@ -178,8 +191,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
+    @mock.patch("time.sleep")
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
-    def test_check_access_with_handling_for_500_exception_handling(self, mock_send_500):
+    def test_check_access_with_handling_for_500_exception_handling(self, mock_send_500, mocked_sllep):
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.check_access()

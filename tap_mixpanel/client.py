@@ -106,18 +106,25 @@ def raise_for_error(response):
         response_json = response.json()
     except Exception:
         response_json = {}
-    if response.status_code != 200:
-        if response_json.get('error'):
-            message = "HTTP-error-code: {}, Error: {}".format(
-                response.status_code, response_json.get('error'))
-        else:
-            message = "HTTP-error-code: {}, Error: {}".format(
-                response.status_code,
-                response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
-                    response.status_code, {})).get("message", "Unknown Error"))
-        exc = ERROR_CODE_EXCEPTION_MAPPING.get(
-            response.status_code, {}).get("raise_exception", MixpanelError)
-        raise exc(message) from None
+
+    error_code = response.status_code
+    error_message = response_json.get(
+        'error', response_json.get(
+            "message", ERROR_CODE_EXCEPTION_MAPPING.get(
+                error_code, {})).get(
+                    "message", "Unknown Error"))
+
+    # if response text contains something unusual errpr of to_date then provide helper message of timezone mismatch
+    # E.g error: to_date cannot be later than today
+    if error_code == 400 and "to_date" in response.text:
+        error_message += " Please validate the timezone with the MixPanel UI under project settings."
+
+    message = "HTTP-error-code: {}, Error: {}".format(
+        error_code, error_message)
+
+    exc = ERROR_CODE_EXCEPTION_MAPPING.get(
+        error_code, {}).get("raise_exception", MixpanelError)
+    raise exc(message) from None
 
 
 class MixpanelClient(object):
