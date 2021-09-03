@@ -102,22 +102,21 @@ def get_exception_for_error_code(error_code):
 def raise_for_error(response):
     LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,
                                                    response.text, response.reason))
-    content_length = len(response.content)
-    if content_length == 0:
-        # There is nothing we can do here since Mixpanel has neither sent
-        # us a 2xx response nor a response content.
-        return
     try:
         response_json = response.json()
     except Exception:
         response_json = {}
     if response.status_code != 200:
-        message = "HTTP-error-code: {}, Error: {}".format(
-            response.status_code,
-            response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
-                response.status_code, {})).get("message", "Unknown Error"))
+        if response_json.get('error'):
+            message = "HTTP-error-code: {}, Error: {}".format(
+                response.status_code, response_json.get('error'))
+        else:
+            message = "HTTP-error-code: {}, Error: {}".format(
+                response.status_code,
+                response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
+                    response.status_code, {})).get("message", "Unknown Error"))
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
-                response.status_code, {}).get("raise_exception", MixpanelError)
+            response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
 
 
