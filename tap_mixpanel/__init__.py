@@ -23,7 +23,6 @@ REQUIRED_CONFIG_KEYS = [
 
 
 def do_discover(client, properties_flag):
-
     LOGGER.info('Starting discover')
     catalog = discover(client, properties_flag)
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
@@ -32,7 +31,6 @@ def do_discover(client, properties_flag):
 
 @singer.utils.handle_top_exception(LOGGER)
 def main():
-
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
     start_date = parsed_args.config['start_date']
@@ -44,9 +42,10 @@ def main():
     if delta_days >= 365:
         delta_days = 365
         start_date = strftime(now_dttm - timedelta(days=delta_days))
-        LOGGER.warning("WARNING: start_date greater than 1 year maxiumum for API.")
-        LOGGER.warning("WARNING: Setting start_date to 1 year ago, {}".format(start_date))
-
+        LOGGER.warning(
+            "WARNING: start_date greater than 1 year maxiumum for API.")
+        LOGGER.warning(
+            "WARNING: Setting start_date to 1 year ago, {}".format(start_date))
 
     with MixpanelClient(parsed_args.config['api_secret'],
                         parsed_args.config['user_agent']) as client:
@@ -58,15 +57,14 @@ def main():
         config = parsed_args.config
         properties_flag = config.get('select_properties_by_default')
 
-
         if parsed_args.discover:
             do_discover(client, properties_flag)
         elif parsed_args.catalog:
             sync(client=client,
                  config=config,
                  catalog=parsed_args.catalog,
-                 state=state,
-                 start_date=start_date)
+                 state=state)
+
 
 if __name__ == '__main__':
     main()
