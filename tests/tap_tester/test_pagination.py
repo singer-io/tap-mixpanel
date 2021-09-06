@@ -8,7 +8,7 @@ class MixPanelPaginationTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_pagination_test"
 
-    def test_run(self):
+    def pagination_test_run(self):
         """
         • Verify that for each stream you can get multiple pages of data
         • and that when all fields are selected more than the automatic fields are replicated.
@@ -97,12 +97,9 @@ class MixPanelPaginationTest(TestMixPanelBase):
                     expected_all_keys = expected_all_keys - {'labels', 'sampling_factor', 'dataset', 'mp_reserved_duration_s', 'mp_reserved_origin_end',
                                                              'mp_reserved_origin_start', 'mp_reserved_event_count'}
 
-                elif stream == "engage":
-                    expected_all_keys = expected_all_keys - {'Channel Id', 'country', 'signup_date', 'Intercom', 'mp_reserved_campaigns',
-                                                             'age', 'mp_reserved_airship_named_user', 'ChannelId', 'widget', 'featureTier', 'payingClient', 'batcheetahMode'}
-
                 # verify all fields for each stream are replicated
-                self.assertSetEqual(expected_all_keys, actual_all_keys)
+                if not stream == "engage": #Skip `engage` as it return records in random manner with dynamic fields.
+                    self.assertSetEqual(expected_all_keys, actual_all_keys)
 
                 if stream in streams_to_test:
                     # verify that we can paginate with all fields selected
@@ -125,3 +122,12 @@ class MixPanelPaginationTest(TestMixPanelBase):
                         # Verify by private keys that data is unique for page
                         self.assertTrue(
                             primary_keys_page_1.isdisjoint(primary_keys_page_2))
+
+    def test_run(self):
+        #Pagination test for standard server
+        self.eu_residency_server = False
+        self.pagination_test_run()
+
+        #Pagination test for EU recidency server
+        self.eu_residency_server = True
+        self.pagination_test_run()

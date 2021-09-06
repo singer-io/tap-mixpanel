@@ -7,7 +7,7 @@ class MixPanelSyncTest(TestMixPanelBase):
         return "mix_panel_sync_test"
 
 
-    def test_run(self):
+    def sync_test_run(self):
         """
         Testing that sync creates the appropriate catalog with valid metadata.
         • Verify that all fields and all streams have selected set to True in the metadata
@@ -33,3 +33,14 @@ class MixPanelSyncTest(TestMixPanelBase):
                 record_count_by_stream.get(stream, 0), 0,
                 msg="failed to replicate any data for stream : {}".format(stream)
             )
+            
+            
+    def test_run(self):
+        #Sync test for standard server
+        self.eu_residency_server = False
+        self.sync_test_run()
+
+        #Sync test for EU recidency server
+        self.eu_residency_server = True
+        self.sync_test_run()
+

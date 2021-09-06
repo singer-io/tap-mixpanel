@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from base import TestMixPanelBase
@@ -12,7 +10,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_bookmark_test"
 
-    def test_run(self):
+    def bookmark_test_run(self):
         """
         Verify that for each stream you can do a sync which records bookmarks.
         That the bookmark is the maximum value sent to the target for the replication key.
@@ -170,3 +168,12 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 # Verify at least 1 record was replicated in the second sync
                 self.assertGreater(
                     second_sync_count, 0, msg="We are not fully testing bookmarking for {}".format(stream))
+
+    def test_run(self):
+        #Bookmark test for standard server
+        self.eu_residency_server = False
+        self.bookmark_test_run()
+
+        #Bookmark test for EU recidency server
+        self.eu_residency_server = True
+        self.bookmark_test_run()

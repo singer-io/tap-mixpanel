@@ -28,7 +28,8 @@ class TestMixPanelBase(unittest.TestCase):
     TYPE = "platform.mixpanel"
     start_date = ""
     end_date = ""
-
+    eu_residency_server = True
+    
     def name(self):
         return "mixpnel-base"
 
@@ -75,7 +76,10 @@ class TestMixPanelBase(unittest.TestCase):
 
     def setUp(self):
         missing_envs = []
-        creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
+        if self.eu_residency_server:
+            creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
+        else:
+            creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
 
         for cred in creds:
             if os.getenv(creds[cred]) == None:
@@ -90,15 +94,18 @@ class TestMixPanelBase(unittest.TestCase):
 
     def get_properties(self, original: bool = True):
         """Configuration properties required for the tap."""
-
         return_value = {
             'start_date': '2020-02-01T00:00:00Z',
             'end_date': '2020-03-01T00:00:00Z',
             'date_window_size': '30',
             'attribution_window': '5',
             'project_timezone': 'US/Pacific',
+            "eu_residency_server": False,
             'select_properties_by_default': 'false'
         }
+        if self.eu_residency_server:
+            return_value.update({"project_timezone": "Europe/Amsterdam", "eu_residency_server": True})
+            
         if original:
             return return_value
 
@@ -110,9 +117,13 @@ class TestMixPanelBase(unittest.TestCase):
 
     def get_credentials(self):
         """Authentication information for the test account. Api secret is expected as a property."""
-        """Authentication information for the test account"""
+        
         credentials_dict = {}
-        creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
+        if self.eu_residency_server:
+            creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
+        else:
+            creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
+            
         for cred in creds:
             credentials_dict[cred] = os.getenv(creds[cred])
 
@@ -120,6 +131,11 @@ class TestMixPanelBase(unittest.TestCase):
 
     def expected_streams(self):
         """A set of expected stream names"""
+        
+        #Skip `export` and `revenue` stream for EU recidency server
+        if self.eu_residency_server:
+            return set(self.expected_metadata().keys()) - {"export", "revenue"}
+        
         return set(self.expected_metadata().keys())
 
     def expected_pks(self):

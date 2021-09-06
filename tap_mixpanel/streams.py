@@ -297,6 +297,13 @@ class MixPanel:
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
 
+        #Update url if eu_residency_server is selected
+        if config.get('eu_residency_server'):
+            if self.tap_stream_id == 'export':
+                self.url = 'https://data-eu.mixpanel.com/api/2.0'
+            else:
+                self.url = 'https://eu.mixpanel.com/api/2.0'
+
         # Get the latest bookmark for the stream and set the last_integer/datetime
         last_datetime = None
         max_bookmark_value = None

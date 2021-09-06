@@ -12,7 +12,7 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_automatic_fields_test"
 
-    def test_run(self):
+    def automatic_fields_test_run(self):
         """
         Verify that for each stream you can get enough data
         when no fields are selected and only the automatic fields are replicated.
@@ -52,3 +52,12 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
                 # Verify that only the automatic fields are sent to the target
                 for actual_keys in record_messages_keys:
                     self.assertSetEqual(expected_keys, actual_keys)
+
+    def test_run(self):
+        #Automatic fields test for standard server
+        self.eu_residency_server = False
+        self.automatic_fields_test_run()
+
+        #Automatic fields test for EU recidency server
+        self.eu_residency_server = True
+        self.automatic_fields_test_run()
