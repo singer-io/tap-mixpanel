@@ -3,17 +3,29 @@
   "additionalProperties": false,
   "properties": {
     "funnel_id": {
-      "type": ["null", "integer"]
+      "type": [
+        "null",
+        "integer"
+      ]
     },
     "name": {
-      "type": ["null", "string"]
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "date": {
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "format": "date"
     },
     "datetime": {
-      "type": ["null", "string"],
+      "type": [
+        "null",
+        "string"
+      ],
       "format": "date-time"
     },
     "steps": {
@@ -21,42 +33,75 @@
         {
           "type": "array",
           "items": {
-            "type": ["null", "object"],
+            "type": [
+              "null",
+              "object"
+            ],
             "additionalProperties": false,
             "properties": {
               "count": {
-                "type": ["null", "integer"]
+                "type": [
+                  "null",
+                  "integer"
+                ]
               },
               "avg_time": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": [
+                  "null",
+                  "string"
+                ],
+                "format": "singer.decimal"
               },
               "goal": {
-                "type": ["null", "string"]
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
               "overall_conv_ratio": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": [
+                  "null",
+                  "string"
+                ],
+                "format": "singer.decimal"
               },
               "step_conv_ratio": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": [
+                  "null",
+                  "string"
+                ],
+                "format": "singer.decimal"
               },
               "event": {
-                "type": ["null", "string"]
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
               "step_label": {
-                "type": ["null", "string"]
+                "type": [
+                  "null",
+                  "string"
+                ]
               },
               "time_buckets_from_start": {
-                "type": ["null", "object"],
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "lower": {
-                    "type": ["null", "integer"]
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
                   },
                   "higher": {
-                    "type": ["null", "integer"]
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
                   },
                   "buckets": {
                     "anyOf": [
@@ -74,14 +119,23 @@
                 }
               },
               "time_buckets_from_prev": {
-                "type": ["null", "object"],
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "lower": {
-                    "type": ["null", "integer"]
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
                   },
                   "higher": {
-                    "type": ["null", "integer"]
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
                   },
                   "buckets": {
                     "anyOf": [
@@ -107,20 +161,35 @@
       ]
     },
     "analysis": {
-      "type": ["null", "object"],
+      "type": [
+        "null",
+        "object"
+      ],
       "additionalProperties": false,
       "properties": {
         "completion": {
-          "type": ["null", "integer"]
+          "type": [
+            "null",
+            "integer"
+          ]
         },
         "starting_amount": {
-          "type": ["null", "integer"]
+          "type": [
+            "null",
+            "integer"
+          ]
         },
         "steps": {
-          "type": ["null", "integer"]
+          "type": [
+            "null",
+            "integer"
+          ]
         },
         "worst": {
-          "type": ["null", "integer"]
+          "type": [
+            "null",
+            "integer"
+          ]
         }
       }
     }
