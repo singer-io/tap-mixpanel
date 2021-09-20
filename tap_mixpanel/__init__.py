@@ -48,7 +48,7 @@ def main():
             "WARNING: Setting start_date to 1 year ago, {}".format(start_date))
 
     #Check support for EU endpoints
-    if parsed_args.config.get('eu_residency_server'):
+    if parsed_args.config.get('eu_residency_server') in ["true", True]:
         api_domain = "eu.mixpanel.com"
     else:
         api_domain = "mixpanel.com"

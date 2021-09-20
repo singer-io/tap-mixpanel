@@ -298,7 +298,7 @@ class MixPanel:
         attribution_window = int(config.get("attribution_window", "5"))
 
         #Update url if eu_residency_server is selected
-        if config.get('eu_residency_server'):
+        if config.get('eu_residency_server') in ["true", True]:
             if self.tap_stream_id == 'export':
                 self.url = 'https://data-eu.mixpanel.com/api/2.0'
             else:

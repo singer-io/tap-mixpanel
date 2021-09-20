@@ -132,7 +132,11 @@ class TestMixPanelBase(unittest.TestCase):
     def expected_streams(self):
         """A set of expected stream names"""
         
-        #Skip `export` and `revenue` stream for EU recidency server
+        # Skip `export` and `revenue` stream for EU recidency server as 
+        # revenue stream endpoint returns 400 bad reuqest and 
+        # export stream endpoint returns 200 terminated early response. 
+        # So, as per discussion decided that let the customer come with the issues 
+        # that these streams are not working. Skip the streams in the circleci.  
         if self.eu_residency_server:
             return set(self.expected_metadata().keys()) - {"export", "revenue"}
         
