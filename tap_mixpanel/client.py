@@ -197,7 +197,7 @@ class MixpanelClient(object):
                                               timeout=REQUEST_TIMEOUT,
                                               **kwargs)
 
-            if response.status_code >= 500:
+            if response.status_code > 500:
                 raise Server5xxError()
 
             if response.status_code != 200:
