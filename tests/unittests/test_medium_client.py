@@ -8,7 +8,7 @@ import requests_mock
 from pytest import raises
 from tap_mixpanel import client
 from tap_mixpanel.client import (ReadTimeoutError, Server5xxError,
-                                 Server429Error)
+                                 Server429Error, MixpanelInternalServiceError)
 from tests.configuration.fixtures import mixpanel_client
 
 
@@ -58,7 +58,7 @@ def test_perform_request_backoff_on_remote_timeout_500(mock_sleep, mixpanel_clie
     with requests_mock.Mocker() as m:
         m.request('GET', 'http://test.com', text=None, status_code=500)
 
-        with raises(Server5xxError) as ex:
+        with raises(MixpanelInternalServiceError) as ex:
             result = mixpanel_client.perform_request(
                 'GET', url='http://test.com')
 
@@ -86,7 +86,7 @@ def test_check_access_backoff_on_remote_timeout_500(mock_sleep, mixpanel_client)
         m.request('GET', 'https://mixpanel.com/api/2.0/engage',
                   content=b'error', text=None, status_code=500)
 
-        with raises(Server5xxError) as ex:
+        with raises(MixpanelInternalServiceError) as ex:
             result = mixpanel_client.check_access()
         # Assert backoff retry count as expected
         assert mock_sleep.call_count == 5 - 1
