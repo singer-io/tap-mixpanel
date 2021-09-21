@@ -19,7 +19,7 @@ def update_currently_syncing(state, stream_name):
     singer.write_state(state)
 
 
-def sync(client, config, catalog, state):
+def sync(client, config, catalog, state, start_date):
     """
     Get selected_streams from catalog, based on state last_stream
     last_stream = Previous currently synced stream, if the load was interrupted
@@ -42,7 +42,8 @@ def sync(client, config, catalog, state):
         endpoint_total = stream_obj.sync(
             catalog=catalog,
             state=state,
-            config=config
+            config=config,
+            start_date=start_date
         )
 
         update_currently_syncing(state, None)

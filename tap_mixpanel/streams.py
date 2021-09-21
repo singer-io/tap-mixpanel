@@ -288,11 +288,10 @@ class MixPanel:
 
         return start_window, end_window, days_interval
 
-    def sync(self, state: dict, catalog, config: dict):
+    def sync(self, state: dict, catalog, config: dict, start_date):
         # the sync method depending on different endpoints
 
         bookmark_field = next(iter(self.replication_keys), None)
-        start_date = config["start_date"]
         project_timezone = config.get("project_timezone", "UTC")
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
