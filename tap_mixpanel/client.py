@@ -104,12 +104,16 @@ def raise_for_error(response):
     except Exception:
         response_json = {}
     if response.status_code != 200:
-        message = "HTTP-error-code: {}, Error: {}".format(
-            response.status_code,
-            response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
-                response.status_code, {})).get("message", "Unknown Error"))
+        if response_json.get('error'):
+            message = "HTTP-error-code: {}, Error: {}".format(
+                response.status_code, response_json.get('error'))
+        else:
+            message = "HTTP-error-code: {}, Error: {}".format(
+                response.status_code,
+                response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
+                    response.status_code, {})).get("message", "Unknown Error"))
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
-                response.status_code, {}).get("raise_exception", MixpanelError)
+            response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
 
 
@@ -188,7 +192,7 @@ class MixpanelClient(object):
                                               timeout=REQUEST_TIMEOUT,
                                               **kwargs)
 
-            if response.status_code >= 500:
+            if response.status_code > 500:
                 raise Server5xxError()
 
             if response.status_code != 200:
