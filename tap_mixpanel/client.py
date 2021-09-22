@@ -55,15 +55,6 @@ class MixpanelInternalServiceError(Server5xxError):
 
 
 ERROR_CODE_EXCEPTION_MAPPING = {
-    400: MixpanelBadRequestError,
-    401: MixpanelUnauthorizedError,
-    402: MixpanelRequestFailedError,
-    403: MixpanelForbiddenError,
-    404: MixpanelNotFoundError,
-    429: Server429Error,
-    500: MixpanelInternalServiceError}
-
-ERROR_CODE_EXCEPTION_MAPPING = {
     400: {
         "raise_exception": MixpanelBadRequestError,
         "message": "A validation exception has occurred."
@@ -100,8 +91,9 @@ def get_exception_for_error_code(error_code):
 
 
 def raise_for_error(response):
-    LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,
-                                                   response.text, response.reason))
+    LOGGER.error('ERROR %s: %s, REASON: %s', response.status_code,
+                                             response.text, 
+                                             response.reason)
     content_length = len(response.content)
     if content_length == 0:
         # There is nothing we can do here since Mixpanel has neither sent
@@ -139,8 +131,7 @@ class MixpanelClient(object):
         self.__session.close()
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error,
-                           ReadTimeoutError, ConnectionError, Timeout),
+                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
                           max_tries=5,
                           factor=2)
     def check_access(self):
@@ -167,8 +158,7 @@ class MixpanelClient(object):
         if response.status_code == 402:
             # 402 Payment Requirement does not indicate a permissions or authentication error
             self.disable_engage_endpoint = True
-            LOGGER.warning(
-                'Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
+            LOGGER.warning('Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
             return True
         elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))

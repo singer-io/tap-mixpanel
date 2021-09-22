@@ -25,18 +25,18 @@ def sync(client, config, catalog, state, start_date):
     last_stream = Previous currently synced stream, if the load was interrupted
     """
     last_stream = singer.get_currently_syncing(state)
-    LOGGER.info('last/currently syncing stream: {}'.format(last_stream))
+    LOGGER.info('last/currently syncing stream: %s', last_stream)
     selected_streams = []
     for stream in catalog.get_selected_streams(state):
         selected_streams.append(stream.stream)
-    LOGGER.info('selected_streams: {}'.format(selected_streams))
+    LOGGER.info('selected_streams: %s', selected_streams)
 
     if not selected_streams:
         return
 
     # Loop through selected_streams
     for stream_name in selected_streams:
-        LOGGER.info('START Syncing: {}'.format(stream_name))
+        LOGGER.info('START Syncing: %s', stream_name)
         update_currently_syncing(state, stream_name)
         stream_obj = STREAMS[stream_name](client)
         endpoint_total = stream_obj.sync(
@@ -47,6 +47,4 @@ def sync(client, config, catalog, state, start_date):
         )
 
         update_currently_syncing(state, None)
-        LOGGER.info('FINISHED Syncing: {}, Total endpoint records: {}'.format(
-            stream_name,
-            endpoint_total))
+        LOGGER.info('FINISHED Syncing: %s, Total endpoint records: %s', stream_name, endpoint_total)
