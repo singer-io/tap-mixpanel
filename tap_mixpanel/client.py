@@ -85,20 +85,10 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     }
 }
 
-
-def get_exception_for_error_code(error_code):
-    return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, MixpanelError)
-
-
 def raise_for_error(response):
     LOGGER.error('ERROR %s: %s, REASON: %s', response.status_code,
                                              response.text, 
                                              response.reason)
-    content_length = len(response.content)
-    if content_length == 0:
-        # There is nothing we can do here since Mixpanel has neither sent
-        # us a 2xx response nor a response content.
-        return
     try:
         response_json = response.json()
     except Exception:
@@ -156,7 +146,7 @@ class MixpanelClient(object):
                 timeout=REQUEST_TIMEOUT,
                 headers=headers)
         except requests.exceptions.Timeout as err:
-            LOGGER.error('TIMEOUT ERROR: {}'.format(err))
+            LOGGER.error('TIMEOUT ERROR: %s',str(err))
             raise ReadTimeoutError
 
         if response.status_code == 402:
@@ -199,7 +189,7 @@ class MixpanelClient(object):
                 raise_for_error(response)
             return response
         except requests.exceptions.Timeout as err:
-            LOGGER.error('TIMEOUT ERROR: {}'.format(err))
+            LOGGER.error('TIMEOUT ERROR: %s',str(err))
             raise ReadTimeoutError(err)
 
     def request(self, method, url=None, path=None, params=None, json=None, **kwargs):

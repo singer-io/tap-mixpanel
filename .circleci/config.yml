@@ -29,7 +29,6 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-            pip install pytest
             pytest tests/unittests/
       - run:
           when: always
