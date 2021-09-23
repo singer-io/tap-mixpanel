@@ -66,7 +66,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
 ERROR_CODE_EXCEPTION_MAPPING = {
     400: {
         "raise_exception": MixpanelBadRequestError,
-        "message": "A validation exception has occurred."
+        "message": "A validation exception has occurred"
     },
     401: {
         "raise_exception": MixpanelUnauthorizedError,
