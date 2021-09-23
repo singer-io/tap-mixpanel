@@ -115,6 +115,8 @@ def raise_for_error(response):
                 response.status_code,
                 response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
                     response.status_code, {})).get("message", "Unknown Error"))
+        if response.status_code == 400:
+            message = f'{message}, Please verify your credentials.'
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
             response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
