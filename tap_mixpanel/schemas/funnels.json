@@ -13,7 +13,7 @@
       "format": "date"
     },
     "datetime": {
-      "type": [ "null", "string"],
+      "type": ["null", "string"],
       "format": "date-time"
     },
     "steps": {
