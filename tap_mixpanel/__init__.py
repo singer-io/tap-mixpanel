@@ -61,7 +61,8 @@ def main():
             sync(client=client,
                  config=config,
                  catalog=parsed_args.catalog,
-                 state=state)
+                 state=state,
+                 start_date=start_date)
 
 
 
