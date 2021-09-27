@@ -76,8 +76,8 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
-        except client.MixpanelRequestFailedError as e:
-            expected_error_message = "HTTP-error-code: 402, Error: Request can not be processed."
+        except client.MixpanelPaymentRequiredError as e:
+            expected_error_message = "HTTP-error-code: 402, Error: Your current plan does not allow API calls. Payment is required to complete the operation."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 

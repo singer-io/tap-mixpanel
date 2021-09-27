@@ -38,7 +38,7 @@ class MixpanelUnauthorizedError(MixpanelError):
     pass
 
 
-class MixpanelRequestFailedError(MixpanelError):
+class MixpanelPaymentRequiredError(MixpanelError):
     pass
 
 
@@ -64,8 +64,8 @@ ERROR_CODE_EXCEPTION_MAPPING = {
         "message": "Invalid authorization credentials."
     },
     402: {
-        "raise_exception": MixpanelRequestFailedError,
-        "message": "Request can not be processed."
+        "raise_exception": MixpanelPaymentRequiredError,
+        "message": "Your current plan does not allow API calls. Payment is required to complete the operation."
     },
     403: {
         "raise_exception": MixpanelForbiddenError,
