@@ -42,14 +42,16 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         client = MixpanelClient('','','')
         revenue_obj = Revenue(client)
         revenue_obj.sync(catalog=catalog,state=state,
-                         config={"eu_residency_server": True, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"})
+                         config={"eu_residency_server": True, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"},
+                         start_date="2020-02-01T00:00:00Z")
         
         mock_request.assert_called_with(method='GET', url='https://eu.mixpanel.com/api/2.0', path='engage/revenue', 
                                         params='unit=day&from_date=2020-02-01&to_date=2020-03-02', endpoint='revenue')
         
         revenue_obj = Revenue(client)
         revenue_obj.sync(catalog=catalog,state=state,
-                         config={"eu_residency_server": False, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"})
+                         config={"eu_residency_server": False, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"},
+                         start_date="2020-02-01T00:00:00Z")
         
         mock_request.assert_called_with(method='GET', url='https://mixpanel.com/api/2.0', path='engage/revenue', 
                                         params='unit=day&from_date=2020-02-01&to_date=2020-03-02', endpoint='revenue')
@@ -69,14 +71,16 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         client = MixpanelClient('','','')
         export_obj = Export(client)
         export_obj.sync(catalog=catalog,state=state,
-                         config={"eu_residency_server": True, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"})
+                         config={"eu_residency_server": True, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"},
+                         start_date="2020-02-01T00:00:00Z")
         
         mock_request_export.assert_called_with(method='GET', url='https://data-eu.mixpanel.com/api/2.0', path='export', 
                                         params='from_date=2020-02-01&to_date=2020-03-02', endpoint='export')
         
         export_obj = Export(client)
         export_obj.sync(catalog=catalog,state=state,
-                         config={"eu_residency_server": False, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"})
+                         config={"eu_residency_server": False, "start_date": "2020-02-01T00:00:00Z", "end_date": "2020-03-02T00:00:00Z"},
+                         start_date="2020-02-01T00:00:00Z")
         
         mock_request_export.assert_called_with(method='GET', url='https://data.mixpanel.com/api/2.0', path='export', 
                                         params='from_date=2020-02-01&to_date=2020-03-02', endpoint='export')

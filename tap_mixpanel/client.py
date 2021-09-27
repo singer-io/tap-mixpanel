@@ -57,7 +57,7 @@ class MixpanelInternalServiceError(Server5xxError):
 ERROR_CODE_EXCEPTION_MAPPING = {
     400: {
         "raise_exception": MixpanelBadRequestError,
-        "message": "A validation exception has occurred"
+        "message": "A validation exception has occurred."
     },
     401: {
         "raise_exception": MixpanelUnauthorizedError,
@@ -103,7 +103,7 @@ def raise_for_error(response):
                 response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
                     response.status_code, {})).get("message", "Unknown Error"))
         if response.status_code == 400:
-            message = f'{message}, Please verify your credentials.'
+            message = f'{message} Please verify your credentials.'
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
             response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
