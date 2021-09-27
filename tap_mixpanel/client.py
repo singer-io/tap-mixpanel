@@ -55,15 +55,6 @@ class MixpanelInternalServiceError(Server5xxError):
 
 
 ERROR_CODE_EXCEPTION_MAPPING = {
-    400: MixpanelBadRequestError,
-    401: MixpanelUnauthorizedError,
-    402: MixpanelRequestFailedError,
-    403: MixpanelForbiddenError,
-    404: MixpanelNotFoundError,
-    429: Server429Error,
-    500: MixpanelInternalServiceError}
-
-ERROR_CODE_EXCEPTION_MAPPING = {
     400: {
         "raise_exception": MixpanelBadRequestError,
         "message": "A validation exception has occurred"
@@ -95,13 +86,10 @@ ERROR_CODE_EXCEPTION_MAPPING = {
 }
 
 
-def get_exception_for_error_code(error_code):
-    return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, MixpanelError)
-
-
 def raise_for_error(response):
-    LOGGER.error('ERROR {}: {}, REASON: {}'.format(response.status_code,
-                                                   response.text, response.reason))
+    LOGGER.error('ERROR %s: %s, REASON: %s', response.status_code,
+                                             response.text, 
+                                             response.reason)
     try:
         response_json = response.json()
     except Exception:
@@ -164,7 +152,7 @@ class MixpanelClient(object):
                 timeout=REQUEST_TIMEOUT,
                 headers=headers)
         except requests.exceptions.Timeout as err:
-            LOGGER.error('TIMEOUT ERROR: {}'.format(err))
+            LOGGER.error('TIMEOUT ERROR: %s',str(err))
             raise ReadTimeoutError
 
         if response.status_code == 402:
@@ -201,14 +189,14 @@ class MixpanelClient(object):
                                               timeout=REQUEST_TIMEOUT,
                                               **kwargs)
 
-            if response.status_code >= 500:
+            if response.status_code > 500:
                 raise Server5xxError()
 
             if response.status_code != 200:
                 raise_for_error(response)
             return response
         except requests.exceptions.Timeout as err:
-            LOGGER.error('TIMEOUT ERROR: {}'.format(err))
+            LOGGER.error('TIMEOUT ERROR: %s',str(err))
             raise ReadTimeoutError(err)
 
     def request(self, method, url=None, path=None, params=None, json=None, **kwargs):

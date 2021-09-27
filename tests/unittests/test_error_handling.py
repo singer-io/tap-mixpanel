@@ -64,14 +64,14 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred, Please verify your credentials."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
-    
-    @mock.patch("requests.Session.request")
-    def test_request_with_handling_for_400_timeout_error_handling(self, mock_request):
+
+    @mock.patch("requests.Session.get")
+    def test_check_access_with_handling_for_400_timeout_error_handling(self, mock_request):
         error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error"}
         mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
-            mock_client.perform_request('GET')
+            mock_client.check_access()
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: Timeout Error, Please verify your credentials."
             # Verifying the message formed for the timeout error
@@ -129,7 +129,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_request_with_handling_for_500_exception_handling(self, mock_send_500):
-        with self.assertRaises(client.Server5xxError):
+        with self.assertRaises(client.MixpanelInternalServiceError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
 
@@ -142,25 +142,14 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.get", side_effect=mock_send_400)
     def test_check_access_with_handling_for_400_exception_handling(self, mock_send_400):
         try:
+            tap_stream_id = "tap_mixpanel"
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred, Please verify your credentials."
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
-    @mock.patch("requests.Session.get")
-    def test_check_access_with_handling_for_400_timeout_error_handling(self, mock_request):
-        error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error"}
-        mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
-        try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
-            mock_client.check_access()
-        except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: Timeout Error, Please verify your credentials."
-            # Verifying the message formed for the timeout error
-            self.assertEqual(str(e), expected_error_message)
-            
     @mock.patch("requests.Session.request", side_effect=mock_send_401)
     def test_check_access_with_handling_for_401_exception_handling(self, mock_send_401):
         try:
