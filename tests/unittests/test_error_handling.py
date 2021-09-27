@@ -87,7 +87,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
         except client.MixpanelForbiddenError as e:
-            expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
+            expected_error_message = "HTTP-error-code: 403, Error: User does not have permission to access the resource."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -164,7 +164,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.check_access()
         except client.MixpanelForbiddenError as e:
-            expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
+            expected_error_message = "HTTP-error-code: 403, Error: User does not have permission to access the resource."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 

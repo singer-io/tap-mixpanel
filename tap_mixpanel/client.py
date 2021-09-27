@@ -69,7 +69,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     },
     403: {
         "raise_exception": MixpanelForbiddenError,
-        "message": "User doesn't have permission to access the resource."
+        "message": "User does not have permission to access the resource."
     },
     404: {
         "raise_exception": MixpanelNotFoundError,
