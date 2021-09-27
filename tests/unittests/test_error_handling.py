@@ -117,7 +117,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_request_with_handling_for_500_exception_handling(self, mock_send_500):
-        with self.assertRaises(client.Server5xxError):
+        with self.assertRaises(client.MixpanelInternalServiceError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
 
