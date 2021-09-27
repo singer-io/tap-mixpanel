@@ -2,7 +2,7 @@ import datetime
 import pytz
 import singer
 from singer.utils import strftime
-
+from singer import Transformer
 
 LOGGER = singer.get_logger()
 
@@ -47,6 +47,11 @@ def transform_event_times(record, project_timezone):
     new_record['time'] = new_time_utc_str
 
     return new_record
+
+def transform_datetime(this_dttm):
+        with Transformer() as transformer:
+            new_dttm = transformer._transform_datetime(this_dttm)
+        return new_dttm
 
 
 # Remove leading $ from engage $distinct_id
