@@ -100,13 +100,12 @@ def raise_for_error(response):
                 error_code, {})).get(
                     "message", "Unknown Error"))
 
-    # if response text contains something unusual errpr of to_date then provide helper message of timezone mismatch
+    # if response text contains something unusual error of to_date then provide helper message of timezone mismatch
     # E.g error: to_date cannot be later than today
     if error_code == 400 and "to_date" in response.text:
         error_message += " Please validate the timezone with the MixPanel UI under project settings."
 
-    message = "HTTP-error-code: {}, Error: {}".format(
-        error_code, error_message)
+    message = f"HTTP-error-code: {error_code}, Error: {error_message}"
 
     exc = ERROR_CODE_EXCEPTION_MAPPING.get(
         error_code, {}).get("raise_exception", MixpanelError)

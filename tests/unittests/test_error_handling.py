@@ -5,11 +5,10 @@ from tap_mixpanel import client
 
 # Mock response
 def get_mock_http_response(content, status_code):
-    contents = content
     response = requests.Response()
     response.status_code = status_code
     response.headers = {}
-    response._content = contents.encode()
+    response._content = content.encode()
     return response
 
 class TestMixpanelErrorHandling(unittest.TestCase):
