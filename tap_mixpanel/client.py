@@ -276,4 +276,3 @@ class MixpanelClient(object):
             reader = jsonlines.Reader(response.iter_lines())
             for record in reader.iter(allow_none=True, skip_empty=True):
                 yield record
-                
