@@ -94,6 +94,7 @@ class TestMixPanelBase(unittest.TestCase):
 
     def get_properties(self, original: bool = True):
         """Configuration properties required for the tap."""
+
         return_value = {
             'start_date': '2020-02-01T00:00:00Z',
             'end_date': '2020-03-01T00:00:00Z',
