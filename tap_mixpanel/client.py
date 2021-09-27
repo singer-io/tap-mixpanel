@@ -85,7 +85,6 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     }
 }
 
-
 def raise_for_error(response):
     LOGGER.error('ERROR %s: %s, REASON: %s', response.status_code,
                                              response.text, 
@@ -130,8 +129,7 @@ class MixpanelClient(object):
         self.__session.close()
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error,
-                           ReadTimeoutError, ConnectionError, Timeout),
+                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
                           max_tries=5,
                           factor=2)
     def check_access(self):
@@ -158,8 +156,7 @@ class MixpanelClient(object):
         if response.status_code == 402:
             # 402 Payment Requirement does not indicate a permissions or authentication error
             self.disable_engage_endpoint = True
-            LOGGER.warning(
-                'Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
+            LOGGER.warning('Mixpanel returned a 402 from the Engage API. Engage stream will be skipped.')
             return True
         elif response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
