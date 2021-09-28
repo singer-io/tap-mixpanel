@@ -46,7 +46,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         return get_mock_http_response(content, 404)
 
     def mock_send_message(*args, **kwargs):
-        content = '{"error": "Resource not found error message from API response field \'message\'."}'
+        content = '{"message": "Resource not found error message from API response field \'message\'."}'
         return get_mock_http_response(content, 404)
 
     @mock.patch("requests.Session.request", side_effect=mock_send_400)

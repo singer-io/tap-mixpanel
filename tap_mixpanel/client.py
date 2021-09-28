@@ -95,10 +95,10 @@ def raise_for_error(response):
         response_json = {}
     error_code = response.status_code
     error_message = response_json.get(
-        'error', response_json.get(
+        "error", response_json.get(
             "message", ERROR_CODE_EXCEPTION_MAPPING.get(
-                error_code, {})).get(
-                    "message", "Unknown Error"))
+                error_code, {}).get(
+                    "message", "Unknown Error")))
 
     # if response text contains something unusual error of to_date then provide helper message of timezone mismatch
     # E.g error: to_date cannot be later than today
