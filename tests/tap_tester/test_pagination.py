@@ -98,7 +98,7 @@ class MixPanelPaginationTest(TestMixPanelBase):
                                                              'mp_reserved_origin_start', 'mp_reserved_event_count'}
 
                 # verify all fields for each stream are replicated
-                if not stream == "engage": #Skip `engage` as it return records in random manner with dynamic fields.
+                if not stream == "engage": #Skip engage as it return records in random manner with dynamic fields.
                     self.assertSetEqual(expected_all_keys, actual_all_keys)
 
                 if stream in streams_to_test:
