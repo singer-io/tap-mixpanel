@@ -37,7 +37,7 @@ This tap:
 
 **[engage](https://developer.mixpanel.com/docs/data-export-api#section-engage)**
   - Standard Server endpoint: https://mixpanel.com/api/2.0/engage
-  - EU Residency Server endpoint: https://mixpanel.com/api/2.0/engage
+  - EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage
 - Primary key fields:  `distinct_id`
 - Replication strategy: FULL_TABLE (all records, every load)
 - Transformations: De-nest `$properties` to root-level, re-name properties with leading `$...` to `mp_reserved_...`.
@@ -45,7 +45,7 @@ This tap:
 **[funnels](https://developer.mixpanel.com/docs/data-export-api#section-funnels)**
 - Standard Server endpoint 1 (name, id): https://data.mixpanel.com/api/2.0/export
 - Standard Server endpoint 2 (date, measures): https://mixpanel.com/api/2.0/funnels
-- EU Residency Server endpoint 1 (name, id): https://eu.data.mixpanel.com/api/2.0/export
+- EU Residency Server endpoint 1 (name, id): https://data-eu.mixpanel.com/api/2.0/export
 - EU Residency Server endpoint 2 (date, measures): https://eu.mixpanel.com/api/2.0/funnels
 - Primary key fields: `funnel_id`, `date`
 - Parameters:
