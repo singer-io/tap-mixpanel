@@ -57,8 +57,8 @@ This tap:
 - Transformations: Combine Endpoint 1 & 2 results, convert `date` keys to list to `results` list-array.
 
 **[revenue](https://developer.mixpanel.com/docs/data-export-api#section-hr-span-style-font-family-courier-revenue-span)**
-- EU Residency Server endpoint: https://mixpanel.com/api/2.0/engage/revenue
-- SU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage/revenue
+- Standard Server endpoint: https://mixpanel.com/api/2.0/engage/revenue
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage/revenue
 - Primary key fields: `date`
 - Parameters:
   - `unit`: day
@@ -69,21 +69,21 @@ This tap:
 
 **[annotations](https://developer.mixpanel.com/docs/data-export-api#section-annotations)**
 - Standard Server endpoint: https://mixpanel.com/api/2.0/annotations
-- EU Residency Server Server endpoint: https://eu.mixpanel.com/api/2.0/annotations
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/annotations
 - Primary key fields: `date`
 - Replication strategy: FULL_TABLE
 - Transformations: None.
 
 **[cohorts](https://developer.mixpanel.com/docs/cohorts#section-list-cohorts)**
 - Standard Server endpoint: https://mixpanel.com/api/2.0/cohorts/list
-- EU Residency Server Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
 - Primary key fields: `id`
 - Replication strategy: FULL_TABLE
 - Transformations: None.
 
 **[cohort_members (engage)](https://developer.mixpanel.com/docs/data-export-api#section-engage)**
 - Standard Server endpoint: https://mixpanel.com/api/2.0/cohorts/list
-- EU Residency Server Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
 - Primary key fields: `distinct_id`, `cohort_id`
 - Parameters:
   - `filter_by_cohort`: {cohort_id} (from `cohorts` endpoint)
