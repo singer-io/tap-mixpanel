@@ -61,7 +61,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please verify your credentials."
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -73,7 +73,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: Timeout Error. Please verify your credentials."
+            expected_error_message = "HTTP-error-code: 400, Error: Timeout Error.(Please verify your credentials.)"
             # Verifying the message formed for the timeout error
             self.assertEqual(str(e), expected_error_message)
 
@@ -146,7 +146,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please verify your credentials."
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -158,7 +158,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
-            expected_error_message = "HTTP-error-code: 400, Error: Timeout Error. Please verify your credentials."
+            expected_error_message = "HTTP-error-code: 400, Error: Timeout Error.(Please verify your credentials.)"
             # Verifying the message formed for the timeout error
             self.assertEqual(str(e), expected_error_message)
             
