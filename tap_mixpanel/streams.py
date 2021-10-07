@@ -43,6 +43,9 @@ class MixPanel:
         self.client = client
 
     def write_schema(self, catalog, stream_name):
+        """
+        Write the schema into the catalog files
+        """
         stream = catalog.get_stream(stream_name)
         schema = stream.schema.to_dict()
         try:
@@ -52,11 +55,17 @@ class MixPanel:
             raise err
 
     def get_bookmark(self, state, stream, default):
+        """
+        Return the bookmark if present in the state file or else return default
+        """
         if (state is None) or ("bookmarks" not in state):
             return default
         return state.get("bookmarks", {}).get(stream, default)
 
     def write_bookmark(self, state, stream, value):
+        """
+        Write the bookmark value in the state file
+        """
         if "bookmarks" not in state:
             state["bookmarks"] = {}
         state["bookmarks"][stream] = value
@@ -73,6 +82,10 @@ class MixPanel:
         max_bookmark_value=None,
         last_datetime=None,
     ):
+        """
+        Write the records to the output file and return the max_bookmark_value and the count
+        of the records
+        """
         stream = catalog.get_stream(stream_name)
         schema = stream.schema.to_dict()
         stream_metadata = metadata.to_map(stream.metadata)
@@ -247,7 +260,7 @@ class MixPanel:
     def define_bookmark_filters(self, days_interval, last_datetime, now_datetime, attribution_window):
         """
         define the params from and to according to the filters provided in
-         the bookmark_query_field_from and bookmark_query_field_to
+        the bookmark_query_field_from and bookmark_query_field_to
         """
         if self.bookmark_query_field_from and self.bookmark_query_field_to:
             # days_interval from config date_window_size, default = 60; passed to function from sync
@@ -278,7 +291,9 @@ class MixPanel:
         return start_window, end_window, days_interval
 
     def sync(self, state, catalog, config, start_date):
-        # the sync method common to all the streams which internally call methods depending on different endpoints
+        """
+        The sync method common to all the streams which internally call methods depending on different endpoints
+        """
 
         bookmark_field = next(iter(self.replication_keys), None)
         project_timezone = config.get("project_timezone", "UTC")
