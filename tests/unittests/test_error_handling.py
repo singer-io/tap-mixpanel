@@ -7,6 +7,9 @@ from tap_mixpanel import LOGGER, client
 
 
 class Mockresponse:
+    """
+    Dummy response class for mocking the response especially the status code
+    """
     def __init__(self, resp, status_code, content=[""], headers=None, raise_error=False):
         self.json_data = resp
         self.status_code = status_code
@@ -117,12 +120,14 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_request_with_handling_for_500_exception_handling(self, mock_send_500):
+        # verifying the function raises the MixpanelInternalServiceError or not
         with self.assertRaises(client.MixpanelInternalServiceError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')
 
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
     def test_request_with_handling_for_501_exception_handling(self, mock_send_501):
+        # verifying the function raises the Server5xxError or not
         with self.assertRaises(client.Server5xxError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret")
             mock_client.perform_request('GET')

@@ -108,6 +108,7 @@ def test_request_returns_json(mixpanel_client):
     with requests_mock.Mocker() as m:
         m.request('GET', 'http://test.com', json={'a': 'b'})
         result = mixpanel_client.request('GET', url='http://test.com')
+        # Assert that the request method returns json result or not
         assert result == {'a': 'b'}
 
 
@@ -115,4 +116,5 @@ def test_request_export_returns_generator(mixpanel_client):
     with requests_mock.Mocker() as m:
         m.request('GET', 'http://test.com', json={'a': 'b'})
         result = mixpanel_client.request_export('GET', url='http://test.com')
+        # Assert that the request to the export API returns a generator or not
         assert isinstance(result, Generator)
