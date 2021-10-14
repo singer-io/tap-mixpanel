@@ -29,7 +29,7 @@ class TestMixPanelBase(unittest.TestCase):
     start_date = ""
     end_date = ""
     eu_residency_server = True
-    
+
     def name(self):
         return "mixpnel-base"
 
@@ -101,12 +101,12 @@ class TestMixPanelBase(unittest.TestCase):
             'date_window_size': '30',
             'attribution_window': '5',
             'project_timezone': 'US/Pacific',
-            "eu_residency_server": False,
+            "eu_residency_server": 'false',
             'select_properties_by_default': 'false'
         }
         if self.eu_residency_server:
-            return_value.update({"project_timezone": "Europe/Amsterdam", "eu_residency_server": True})
-            
+            return_value.update({"project_timezone": "Europe/Amsterdam", "eu_residency_server": 'true'})
+
         if original:
             return return_value
 
@@ -118,13 +118,13 @@ class TestMixPanelBase(unittest.TestCase):
 
     def get_credentials(self):
         """Authentication information for the test account. Api secret is expected as a property."""
-        
+
         credentials_dict = {}
         if self.eu_residency_server:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
-            
+
         for cred in creds:
             credentials_dict[cred] = os.getenv(creds[cred])
 
@@ -132,15 +132,15 @@ class TestMixPanelBase(unittest.TestCase):
 
     def expected_streams(self):
         """A set of expected stream names"""
-        
-        # Skip `export` and `revenue` stream for EU recidency server as 
-        # revenue stream endpoint returns 400 bad reuqest and 
-        # export stream endpoint returns 200 terminated early response. 
-        # So, as per discussion decided that let the customer come with the issues 
-        # that these streams are not working. Skip the streams in the circleci.  
+
+        # Skip `export` and `revenue` stream for EU recidency server as
+        # revenue stream endpoint returns 400 bad reuqest and
+        # export stream endpoint returns 200 terminated early response.
+        # So, as per discussion decided that let the customer come with the issues
+        # that these streams are not working. Skip the streams in the circleci.
         if self.eu_residency_server:
             return set(self.expected_metadata().keys()) - {"export", "revenue"}
-        
+
         return set(self.expected_metadata().keys())
 
     def expected_pks(self):
@@ -323,18 +323,18 @@ class TestMixPanelBase(unittest.TestCase):
     def calculated_states_by_stream(self, current_state):
         timedelta_by_stream = {stream: [1,0,0]  # {stream_name: [days, hours, minutes], ...}
                                for stream in self.expected_streams()}
-        
+
         stream_to_calculated_state = {stream: "" for stream in current_state['bookmarks'].keys()}
         for stream, state in current_state['bookmarks'].items():
-    
+
             state_as_datetime = dateutil.parser.parse(state)
-            
+
             days, hours, minutes = timedelta_by_stream[stream]
             calculated_state_as_datetime = state_as_datetime - timedelta(days=days, hours=hours, minutes=minutes)
-            
+
             state_format = '%Y-%m-%dT%H:%M:%S-00:00'
             calculated_state_formatted = dt.strftime(calculated_state_as_datetime, state_format)
-            
+
             stream_to_calculated_state[stream] = calculated_state_formatted
 
         return stream_to_calculated_state
