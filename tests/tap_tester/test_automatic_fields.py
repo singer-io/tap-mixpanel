@@ -5,7 +5,7 @@ from base import TestMixPanelBase
 
 class MixPanelAutomaticFieldsTest(TestMixPanelBase):
     """
-    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the 
+    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
     primary keys and replication keys (automatic fields).
     """
 
@@ -55,9 +55,9 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
 
     def test_run(self):
         #Automatic fields test for standard server
-        self.eu_residency_server = False
+        self.eu_residency = False
         self.automatic_fields_test_run()
 
         #Automatic fields test for EU recidency server
-        self.eu_residency_server = True
+        self.eu_residency = True
         self.automatic_fields_test_run()

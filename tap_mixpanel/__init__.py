@@ -46,7 +46,7 @@ def main():
         LOGGER.warning("Setting start_date to 1 year ago, %s", start_date)
 
     #Check support for EU endpoints
-    if str(parsed_args.config.get('eu_residency_server')).lower() == "true":
+    if str(parsed_args.config.get('eu_residency')).lower() == "true":
         api_domain = "eu.mixpanel.com"
     else:
         api_domain = "mixpanel.com"

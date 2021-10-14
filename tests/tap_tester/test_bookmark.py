@@ -171,9 +171,9 @@ class MixPanelBookMarkTest(TestMixPanelBase):
 
     def test_run(self):
         #Bookmark test for standard server
-        self.eu_residency_server = False
+        self.eu_residency = False
         self.bookmark_test_run()
 
         #Bookmark test for EU recidency server
-        self.eu_residency_server = True
+        self.eu_residency = True
         self.bookmark_test_run()

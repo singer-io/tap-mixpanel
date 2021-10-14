@@ -28,7 +28,7 @@ class TestMixPanelBase(unittest.TestCase):
     TYPE = "platform.mixpanel"
     start_date = ""
     end_date = ""
-    eu_residency_server = True
+    eu_residency = True
 
     def name(self):
         return "mixpnel-base"
@@ -76,7 +76,7 @@ class TestMixPanelBase(unittest.TestCase):
 
     def setUp(self):
         missing_envs = []
-        if self.eu_residency_server:
+        if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
@@ -101,11 +101,11 @@ class TestMixPanelBase(unittest.TestCase):
             'date_window_size': '30',
             'attribution_window': '5',
             'project_timezone': 'US/Pacific',
-            "eu_residency_server": 'false',
+            "eu_residency": 'false',
             'select_properties_by_default': 'false'
         }
-        if self.eu_residency_server:
-            return_value.update({"project_timezone": "Europe/Amsterdam", "eu_residency_server": 'true'})
+        if self.eu_residency:
+            return_value.update({"project_timezone": "Europe/Amsterdam", "eu_residency": 'true'})
 
         if original:
             return return_value
@@ -120,7 +120,7 @@ class TestMixPanelBase(unittest.TestCase):
         """Authentication information for the test account. Api secret is expected as a property."""
 
         credentials_dict = {}
-        if self.eu_residency_server:
+        if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
@@ -138,7 +138,7 @@ class TestMixPanelBase(unittest.TestCase):
         # export stream endpoint returns 200 terminated early response.
         # So, as per discussion decided that let the customer come with the issues
         # that these streams are not working. Skip the streams in the circleci.
-        if self.eu_residency_server:
+        if self.eu_residency:
             return set(self.expected_metadata().keys()) - {"export", "revenue"}
 
         return set(self.expected_metadata().keys())
