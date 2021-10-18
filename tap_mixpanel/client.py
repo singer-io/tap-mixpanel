@@ -103,7 +103,7 @@ def raise_for_error(response):
                 response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
                     response.status_code, {})).get("message", "Unknown Error"))
         if response.status_code == 400:
-            message = f'{message}(Please verify your credentials.)'
+            message = '{}(Please verify your credentials.)'.format(message)
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
             response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
@@ -137,7 +137,7 @@ class MixpanelClient(object):
             raise Exception('Error: Missing api_secret in tap config.json.')
         headers = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
-        url = f'https://{self.__api_domain}/api/2.0/engage'
+        url = 'https://{}/api/2.0/engage'.format(self.__api_domain)
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
