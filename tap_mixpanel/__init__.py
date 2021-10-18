@@ -45,7 +45,14 @@ def main():
         LOGGER.warning("start_date greater than 1 year maxiumum for API.")
         LOGGER.warning("Setting start_date to 1 year ago, %s", start_date)
 
+    #Check support for EU endpoints
+    if str(parsed_args.config.get('eu_residency')).lower() == "true":
+        api_domain = "eu.mixpanel.com"
+    else:
+        api_domain = "mixpanel.com"
+
     with MixpanelClient(parsed_args.config['api_secret'],
+                        api_domain,
                         parsed_args.config['user_agent']) as client:
 
         state = {}
@@ -56,6 +63,7 @@ def main():
         properties_flag = config.get('select_properties_by_default')
 
         if parsed_args.discover:
+            client.__api_domain = api_domain
             do_discover(client, properties_flag)
         elif parsed_args.catalog:
             sync(client=client,

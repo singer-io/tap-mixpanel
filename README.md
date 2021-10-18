@@ -7,6 +7,9 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 This tap:
 
 - Pulls raw data from the [Mixpanel Event Export API](https://developer.mixpanel.com/docs/exporting-raw-data) and the [Mixpanel Query API](https://developer.mixpanel.com/docs/data-export-api).
+- Supports following two server
+  - Standard Server
+  - EU Residency Server
 - Extracts the following resources:
   - Export (Events)
   - Engage (People/Users)
@@ -24,7 +27,8 @@ This tap:
 ## Streams
 
 **[export](https://developer.mixpanel.com/docs/exporting-raw-data#section-export-api-reference)**
-- Endpoint: https://data.mixpanel.com/api/2.0/export
+- Standard Server endpoint: https://data.mixpanel.com/api/2.0/export
+- EU Residency Server endpoint: https://data-eu.mixpanel.com/api/2.0/export
 - Primary key fields: `event`, `time`, `distinct_id`
 - Replication strategy: INCREMENTAL (query filtered)
   - Bookmark: `time`
@@ -32,14 +36,17 @@ This tap:
 - Transformations: De-nest `properties` to root-level, re-name properties with leading `$...` to `mp_reserved_...`, convert datetimes from project timezone to UTC.
 
 **[engage](https://developer.mixpanel.com/docs/data-export-api#section-engage)**
-- Endpoint: https://mixpanel.com/api/2.0/engage
+  - Standard Server endpoint: https://mixpanel.com/api/2.0/engage
+  - EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage
 - Primary key fields:  `distinct_id`
 - Replication strategy: FULL_TABLE (all records, every load)
 - Transformations: De-nest `$properties` to root-level, re-name properties with leading `$...` to `mp_reserved_...`.
 
 **[funnels](https://developer.mixpanel.com/docs/data-export-api#section-funnels)**
-- Endpoint 1 (name, id): https://data.mixpanel.com/api/2.0/export
-- Endpoint 2 (date, measures): https://mixpanel.com/api/2.0/funnels
+- Standard Server endpoint 1 (name, id): https://data.mixpanel.com/api/2.0/export
+- Standard Server endpoint 2 (date, measures): https://mixpanel.com/api/2.0/funnels
+- EU Residency Server endpoint 1 (name, id): https://data-eu.mixpanel.com/api/2.0/export
+- EU Residency Server endpoint 2 (date, measures): https://eu.mixpanel.com/api/2.0/funnels
 - Primary key fields: `funnel_id`, `date`
 - Parameters:
   - `funnel_id`: {funnel_id} (from Endpoint 1)
@@ -50,7 +57,8 @@ This tap:
 - Transformations: Combine Endpoint 1 & 2 results, convert `date` keys to list to `results` list-array.
 
 **[revenue](https://developer.mixpanel.com/docs/data-export-api#section-hr-span-style-font-family-courier-revenue-span)**
-- Endpoint: https://mixpanel.com/api/2.0/engage/revenue
+- Standard Server endpoint: https://mixpanel.com/api/2.0/engage/revenue
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage/revenue
 - Primary key fields: `date`
 - Parameters:
   - `unit`: day
@@ -60,19 +68,22 @@ This tap:
 - Transformations: Convert `date` keys to list to `results` list-array.
 
 **[annotations](https://developer.mixpanel.com/docs/data-export-api#section-annotations)**
-- Endpoint: https://mixpanel.com/api/2.0/annotations
+- Standard Server endpoint: https://mixpanel.com/api/2.0/annotations
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/annotations
 - Primary key fields: `date`
 - Replication strategy: FULL_TABLE
 - Transformations: None.
 
 **[cohorts](https://developer.mixpanel.com/docs/cohorts#section-list-cohorts)**
-- Endpoint: https://mixpanel.com/api/2.0/cohorts/list
+- Standard Server endpoint: https://mixpanel.com/api/2.0/cohorts/list
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
 - Primary key fields: `id`
 - Replication strategy: FULL_TABLE
 - Transformations: None.
 
 **[cohort_members (engage)](https://developer.mixpanel.com/docs/data-export-api#section-engage)**
-- Endpoint: https://mixpanel.com/api/2.0/cohorts/list
+- Standard Server endpoint: https://mixpanel.com/api/2.0/cohorts/list
+- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/cohorts/list
 - Primary key fields: `distinct_id`, `cohort_id`
 - Parameters:
   - `filter_by_cohort`: {cohort_id} (from `cohorts` endpoint)
@@ -84,6 +95,9 @@ This tap:
 The Mixpanel API uses Basic Authorization with the `api_secret` from the tap config in base-64 encoded format. It is slightly different than normal Basic Authorization with username/password. All requests should include this header with the `api_secret` as the username, with no password:
 
 - Authorization: `Basic <base-64 encoded api_secret>`
+
+### Note 
+- If you selected eu_residency_server then please make sure you enter api_secret of that project only.
 
 More details may be found in the [Mixpanel API Authentication](https://developer.mixpanel.com/docs/data-export-api#section-authentication) instructions. 
 
@@ -123,6 +137,7 @@ More details may be found in the [Mixpanel API Authentication](https://developer
    - `attribution_window` (integer, `5`): Latency minimum number of days to look-back to account for delays in attributing accurate results. [Default attribution window is 5 days](https://help.mixpanel.com/hc/en-us/articles/115004616486-Tracking-If-Users-Are-Offline).
    - `project_timezone` (string like `US/Pacific`): Time zone in which integer date times are stored. The project timezone may be found in the project settings in the Mixpanel console. [More info about timezones](https://help.mixpanel.com/hc/en-us/articles/115004547203-Manage-Timezones-for-Projects-in-Mixpanel). 
    - `select_properties_by_default` (`true` or `false`): Mixpanel properties are not fixed and depend on the date being uploaded. During Discovery mode and catalog.json setup, all current/existing properties will be captured. Setting this config parameter to true ensures that new properties on events and engage records are captured. Otherwise new properties will be ignored.
+   - `eu_residency_server` (`true` or `false`): Data Residency refers to the physical/geographical storage location of an organization's data or information. Setting this config parameter to true ensures that it uses eu_residency_server endpoint to capture the records. As a Mixpanel customer in the EU, you have the option to send your data to Mixpanel's EU data center, and have your data stored exclusively in the EU when creating a new project. [More info about eu_residency_server](https://help.mixpanel.com/hc/en-us/articles/360039135652-Data-Residency-in-EU).
    
     ```json
     {
@@ -132,7 +147,8 @@ More details may be found in the [Mixpanel API Authentication](https://developer
         "project_timezone": "US/Pacific",
         "select_properties_by_default": "true",
         "start_date": "2019-01-01T00:00:00Z",
-        "user_agent": "tap-mixpanel <api_user_email@your_company.com>"
+        "user_agent": "tap-mixpanel <api_user_email@your_company.com>",
+        "eu_residency_server": "true"
     }
     ```
     
