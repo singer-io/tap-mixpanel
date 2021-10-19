@@ -10,7 +10,7 @@ class MixPanelStartDateTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_start_date_test"
 
-    def test_run(self):
+    def start_date_test_run(self):
         """Instantiate start date according to the desired data set and run the test"""
 
         self.start_date_1 = self.get_properties().get('start_date')
@@ -145,3 +145,12 @@ class MixPanelStartDateTest(TestMixPanelBase):
                     # Verify by primary key the same records are replicated in the 1st and 2nd syncs
                     self.assertSetEqual(primary_keys_sync_1,
                                         primary_keys_sync_2)
+
+    def test_run(self):
+        #Start date test for standard server
+        self.eu_residency = False
+        self.start_date_test_run()
+
+        #Start date test for EU recidency server
+        self.eu_residency = True
+        self.start_date_test_run()
