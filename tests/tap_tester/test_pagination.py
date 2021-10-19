@@ -8,12 +8,12 @@ class MixPanelPaginationTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_pagination_test"
 
-    def test_run(self):
+    def pagination_test_run(self):
         """
         • Verify that for each stream you can get multiple pages of data
         • and that when all fields are selected more than the automatic fields are replicated.
         • Verify no unexpected streams were replicated
-        • Verify that more than just the automatic fields are replicated for each stream. 
+        • Verify that more than just the automatic fields are replicated for each stream.
         • verify all fields for each stream are replicated
         • verify that the automatic fields are sent to the target
 
@@ -28,7 +28,7 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
         # Streams to verify all fields tests
         expected_streams = self.expected_streams()
-        
+
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
 
@@ -122,3 +122,12 @@ class MixPanelPaginationTest(TestMixPanelBase):
                         # Verify by private keys that data is unique for page
                         self.assertTrue(
                             primary_keys_page_1.isdisjoint(primary_keys_page_2))
+
+    def test_run(self):
+        #Pagination test for standard server
+        self.eu_residency = False
+        self.pagination_test_run()
+
+        #Pagination test for EU recidency server
+        self.eu_residency = True
+        self.pagination_test_run()
