@@ -25,8 +25,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
     def name(self):
         return "mix_panel_discover_test"
 
-    def test_run(self):
-
+    def discovery_test_run(self):
         streams_to_test = self.expected_streams()
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
@@ -128,3 +127,12 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                          and item.get("breadcrumb", ["properties", None])[1]
                          not in actual_automatic_fields}),
                     msg="Not all non key properties are set to available in metadata")
+
+    def test_run(self):
+        #Discovery test for standard server
+        self.eu_residency = False
+        self.discovery_test_run()
+
+        #Discovery test for EU recidency server
+        self.eu_residency = True
+        self.discovery_test_run()
