@@ -180,8 +180,8 @@ class MixPanel:
             # Loop through result records
             for record in data[self.data_key]:
                 # transform record and append to transformed_data array
-                transformed_record = transform_record(record, 
-                                                      self.tap_stream_id, 
+                transformed_record = transform_record(record,
+                                                      self.tap_stream_id,
                                                       project_timezone,
                                                       parent_record)
                 transformed_data.append(transformed_record)
@@ -285,6 +285,13 @@ class MixPanel:
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
 
+        #Update url if eu_residency is selected
+        if str(config.get('eu_residency')).lower() == "true":
+            if self.tap_stream_id == 'export':
+                self.url = 'https://data-eu.mixpanel.com/api/2.0'
+            else:
+                self.url = 'https://eu.mixpanel.com/api/2.0'
+
         # Get the latest bookmark for the stream and set the last_integer/datetime
         last_datetime = self.get_bookmark(
             state, self.tap_stream_id, start_date)
@@ -331,7 +338,7 @@ class MixPanel:
             # funnels and cohorts have a parent endpoint with parent_data and parent_id_field
             if self.parent_path and self.parent_id_field:
                 # API request data
-                LOGGER.info("URL for Parent Stream %s: %s/%s", 
+                LOGGER.info("URL for Parent Stream %s: %s/%s",
                             self.tap_stream_id,
                             self.url,
                             self.parent_path)
@@ -430,7 +437,7 @@ class Annotations(MixPanel):
 
 class CohortMembers(MixPanel):
     """
-    The list endpoint returns all of the cohorts in a given project. 
+    The list endpoint returns all of the cohorts in a given project.
     The JSON formatted return contains the cohort name, id, count, description, creation date, and visibility for every cohort in the project.
     Docs: https://developer.mixpanel.com/reference/engage
     """
@@ -484,7 +491,7 @@ class Engage(MixPanel):
 class Export(MixPanel):
     """
     Every data point sent to Mixpanel is stored as JSON in our data store.
-    The raw export API allows you to download your event data as it is received and stored within Mixpanel, 
+    The raw export API allows you to download your event data as it is received and stored within Mixpanel,
     complete with all event properties (including distinct_id) and the exact timestamp the event was fired.
     Docs: https://developer.mixpanel.com/reference/export
     """
@@ -518,7 +525,7 @@ class Export(MixPanel):
         for record in data:
             if record and str(record) != '':
                 # transform record and append to transformed_data array
-                transformed_record = transform_record(record, 
+                transformed_record = transform_record(record,
                                                       self.tap_stream_id,
                                                       project_timezone)
                 transformed_data.append(transformed_record)

@@ -102,6 +102,8 @@ def raise_for_error(response):
                 response.status_code,
                 response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(
                     response.status_code, {})).get("message", "Unknown Error"))
+        if response.status_code == 400:
+            message = '{}(Please verify your credentials.)'.format(message)
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(
             response.status_code, {}).get("raise_exception", MixpanelError)
         raise exc(message) from None
@@ -110,8 +112,10 @@ def raise_for_error(response):
 class MixpanelClient(object):
     def __init__(self,
                  api_secret,
+                 api_domain,
                  user_agent=None):
         self.__api_secret = api_secret
+        self.__api_domain = api_domain
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
@@ -133,7 +137,7 @@ class MixpanelClient(object):
             raise Exception('Error: Missing api_secret in tap config.json.')
         headers = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
-        url = 'https://mixpanel.com/api/2.0/engage'
+        url = 'https://{}/api/2.0/engage'.format(self.__api_domain)
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
@@ -199,7 +203,7 @@ class MixpanelClient(object):
         if url and path:
             url = '{}/{}'.format(url, path)
         elif path and not url:
-            url = 'https://mixpanel.com/api/2.0/{}'.format(path)
+            url = 'https://{}/api/2.0/{}'.format(self.__api_domain, path)
 
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']
@@ -239,7 +243,7 @@ class MixpanelClient(object):
         if url and path:
             url = '{}/{}'.format(url, path)
         elif path and not url:
-            url = 'https://data.mixpanel.com/api/2.0/{}'.format(path)
+            url = 'https://{}/api/2.0/{}'.format(self.__api_domain, path)
 
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']
