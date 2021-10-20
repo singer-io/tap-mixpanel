@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.0
+  * Add support for EU residency mixpanel data via the `eu_residency` config parameter, which when `'true'` will have the tap extract data from the EU residency endpoint [#39](https://github.com/singer-io/tap-mixpanel/pull/39)
+
 ## 1.2.2
   * Add a timeout on requests [#20](https://github.com/singer-io/tap-mixpanel/pull/20)
 
