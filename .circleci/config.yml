@@ -31,6 +31,10 @@ jobs:
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
             python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
+      - store_test_results:
+          path: test_output/report.xml
+      - store_artifacts:
+          path: htmlcov
       - run:
           when: always
           name: 'Integration Tests Setup'
@@ -44,10 +48,6 @@ jobs:
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             PYTHONPATH=$PYTHONPATH:/usr/local/share/virtualenvs/tap-mixpanel/lib/python3.5/site-packages/ \
             run-test --tap=tap-mixpanel tests/tap_tester
-      - store_test_results:
-          path: test_output/report.xml
-      - store_artifacts:
-          path: htmlcov
 
 workflows:
   version: 2
