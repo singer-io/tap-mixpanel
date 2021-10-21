@@ -16,6 +16,7 @@ from tap_mixpanel.transform import transform_record, transform_datetime
 
 LOGGER = singer.get_logger()
 
+REQUEST_TIMEOUT = 300
 
 class MixPanel:
     """
@@ -124,7 +125,7 @@ class MixPanel:
 
     def get_and_transform_records(
             self, querystring, project_timezone, max_bookmark_value, catalog, last_datetime, endpoint_total,
-            limit, total_records, parent_total, record_count, page, offset, parent_record, date_total):
+            limit, total_records, parent_total, record_count, page, offset, parent_record, date_total, request_timeout):
         """
         Get the records using the client get request and transform it using transform_records
         and return the max_bookmark_value
@@ -133,6 +134,7 @@ class MixPanel:
         session_id = None
         data = self.client.request(
             method='GET',
+            request_timeout=request_timeout, # Extra request_timeout parameter to pass with each request
             url=self.url,
             path=self.path,
             params=querystring,
@@ -285,6 +287,8 @@ class MixPanel:
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
 
+        # Set request timeout to config param `request_timeout` value. Set default to 5min if not passed in config.
+        request_timeout = int(config.get("request_timeout", REQUEST_TIMEOUT)) 
         #Update url if eu_residency is selected
         if str(config.get('eu_residency')).lower() == "true":
             if self.tap_stream_id == 'export':
@@ -394,7 +398,7 @@ class MixPanel:
                     # data = {}
 
                     parent_total, date_total, offset, page, session_id, endpoint_total, max_bookmark_value, total_records = self.get_and_transform_records(
-                        querystring, project_timezone, max_bookmark_value, catalog, last_datetime, endpoint_total, limit, total_records, parent_total, record_count, page, offset, parent_record, date_total)
+                        querystring, project_timezone, max_bookmark_value, catalog, last_datetime, endpoint_total, limit, total_records, parent_total, record_count, page, offset, parent_record, date_total, request_timeout)
                    # End stream != 'export'
                 LOGGER.info('FINISHED: Stream: %s, parent_id: %s', self.tap_stream_id, parent_id)
                 LOGGER.info('Total records for parent: %s', parent_total)
@@ -507,13 +511,14 @@ class Export(MixPanel):
 
     def get_and_transform_records(
             self, querystring, project_timezone, max_bookmark_value, catalog, last_datetime, endpoint_total,
-            limit, total_records, parent_total, record_count, page, offset, parent_record, date_total):
+            limit, total_records, parent_total, record_count, page, offset, parent_record, date_total, request_timeout):
         """
         Get the records using the client get request and transform it using transform_records
         and return the max_bookmark_value
         """
         data = self.client.request_export(
             method='GET',
+            request_timeout=request_timeout, # Extra request_timeout parameter to pass with each request
             url=self.url,
             path=self.path,
             params=querystring,

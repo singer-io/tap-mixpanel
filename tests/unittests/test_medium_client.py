@@ -103,6 +103,19 @@ def test_request_backoff_on_timeout(mock_sleep, mixpanel_client):
         # Assert backoff retry count as expected
         assert mock_sleep.call_count == client.BACKOFF_MAX_TRIES_REQUEST - 1
 
+@mock.patch('time.sleep', return_value=None)
+def test_check_access_backoff_on_timeout(mock_sleep, mixpanel_client):
+    '''
+    Test that check_access method perform backoff on timeout error.
+    '''
+    with requests_mock.Mocker() as m:
+        m.request('GET', 'https://mixpanel.com/api/2.0/engage',
+                  exc=requests.exceptions.Timeout('Timeout on request'))
+
+        with raises(ReadTimeoutError) as ex:
+            result = mixpanel_client.check_access()
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == 5 - 1
 
 def test_request_returns_json(mixpanel_client):
     with requests_mock.Mocker() as m:

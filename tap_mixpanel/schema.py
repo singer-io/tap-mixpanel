@@ -32,6 +32,7 @@ def get_schema(client, properties_flag, stream_name):
     if stream_name == 'engage':
         properties = client.request(
             method='GET',
+            request_timeout=client.__request_timeout, # Extra request_timeout parameter to pass with each request
             url='https://{}/api/2.0'.format(client.__api_domain),
             path='engage/properties',
             params={'limit': 2000},
@@ -91,6 +92,7 @@ def get_schema(client, properties_flag, stream_name):
         #  https://developer.mixpanel.com/docs/data-export-api#section-hr-span-style-font-family-courier-top-span
         results = client.request(
             method='GET',
+            request_timeout=client.__request_timeout, # Extra request_timeout parameter to pass with each request
             url='https://{}/api/2.0'.format(client.__api_domain),
             path='events/properties/top',
             params={'limit': 2000},

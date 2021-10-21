@@ -113,9 +113,11 @@ class MixpanelClient(object):
     def __init__(self,
                  api_secret,
                  api_domain,
+                 request_timeout,
                  user_agent=None):
         self.__api_secret = api_secret
         self.__api_domain = api_domain
+        self.__request_timeout = request_timeout
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
@@ -147,7 +149,7 @@ class MixpanelClient(object):
         try:
             response = self.__session.get(
                 url=url,
-                timeout=REQUEST_TIMEOUT,
+                timeout=self.__request_timeout, # Request timeout parameter
                 headers=headers)
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: %s',str(err))
@@ -172,6 +174,7 @@ class MixpanelClient(object):
         logger=LOGGER)
     def perform_request(self,
                         method,
+                        request_timeout=REQUEST_TIMEOUT,
                         url=None,
                         params=None,
                         json=None,
@@ -183,7 +186,7 @@ class MixpanelClient(object):
                                               params=params,
                                               json=json,
                                               stream=stream,
-                                              timeout=REQUEST_TIMEOUT,
+                                              timeout=request_timeout,
                                               **kwargs)
 
             if response.status_code > 500:
@@ -196,7 +199,7 @@ class MixpanelClient(object):
             LOGGER.error('TIMEOUT ERROR: %s',str(err))
             raise ReadTimeoutError(err)
 
-    def request(self, method, url=None, path=None, params=None, json=None, **kwargs):
+    def request(self, method, request_timeout=REQUEST_TIMEOUT, url=None, path=None, params=None, json=None, **kwargs):
         if not self.__verified:
             self.__verified = self.check_access()
 
@@ -226,6 +229,7 @@ class MixpanelClient(object):
             str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(method=method,
+                                            request_timeout=request_timeout,
                                             url=url,
                                             params=params,
                                             json=json,
@@ -236,7 +240,7 @@ class MixpanelClient(object):
         response_json = response.json()
         return response_json
 
-    def request_export(self, method, url=None, path=None, params=None, json=None, **kwargs):
+    def request_export(self, method, request_timeout=REQUEST_TIMEOUT, url=None, path=None, params=None, json=None, **kwargs):
         if not self.__verified:
             self.__verified = self.check_access()
 
@@ -266,6 +270,7 @@ class MixpanelClient(object):
             str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(method=method,
+                                            request_timeout=request_timeout,
                                             url=url,
                                             params=params,
                                             json=json,
