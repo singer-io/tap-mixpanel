@@ -149,7 +149,7 @@ class MixpanelClient(object):
         try:
             response = self.__session.get(
                 url=url,
-                timeout=self.__request_timeout, # Request timeout parameter
+                timeout=float(self.__request_timeout), # Request timeout parameter
                 headers=headers)
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: %s',str(err))
@@ -186,7 +186,7 @@ class MixpanelClient(object):
                                               params=params,
                                               json=json,
                                               stream=stream,
-                                              timeout=request_timeout,
+                                              timeout=float(request_timeout),
                                               **kwargs)
 
             if response.status_code > 500:

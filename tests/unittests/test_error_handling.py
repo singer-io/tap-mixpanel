@@ -2,8 +2,11 @@ import unittest
 from unittest import mock
 import requests
 from tap_mixpanel import client
+import requests
+from tap_mixpanel.client import ReadTimeoutError
 
 # mock responce
+REQUEST_TIMEOUT = 300
 
 
 class Mockresponse:
@@ -59,7 +62,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_400)
     def test_request_with_handling_for_400_exception_handling(self, mock_send_400, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
@@ -71,7 +74,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error."}
         mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: Timeout Error.(Please verify your credentials.)"
@@ -81,7 +84,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_401)
     def test_request_with_handling_for_401_exception_handling(self, mock_send_401, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelUnauthorizedError as e:
             expected_error_message = "HTTP-error-code: 401, Error: Invalid authorization credentials."
@@ -91,7 +94,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_402)
     def test_request_with_handling_for_402_exception_handling(self, mock_send_402, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelRequestFailedError as e:
             expected_error_message = "HTTP-error-code: 402, Error: Request can not be processed."
@@ -101,7 +104,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_403)
     def test_request_with_handling_for_403_exception_handling(self, mock_send_403, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelForbiddenError as e:
             expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
@@ -111,7 +114,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_404)
     def test_request_with_handling_for_404_exception_handling(self, mock_send_404, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.MixpanelNotFoundError as e:
             expected_error_message = "HTTP-error-code: 404, Error: The resource you have specified cannot be found."
@@ -121,7 +124,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
     def test_request_with_handling_for_429_exception_handling(self, mock_send_429, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
         except client.Server429Error as e:
             expected_error_message = "HTTP-error-code: 429, Error: The API rate limit for your organisation/application pairing has been exceeded."
@@ -131,20 +134,20 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_request_with_handling_for_500_exception_handling(self, mock_send_500, mock_sleep):
         with self.assertRaises(client.MixpanelInternalServiceError):
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
 
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
     def test_request_with_handling_for_501_exception_handling(self, mock_send_501, mock_sleep):
         with self.assertRaises(client.Server5xxError):
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
 
     @mock.patch("requests.Session.get", side_effect=mock_send_400)
     def test_check_access_with_handling_for_400_exception_handling(self, mock_send_400, mock_sleep):
         try:
             tap_stream_id = "tap_mixpanel"
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
@@ -156,7 +159,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error."}
         mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: Timeout Error.(Please verify your credentials.)"
@@ -166,7 +169,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_401)
     def test_check_access_with_handling_for_401_exception_handling(self, mock_send_401, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelUnauthorizedError as e:
             expected_error_message = "HTTP-error-code: 401, Error: Invalid authorization credentials."
@@ -176,7 +179,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_403)
     def test_check_access_with_handling_for_403_exception_handling(self, mock_send_403, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelForbiddenError as e:
             expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
@@ -186,7 +189,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_404)
     def test_check_access_with_handling_for_404_exception_handling(self, mock_send_404, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelNotFoundError as e:
             expected_error_message = "HTTP-error-code: 404, Error: The resource you have specified cannot be found."
@@ -196,7 +199,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
     def test_check_access_with_handling_for_429_exception_handling(self, mock_send_429, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.Server429Error as e:
             expected_error_message = "HTTP-error-code: 429, Error: The API rate limit for your organisation/application pairing has been exceeded."
@@ -206,7 +209,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_check_access_with_handling_for_500_exception_handling(self, mock_send_500, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelInternalServiceError as e:
             expected_error_message = "HTTP-error-code: 500, Error: Server encountered an unexpected condition that prevented it from fulfilling the request."
@@ -216,9 +219,151 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
     def test_check_access_with_handling_for_501_exception_handling(self, mock_send_501, mock_sleep):
         try:
-            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=1)
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
         except client.MixpanelError as e:
             expected_error_message = "HTTP-error-code: 501, Error: Unknown Error"
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_check_access_backoff_on_timeout_param_value_str(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type string perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout="300")
+            mock_client.check_access()
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == 4
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with('GET', 'https://mock_api_domain/api/2.0/engage', timeout=300.0, 
+                                        headers={'Accept': 'application/json', 'Authorization': 'Basic bW9ja19hcGlfc2VjcmV0'}, allow_redirects=True)
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_check_access_backoff_on_timeout_param_value_float(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type float perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout="300.05")
+            mock_client.check_access()
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == 4
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with('GET', 'https://mock_api_domain/api/2.0/engage', timeout=300.05, 
+                                        headers={'Accept': 'application/json', 'Authorization': 'Basic bW9ja19hcGlfc2VjcmV0'}, allow_redirects=True)
+
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_check_access_backoff_on_timeout_param_value_int(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type int perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+            mock_client.check_access()
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == 4
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with('GET', 'https://mock_api_domain/api/2.0/engage', timeout=300.0, 
+                                        headers={'Accept': 'application/json', 'Authorization': 'Basic bW9ja19hcGlfc2VjcmV0'}, allow_redirects=True)
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_check_access_backoff_on_timeout_param_value_not_passed(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with default request_timeout value perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+            mock_client.check_access()
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == 4
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with('GET', 'https://mock_api_domain/api/2.0/engage', timeout=300.0, 
+                                        headers={'Accept': 'application/json', 'Authorization': 'Basic bW9ja19hcGlfc2VjcmV0'}, allow_redirects=True)
+
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_perform_request_backoff_on_timeout_param_value_str(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type string perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout="300")
+            mock_client.perform_request('GET', url='http://test.com', request_timeout="300")
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == client.BACKOFF_MAX_TRIES_REQUEST - 1
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with(method='GET', url='http://test.com', params=None, json=None, stream=False, timeout=300.0)
+        
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_perform_request_backoff_on_timeout_param_value_float(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type float perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=300.05)
+            mock_client.perform_request('GET', url='http://test.com', request_timeout=300.05)
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == client.BACKOFF_MAX_TRIES_REQUEST - 1
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with(method='GET', url='http://test.com', params=None, json=None, stream=False, timeout=300.05)
+        
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_perform_request_backoff_on_timeout_param_value_int(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with `request_timeout` parameter of type int perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=300)
+            mock_client.perform_request('GET', url='http://test.com', request_timeout=300)
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == client.BACKOFF_MAX_TRIES_REQUEST - 1
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with(method='GET', url='http://test.com', params=None, json=None, stream=False, timeout=300.0)
+        
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout('Timeout on request'))
+    def test_perform_request_backoff_on_timeout_param_value_not_passed(self, mock_request, mock_sleep):
+        '''
+        Test that check_access method with default `request_timeout` value perform backoff on timeout error.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+            mock_client.perform_request('GET', url='http://test.com')
+        except ReadTimeoutError as e:
+            pass
+        
+        # Assert backoff retry count as expected
+        assert mock_sleep.call_count == client.BACKOFF_MAX_TRIES_REQUEST - 1
+        
+        # Verify that request called with expected timeout parameter
+        mock_request.assert_called_with(method='GET', url='http://test.com', params=None, json=None, stream=False, timeout=300.0)

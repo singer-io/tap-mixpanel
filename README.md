@@ -138,6 +138,7 @@ More details may be found in the [Mixpanel API Authentication](https://developer
    - `project_timezone` (string like `US/Pacific`): Time zone in which integer date times are stored. The project timezone may be found in the project settings in the Mixpanel console. [More info about timezones](https://help.mixpanel.com/hc/en-us/articles/115004547203-Manage-Timezones-for-Projects-in-Mixpanel). 
    - `select_properties_by_default` (`true` or `false`): Mixpanel properties are not fixed and depend on the date being uploaded. During Discovery mode and catalog.json setup, all current/existing properties will be captured. Setting this config parameter to true ensures that new properties on events and engage records are captured. Otherwise new properties will be ignored.
    - `eu_residency_server` (`true` or `false`): Data Residency refers to the physical/geographical storage location of an organization's data or information. Setting this config parameter to true ensures that it uses eu_residency_server endpoint to capture the records. As a Mixpanel customer in the EU, you have the option to send your data to Mixpanel's EU data center, and have your data stored exclusively in the EU when creating a new project. [More info about eu_residency_server](https://help.mixpanel.com/hc/en-us/articles/360039135652-Data-Residency-in-EU).
+   - `request_timeout` (integer, `300`): Time for which request should wait to get response. Default request_timeout is 300 seconds.
    
     ```json
     {
@@ -148,7 +149,8 @@ More details may be found in the [Mixpanel API Authentication](https://developer
         "select_properties_by_default": "true",
         "start_date": "2019-01-01T00:00:00Z",
         "user_agent": "tap-mixpanel <api_user_email@your_company.com>",
-        "eu_residency_server": "true"
+        "eu_residency_server": "true",
+        "request_timeout": 300
     }
     ```
     
