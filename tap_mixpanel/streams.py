@@ -16,7 +16,7 @@ from tap_mixpanel.transform import transform_record, transform_datetime
 
 LOGGER = singer.get_logger()
 
-REQUEST_TIMEOUT = 300.0
+REQUEST_TIMEOUT = 300
 
 class MixPanel:
     """
@@ -288,7 +288,7 @@ class MixPanel:
         attribution_window = int(config.get("attribution_window", "5"))
 
         # Set request timeout to config param `request_timeout` value.
-        # If value is 0,"0","" or not passed then it set default to 300.0 seconds.
+        # If value is 0,"0","" or not passed then it set default to 300 seconds.
         config_request_timeout = config.get('request_timeout')
         request_timeout = config_request_timeout and float(config_request_timeout) or REQUEST_TIMEOUT
         #Update url if eu_residency is selected

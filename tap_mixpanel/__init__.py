@@ -13,7 +13,7 @@ from tap_mixpanel.sync import sync
 
 LOGGER = singer.get_logger()
 
-REQUEST_TIMEOUT = 300.0
+REQUEST_TIMEOUT = 300
 REQUIRED_CONFIG_KEYS = [
     'project_timezone',
     'api_secret',
@@ -36,7 +36,7 @@ def main():
 
     start_date = parsed_args.config['start_date']
     # Set request timeout to config param `request_timeout` value.
-    # If value is 0,"0","" or not passed then it set default to 300.0 seconds.
+    # If value is 0,"0","" or not passed then it set default to 300 seconds.
     config_request_timeout = parsed_args.config.get('request_timeout')
     request_timeout = config_request_timeout and float(config_request_timeout) or REQUEST_TIMEOUT
 
