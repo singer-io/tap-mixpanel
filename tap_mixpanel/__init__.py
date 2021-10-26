@@ -35,8 +35,8 @@ def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
     start_date = parsed_args.config['start_date']
-    # Set request timeout to config param `request_timeout` value. 
-    # If value is 0,"0","" or None then it will set default to default to 300.0 seconds if not passed in config.
+    # Set request timeout to config param `request_timeout` value.
+    # If value is 0,"0","" or not passed then it set default to 300.0 seconds.
     config_request_timeout = parsed_args.config.get('request_timeout')
     request_timeout = config_request_timeout and float(config_request_timeout) or REQUEST_TIMEOUT
 

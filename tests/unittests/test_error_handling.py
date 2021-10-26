@@ -225,5 +225,3 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             expected_error_message = "HTTP-error-code: 501, Error: Unknown Error"
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
-
-

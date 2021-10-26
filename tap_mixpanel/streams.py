@@ -288,7 +288,7 @@ class MixPanel:
         attribution_window = int(config.get("attribution_window", "5"))
 
         # Set request timeout to config param `request_timeout` value.
-        # If value is 0,"0","" or None then it will set default to default to 300.0 seconds if not passed in config.
+        # If value is 0,"0","" or not passed then it set default to 300.0 seconds.
         config_request_timeout = config.get('request_timeout')
         request_timeout = config_request_timeout and float(config_request_timeout) or REQUEST_TIMEOUT
         #Update url if eu_residency is selected
