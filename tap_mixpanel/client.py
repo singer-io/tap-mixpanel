@@ -87,7 +87,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
 
 def raise_for_error(response):
     LOGGER.error('ERROR %s: %s, REASON: %s', response.status_code,
-                                             response.text, 
+                                             response.text,
                                              response.reason)
     try:
         response_json = response.json()
@@ -149,7 +149,7 @@ class MixpanelClient(object):
         try:
             response = self.__session.get(
                 url=url,
-                timeout=float(self.__request_timeout), # Request timeout parameter
+                timeout=self.__request_timeout, # Request timeout parameter
                 headers=headers)
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: %s',str(err))
@@ -186,7 +186,7 @@ class MixpanelClient(object):
                                               params=params,
                                               json=json,
                                               stream=stream,
-                                              timeout=float(request_timeout),
+                                              timeout=request_timeout,
                                               **kwargs)
 
             if response.status_code > 500:
