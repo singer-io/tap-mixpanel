@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0
+  * Add a proper error message for timezone issue [#35] (https://github.com/singer-io/tap-mixpanel/pull/35)
+  * Switch from using multipleof to singer.decimal [#38]( https://github.com/singer-io/tap-mixpanel/pull/38)
+  * Fix date time conversion [#40] (https://github.com/singer-io/tap-mixpanel/pull/40)
+
 ## 1.3.0
   * Add support for EU residency mixpanel data via the `eu_residency` config parameter, which when `'true'` will have the tap extract data from the EU residency endpoint [#39](https://github.com/singer-io/tap-mixpanel/pull/39)
 
