@@ -28,11 +28,22 @@ class Mockresponse:
     def json(self):
         return self.text
 
+# Mock response for timezone related error messages
+def get_mock_http_response(content, status_code):
+    response = requests.Response()
+    response.status_code = status_code
+    response.headers = {}
+    response._content = content.encode()
+    return response
 
 class TestMixpanelErrorHandling(unittest.TestCase):
 
     def mock_send_400(*args, **kwargs):
         return Mockresponse("", 400, raise_error=True)
+
+    def mock_400_different_timezone(*args, **kwargs):
+        content = " to_date cannot be later than today"
+        return get_mock_http_response(content, 400)
 
     def mock_send_401(*args, **kwargs):
         return Mockresponse("", 401, raise_error=True)
@@ -55,6 +66,14 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     def mock_send_501(*args, **kwargs):
         return Mockresponse("", 501, raise_error=True)
 
+    def mock_send_error(*args, **kwargs):
+        content = '{"error": "Resource not found error message from API response field \'error\'."}'
+        return get_mock_http_response(content, 404)
+
+    def mock_send_message(*args, **kwargs):
+        content = '{"message": "Resource not found error message from API response field \'message\'."}'
+        return get_mock_http_response(content, 404)
+
     @mock.patch("requests.Session.request", side_effect=mock_send_400)
     def test_request_with_handling_for_400_exception_handling(self, mock_send_400):
         try:
@@ -62,6 +81,16 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client.perform_request('GET')
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
+            # Verifying the message formed for the custom exception
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=mock_400_different_timezone)
+    def test_request_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone):
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.perform_request('GET')
+        except client.MixpanelBadRequestError as e:
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -92,8 +121,8 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
-        except client.MixpanelRequestFailedError as e:
-            expected_error_message = "HTTP-error-code: 402, Error: Request can not be processed."
+        except client.MixpanelPaymentRequiredError as e:
+            expected_error_message = "HTTP-error-code: 402, Error: Your current plan does not allow API calls. Payment is required to complete the operation."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -103,7 +132,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
         except client.MixpanelForbiddenError as e:
-            expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
+            expected_error_message = "HTTP-error-code: 403, Error: User does not have permission to access the resource."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -139,6 +168,32 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.perform_request('GET')
 
+    @mock.patch("requests.Session.request", side_effect=mock_send_error)
+    def test_request_with_handling_for_404_exception_handling_error(self, mock_send_error):
+        '''
+            Verify that if 'error' field is present in API response then it should be used as error message.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.perform_request('GET')
+        except client.MixpanelNotFoundError as e:
+            expected_error_message = "HTTP-error-code: 404, Error: Resource not found error message from API response field 'error'."
+            # Verifying the message retrived from 'error' field of API response
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=mock_send_message)
+    def test_request_with_handling_for_404_exception_handling_message(self, mock_send_message):
+        '''
+            Verify that if 'message' field is present in API response then it should be used as error message.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.perform_request('GET')
+        except client.MixpanelNotFoundError as e:
+            expected_error_message = "HTTP-error-code: 404, Error: Resource not found error message from API response field 'message'."
+            # Verifying the message retrived from 'message' field of API response
+            self.assertEqual(str(e), expected_error_message)
+
     @mock.patch("requests.Session.get", side_effect=mock_send_400)
     def test_check_access_with_handling_for_400_exception_handling(self, mock_send_400):
         try:
@@ -147,6 +202,17 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client.check_access()
         except client.MixpanelBadRequestError as e:
             expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred.(Please verify your credentials.)"
+            # Verifying the message formed for the custom exception
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.get", side_effect=mock_400_different_timezone)
+    def test_check_access_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone):
+        try:
+            tap_stream_id = "tap_mixpanel"
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.check_access()
+        except client.MixpanelBadRequestError as e:
+            expected_error_message = "HTTP-error-code: 400, Error: A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -178,7 +244,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
             mock_client.check_access()
         except client.MixpanelForbiddenError as e:
-            expected_error_message = "HTTP-error-code: 403, Error: User doesn't have permission to access the resource."
+            expected_error_message = "HTTP-error-code: 403, Error: User does not have permission to access the resource."
             # Verifying the message formed for the custom exception
             self.assertEqual(str(e), expected_error_message)
 
@@ -220,4 +286,30 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         except client.MixpanelError as e:
             expected_error_message = "HTTP-error-code: 501, Error: Unknown Error"
             # Verifying the message formed for the custom exception
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=mock_send_error)
+    def test_check_access_with_handling_for_404_exception_handling_error(self, mock_send_error):
+        '''
+            Verify that if 'error' field is present in API response then it should be used as error message.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.check_access()
+        except client.MixpanelNotFoundError as e:
+            expected_error_message = "HTTP-error-code: 404, Error: Resource not found error message from API response field 'error'."
+            # Verifying the message retrived from 'error' field of API response
+            self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=mock_send_message)
+    def test_check_access_with_handling_for_404_exception_handling_message(self, mock_send_message):
+        '''
+            Verify that if 'message' field is present in API response then it should be used as error message.
+        '''
+        try:
+            mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain")
+            mock_client.check_access()
+        except client.MixpanelNotFoundError as e:
+            expected_error_message = "HTTP-error-code: 404, Error: Resource not found error message from API response field 'message'."
+            # Verifying the message retrived from 'message' field of API response
             self.assertEqual(str(e), expected_error_message)

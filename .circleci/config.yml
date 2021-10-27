@@ -14,6 +14,7 @@ jobs:
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
             pip install -U 'pip<19.2' 'setuptools<51.0.0'
             pip install .[dev]
+            pip install pytest-cov
       # TODO: Fails pylint a lot, skipping for now (https://stitchdata.atlassian.net/browse/SRCE-4606)
       #- run:
       #    name: 'pylint tap'
@@ -29,7 +30,11 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-            pytest tests/unittests/
+            python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
+      - store_test_results:
+          path: test_output/report.xml
+      - store_artifacts:
+          path: htmlcov
       - run:
           when: always
           name: 'Integration Tests Setup'
