@@ -32,7 +32,9 @@ def transform_event_times(record, project_timezone):
     naive_time = datetime.time(0, 0)
     date = datetime.date(1970, 1, 1)
     naive_datetime = datetime.datetime.combine(date, naive_time)
-    beginning_datetime = timezone.localize(naive_datetime)
+    # Move 1970-01-01T00:00:00Z to Mixpanel project timezone.
+    # For example, if Mixpanel timezone is in Eastern Time (UTC-5:00) then it calculates 1969-12-31T19:00:00-5:00.
+    beginning_datetime = pytz.utc.localize(naive_datetime).astimezone(timezone)
 
     # Get integer time
     time_int = int(record.get('time'))
