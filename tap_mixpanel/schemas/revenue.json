@@ -17,8 +17,8 @@
       "type": ["null", "integer"]
     },
     "amount": {
-      "type": ["null", "number"],
-      "multipleOf": 1e-20
+      "type": ["null", "string"],
+      "format": "singer.decimal"
     }
   }
 }

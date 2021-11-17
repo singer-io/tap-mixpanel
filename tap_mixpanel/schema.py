@@ -55,8 +55,8 @@ def get_schema(client, properties_flag, stream_name):
                         'type': ['null', 'boolean']
                     },
                     'number': {
-                        'type': ['null', 'number'],
-                        'multipleOf': 1e-20
+                        'type': ['null', 'string'],
+                        'format': 'singer.decimal'
                     },
                     'datetime': {
                         'type': ['null', 'string'],

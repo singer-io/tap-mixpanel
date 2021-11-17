@@ -28,19 +28,19 @@
                 "type": ["null", "integer"]
               },
               "avg_time": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": ["null", "string"],
+                "format": "singer.decimal"
               },
               "goal": {
                 "type": ["null", "string"]
               },
               "overall_conv_ratio": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": ["null", "string"],
+                "format": "singer.decimal"
               },
               "step_conv_ratio": {
-                "type": ["null", "number"],
-                "multipleOf": 1e-20
+                "type": ["null", "string"],
+                "format": "singer.decimal"
               },
               "event": {
                 "type": ["null", "string"]
