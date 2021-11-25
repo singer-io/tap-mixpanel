@@ -36,9 +36,12 @@ def main():
 
     start_date = parsed_args.config['start_date']
     # Set request timeout to config param `request_timeout` value.
-    # If value is 0,"0","" or not passed then it set default to 300 seconds.
+    # If value is 0, "0", "" or not passed then it sets default to 300 seconds.
     config_request_timeout = parsed_args.config.get('request_timeout')
-    request_timeout = config_request_timeout and float(config_request_timeout) or REQUEST_TIMEOUT
+    if config_request_timeout and float(config_request_timeout):
+        request_timeout = float(config_request_timeout)
+    else:
+        request_timeout = REQUEST_TIMEOUT
 
     start_dttm = strptime_to_utc(start_date)
     now_dttm = utils.now()

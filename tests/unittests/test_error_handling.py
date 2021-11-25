@@ -10,6 +10,9 @@ REQUEST_TIMEOUT = 300
 
 
 class Mockresponse:
+    """
+    Mocked standard HTTPResponse to test error handling.
+    """
     def __init__(self, resp, status_code, content=[""], headers=None, raise_error=False, text={}):
         self.json_data = resp
         self.status_code = status_code
@@ -80,6 +83,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_400)
     def test_request_with_handling_for_400_exception_handling(self, mock_send_400, mock_sleep):
+        """
+        Test that `perform_request` method handle 400 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -90,6 +96,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_400_different_timezone)
     def test_request_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone, mock_sleep):
+        """
+        Test that `perform_request` method handle 400 error with proper message for different timezone
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -100,6 +109,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request")
     def test_request_with_handling_for_400_timeout_error_handling(self, mock_request, mock_sleep):
+        """
+        Test that `perform_request` method handle 400 error with timeout error message in case of `error` field in response
+        """
         error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error."}
         mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
         try:
@@ -112,6 +124,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_401)
     def test_request_with_handling_for_401_exception_handling(self, mock_send_401, mock_sleep):
+        """
+        Test that `perform_request` method handle 401 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -122,6 +137,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_402)
     def test_request_with_handling_for_402_exception_handling(self, mock_send_402, mock_sleep):
+        """
+        Test that `perform_request` method handle 402 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -132,6 +150,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_403)
     def test_request_with_handling_for_403_exception_handling(self, mock_send_403, mock_sleep):
+        """
+        Test that `perform_request` method handle 403 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -142,6 +163,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_404)
     def test_request_with_handling_for_404_exception_handling(self, mock_send_404, mock_sleep):
+        """
+        Test that `perform_request` method handle 404 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -152,6 +176,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
     def test_request_with_handling_for_429_exception_handling(self, mock_send_429, mock_sleep):
+        """
+        Test that `perform_request` method handle 429 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -162,12 +189,18 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_request_with_handling_for_500_exception_handling(self, mock_send_500, mock_sleep):
+        """
+        Test that `perform_request` method handle 500 error with proper message
+        """
         with self.assertRaises(client.MixpanelInternalServiceError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
 
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
     def test_request_with_handling_for_501_exception_handling(self, mock_send_501, mock_sleep):
+        """
+        Test that `perform_request` method handle 501 error with proper message
+        """
         with self.assertRaises(client.Server5xxError):
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.perform_request('GET')
@@ -200,6 +233,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.get", side_effect=mock_send_400)
     def test_check_access_with_handling_for_400_exception_handling(self, mock_send_400, mock_sleep):
+        """
+        Test that `check_access` method handle 404 error with proper message
+        """
         try:
             tap_stream_id = "tap_mixpanel"
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
@@ -211,6 +247,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.get", side_effect=mock_400_different_timezone)
     def test_check_access_with_handling_for_400_for_different_timezone(self, mock_400_different_timezone, mock_sleep):
+        """
+        Test that `check_access` method handle 404 error with proper message for different timezone
+        """
         try:
             tap_stream_id = "tap_mixpanel"
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
@@ -222,6 +261,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_check_access_with_handling_for_400_timeout_error_handling(self, mock_request, mock_sleep):
+        """
+        Test that `check_access` method handle 404 error with timeout error message in case of `error` field in response
+        """
         error = {"request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01", "error": "Timeout Error."}
         mock_request.return_value = Mockresponse("", 400, raise_error=True, text=error)
         try:
@@ -234,6 +276,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_401)
     def test_check_access_with_handling_for_401_exception_handling(self, mock_send_401, mock_sleep):
+        """
+        Test that `check_access` method handle 401 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
@@ -244,6 +289,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_403)
     def test_check_access_with_handling_for_403_exception_handling(self, mock_send_403, mock_sleep):
+        """
+        Test that `check_access` method handle 403 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
@@ -254,6 +302,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_404)
     def test_check_access_with_handling_for_404_exception_handling(self, mock_send_404, mock_sleep):
+        """
+        Test that `check_access` method handle 404 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
@@ -264,6 +315,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_429)
     def test_check_access_with_handling_for_429_exception_handling(self, mock_send_429, mock_sleep):
+        """
+        Test that `check_access` method handle 429 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
@@ -274,6 +328,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_500)
     def test_check_access_with_handling_for_500_exception_handling(self, mock_send_500, mock_sleep):
+        """
+        Test that `check_access` method handle 500 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()
@@ -284,6 +341,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=mock_send_501)
     def test_check_access_with_handling_for_501_exception_handling(self, mock_send_501, mock_sleep):
+        """
+        Test that `check_access` method handle 501 error with proper message
+        """
         try:
             mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
             mock_client.check_access()

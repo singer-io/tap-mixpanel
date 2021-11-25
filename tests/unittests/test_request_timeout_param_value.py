@@ -20,6 +20,9 @@ REQUEST_TIMEOUT = 300
 REQUEST_TIMEOUT_FLOAT = 300.0
 
 class MockCatalog():
+    """
+    Mocked catalog object and its method to pass unit test cases.
+    """
     def __init__(self, name):
         self.name = name
 
@@ -27,12 +30,18 @@ class MockCatalog():
         return [MockStream(self.name)]
 
 class MockParseArgs():
+    """
+    Mocked MockParseArgs class with custom state, discover, config attributes to pass unit test cases.
+    """
     def __init__(self, state, discover, config):
         self.state = state
         self.discover = discover
         self.config = config
 
 class Mockresponse:
+    """
+    Mocked standard HTTPResponse.
+    """
     def __init__(self, resp, status_code, content=[""], headers=None, raise_error=False, text={}):
         self.json_data = resp
         self.status_code = status_code
