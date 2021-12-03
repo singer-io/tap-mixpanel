@@ -2,8 +2,6 @@ import unittest
 from unittest import mock
 import requests
 from tap_mixpanel import client
-import requests
-from tap_mixpanel.client import ReadTimeoutError
 
 # mock responce
 REQUEST_TIMEOUT = 300

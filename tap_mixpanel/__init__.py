@@ -74,7 +74,6 @@ def main():
 
         if parsed_args.discover:
             client.__api_domain = api_domain
-            client.__request_timeout = request_timeout
             do_discover(client, properties_flag)
         elif parsed_args.catalog:
             sync(client=client,

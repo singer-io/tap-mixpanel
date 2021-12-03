@@ -13,8 +13,7 @@ EU_CONFIG = {
   "start_date": "2020-02-01T00:00:00Z",
   "user_agent": "tap-mixpanel <api_user_email@your_company.com>",
   "eu_residency": True,
-  "end_date": "2020-03-02T00:00:00Z",
-  "request_timeout": ""
+  "end_date": "2020-03-02T00:00:00Z"
 }
 STANDARD_CONFIG = {
     "api_secret": "dummy_secret",
@@ -28,7 +27,6 @@ STANDARD_CONFIG = {
     "end_date": "2020-03-02T00:00:00Z"
 }
 
-REQUEST_TIMEOUT = 300
 class MockStream():
     def __init__(self, stream):
         self.stream = stream
@@ -79,15 +77,13 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         revenue_obj = Revenue(client)
         revenue_obj.sync(catalog=catalog, state=state, config=EU_CONFIG, start_date="2020-02-01T00:00:00Z")
 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" is ""
-        mock_request.assert_called_with(method='GET', request_timeout=REQUEST_TIMEOUT, url='https://eu.mixpanel.com/api/2.0', path='engage/revenue',
+        mock_request.assert_called_with(method='GET', url='https://eu.mixpanel.com/api/2.0', path='engage/revenue',
                                         params='unit=day&from_date=2020-02-01&to_date=2020-03-02', endpoint='revenue')
 
         revenue_obj = Revenue(client)
         revenue_obj.sync(catalog=catalog,state=state, config=STANDARD_CONFIG, start_date="2020-02-01T00:00:00Z")
 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" does not passed
-        mock_request.assert_called_with(method='GET', request_timeout=REQUEST_TIMEOUT, url='https://mixpanel.com/api/2.0', path='engage/revenue',
+        mock_request.assert_called_with(method='GET', url='https://mixpanel.com/api/2.0', path='engage/revenue',
                                         params='unit=day&from_date=2020-02-01&to_date=2020-03-02', endpoint='revenue')
 
 
@@ -106,15 +102,13 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         export_obj = Export(client)
         export_obj.sync(catalog=catalog,state=state, config=EU_CONFIG, start_date="2020-02-01T00:00:00Z")
 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" is ""
-        mock_request_export.assert_called_with(method='GET', request_timeout=REQUEST_TIMEOUT, url='https://data-eu.mixpanel.com/api/2.0', path='export',
+        mock_request_export.assert_called_with(method='GET', url='https://data-eu.mixpanel.com/api/2.0', path='export',
                                         params='from_date=2020-02-01&to_date=2020-03-02', endpoint='export')
 
         export_obj = Export(client)
         export_obj.sync(catalog=catalog,state=state, config=STANDARD_CONFIG, start_date="2020-02-01T00:00:00Z")
 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" does not passed
-        mock_request_export.assert_called_with(method='GET', request_timeout=REQUEST_TIMEOUT, url='https://data.mixpanel.com/api/2.0', path='export',
+        mock_request_export.assert_called_with(method='GET', url='https://data.mixpanel.com/api/2.0', path='export',
                                         params='from_date=2020-02-01&to_date=2020-03-02', endpoint='export')
 
 
@@ -133,14 +127,11 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             'Accept': 'application/json',
             'Authorization': 'Basic ZHVtbXlfc2VjcmV0'
         }
- 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" is ""
         mock_request.assert_called_with('GET','https://eu.mixpanel.com/api/2.0/engage', allow_redirects=True,
-                                        headers=header, timeout=REQUEST_TIMEOUT)
+                                        headers=header, timeout=300)
 
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=STANDARD_CONFIG)
         r = main()
 
-        # Verify that sync method called with expected parameter when value of "eu_residency" True and "request_timeout" does not passed
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
-                                        headers=header, timeout=REQUEST_TIMEOUT)
+                                        headers=header, timeout=300)
