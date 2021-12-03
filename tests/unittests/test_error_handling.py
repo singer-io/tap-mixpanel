@@ -376,3 +376,15 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             expected_error_message = "HTTP-error-code: 404, Error: Resource not found error message from API response field 'message'."
             # Verifying the message retrived from 'message' field of API response
             self.assertEqual(str(e), expected_error_message)
+
+    @mock.patch("requests.Session.request", side_effect=requests.exceptions.Timeout)
+    def test_check_access_handle_timeout_error(self, mock_request, mock_sleep):
+        '''
+        Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
+        '''
+        mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+        with self.assertRaises(client.ReadTimeoutError):
+            mock_client.check_access()
+    
+        # Verify that requests.Session.request is called 5 times
+        self.assertEqual(mock_request.call_count, 5)
