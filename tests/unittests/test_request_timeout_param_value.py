@@ -43,10 +43,10 @@ HEADER = {
 @mock.patch("requests.Session.request", return_value = Mockresponse("", status_code=200))
 @mock.patch("singer.utils.parse_args")
 @mock.patch("tap_mixpanel.__init__.do_discover", return_value = '')
-class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
-    """Test that discover handles different type of value in discover mode"""
-    def test_request_timeout_for_none_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles none value of request_timeout parameter"""
+class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
+    """Test that tap handles different type of request_timeout parameter values"""
+    def test_request_timeout_for_none_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles none value of request_timeout parameter"""
         config = CONFIG.copy()
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
         r = main()
@@ -55,8 +55,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=REQUEST_TIMEOUT)
     
-    def test_request_timeout_for_empty_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles empty value of request_timeout parameter"""
+    def test_request_timeout_for_empty_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles empty value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = ""
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
@@ -66,8 +66,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=REQUEST_TIMEOUT)
     
-    def test_request_timeout_for_string_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles string value of request_timeout parameter"""
+    def test_request_timeout_for_string_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles string value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = "100"
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
@@ -77,8 +77,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=100.0)
     
-    def test_request_timeout_for_int_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles int value of request_timeout parameter"""
+    def test_request_timeout_for_int_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles int value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = 200
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
@@ -88,8 +88,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=200.0)
         
-    def test_request_timeout_for_float_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles float value of request_timeout parameter"""
+    def test_request_timeout_for_float_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles float value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = REQUEST_TIMEOUT_FLOAT
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
@@ -99,8 +99,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=REQUEST_TIMEOUT_FLOAT)
         
-    def test_request_timeout_for_zero_int_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles int 0 value of request_timeout parameter"""
+    def test_request_timeout_for_zero_int_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles int 0 value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = 0
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
@@ -110,8 +110,8 @@ class TestMixpanelRequestTimeoutParameterValueInDiscover(unittest.TestCase):
         mock_request.assert_called_with('GET','https://mixpanel.com/api/2.0/engage', allow_redirects=True,
                                         headers=HEADER, timeout=REQUEST_TIMEOUT)
   
-    def test_request_timeout_for_zero_string_param_value_in_discover(self, mock_discover, mock_parse_args, mock_request):
-        """Test that discover handles string 0 value of request_timeout parameter"""
+    def test_request_timeout_for_zero_string_param_value(self, mock_discover, mock_parse_args, mock_request):
+        """Test that tap handles string 0 value of request_timeout parameter"""
         config = CONFIG.copy()
         config['request_timeout'] = "0"
         mock_parse_args.return_value = MockParseArgs(state = {}, discover = True, config=config)
