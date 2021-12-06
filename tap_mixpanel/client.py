@@ -119,9 +119,11 @@ class MixpanelClient(object):
     def __init__(self,
                  api_secret,
                  api_domain,
+                 request_timeout,
                  user_agent=None):
         self.__api_secret = api_secret
         self.__api_domain = api_domain
+        self.__request_timeout = request_timeout
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__verified = False
@@ -153,7 +155,7 @@ class MixpanelClient(object):
         try:
             response = self.__session.get(
                 url=url,
-                timeout=REQUEST_TIMEOUT,
+                timeout=self.__request_timeout, # Request timeout parameter
                 headers=headers)
         except requests.exceptions.Timeout as err:
             LOGGER.error('TIMEOUT ERROR: %s',str(err))
@@ -189,7 +191,7 @@ class MixpanelClient(object):
                                               params=params,
                                               json=json,
                                               stream=stream,
-                                              timeout=REQUEST_TIMEOUT,
+                                              timeout=self.__request_timeout, # Request timeout parameter
                                               **kwargs)
 
             if response.status_code > 500:

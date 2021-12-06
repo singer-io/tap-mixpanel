@@ -5,5 +5,6 @@
   "project_timezone": "US/Pacific",
   "select_properties_by_default": "true",
   "start_date": "2019-01-01T00:00:00Z",
+  "request_timeout": 300,
   "user_agent": "tap-mixpanel <api_user_email@your_company.com>"
 }
