@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.1
+  * Implement Request Timeout
+
 ## 1.4.0
   * Add a proper error message for timezone issue [#35](https://github.com/singer-io/tap-mixpanel/pull/35)
   * Switch from using multipleof to singer.decimal [#38]( https://github.com/singer-io/tap-mixpanel/pull/38)
