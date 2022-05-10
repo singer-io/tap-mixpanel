@@ -13,6 +13,7 @@ import pytz
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from tap_tester import menagerie
+from tap_tester.logger import LOGGER
 
 
 class TestMixPanelBase(unittest.TestCase):
@@ -373,3 +374,25 @@ class TestMixPanelBase(unittest.TestCase):
 
     def is_incremental(self, stream):
         return self.expected_metadata().get(stream).get(self.REPLICATION_METHOD) == self.INCREMENTAL
+
+    ##########################################################################
+    ### WIP LOGGING WRAPPED
+    ##########################################################################
+
+    def subTest(self, logging=True, **kwargs):
+        if logging:
+            additional_logging = logging if isinstance(logging, str) else ""
+            kwargs_logging = ", ".join([f"{key}={value}" for key, value in kwargs.items()])
+
+            LOGGER.info(f"Executing subTest({kwargs_logging}) {additional_logging}")
+
+        return super().subTest(**kwargs)
+
+    def assertEqual(self, *args, **kwargs):
+        return super().assertEqual(*args, **kwargs)
+
+    def assertGreater(self, *args, **kwargs):
+        return super().assertGreater(*args, **kwargs)
+
+    def assertGreaterEqual(self, *args, **kwargs):
+        return super().assertGreaterEqual(*args, **kwargs)
