@@ -55,7 +55,7 @@ class MixPanelAllFieldsTest(TestMixPanelBase):
         self.assertSetEqual(streams_to_test, synced_stream_names)
 
         for stream in streams_to_test:
-            with self.subTest(logging="Primary Functional Test" stream=stream):
+            with self.subTest(logging="Primary Functional Test", stream=stream):
 
                 # expected values
                 expected_primary_keys = self.expected_pks()[stream]
