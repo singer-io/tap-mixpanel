@@ -67,7 +67,7 @@ class MixPanelAllFieldsTest(TestMixPanelBase):
                 messages = synced_records.get(stream)
                 actual_all_keys = set()
                 for message in messages['messages']:
-                    if message['action'] == 'upsert']:
+                    if message['action'] == 'upsert':
                         actual_all_keys.update(set(message['data'].keys()))
 
                 # verify that the automatic fields are sent to the target
