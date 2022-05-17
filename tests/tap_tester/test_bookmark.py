@@ -27,17 +27,8 @@ class MixPanelBookMarkTest(TestMixPanelBase):
         PREREQUISITE
         For EACH stream that is incrementally replicated there are multiple rows of data with
             different values for the replication key
-
-        2022-05-17 13:02:54,159 TapTester - INFO        export = 38     pks: set()
-        2022-05-17 13:02:54,159 TapTester - INFO        engage = 12121  pks: {'distinct_id'}
-        2022-05-17 13:02:54,159 TapTester - INFO        funnels = 6     pks: {'funnel_id', 'date'}
-        2022-05-17 13:02:54,159 TapTester - INFO        cohorts = 7     pks: {'id'}
-        2022-05-17 13:02:54,160 TapTester - INFO        cohort_members = 1343   pks: {'distinct_id', 'cohort_id'}
-        2022-05-17 13:02:54,160 TapTester - INFO        revenue = 2     pks: {'date'}
-        2022-05-17 13:02:54,160 TapTester - INFO        annotations = 1 pks: {'date'}
-
         """
-        expected_streams = {'export',}# self.expected_streams()
+        expected_streams = self.expected_streams()
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()
 
