@@ -9,7 +9,8 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
     primary keys and replication keys (automatic fields).
     """
 
-    def name(self):
+    @staticmethod
+    def name():
         return "mix_panel_automatic_fields_test"
 
     def automatic_fields_test_run(self):
@@ -47,17 +48,20 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
                 # Verify that you get some records for each stream
                 self.assertGreater(
                     record_count_by_stream.get(stream, 0), 0,
-                    msg="The number of records is not over the stream max limit")
+                    msg="The number of records is not over the stream max limit",
+                )
 
                 # Verify that only the automatic fields are sent to the target
                 for actual_keys in record_messages_keys:
                     self.assertSetEqual(expected_keys, actual_keys)
 
-    def test_run(self):
-        #Automatic fields test for standard server
+
+    def test_standard_auto_fields(self):
+        """Automatic fields test for standard server"""
         self.eu_residency = False
         self.automatic_fields_test_run()
 
-        #Automatic fields test for EU recidency server
+    def test_eu_auto_fields(self):
+        """Automatic fields test for EU recidency server"""
         self.eu_residency = True
         self.automatic_fields_test_run()

@@ -1,5 +1,4 @@
 import re
-
 import tap_tester.connections as connections
 from base import TestMixPanelBase
 from tap_tester import menagerie
@@ -22,7 +21,8 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         • verify that all other fields have inclusion of available metadata.
     """
 
-    def name(self):
+    @staticmethod
+    def name():
         return "mix_panel_discover_test"
 
     def discovery_test_run(self):
@@ -40,10 +40,12 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         self.assertTrue(all([re.fullmatch(r"[a-z_]+",  name) for name in found_catalog_names]),
                         msg="One or more streams don't follow standard naming")
 
+        self.assertion_logging_enabled = True
+
         for stream in streams_to_test:
             with self.subTest(stream=stream):
 
-                # Verify ensure the caatalog is found for a given stream
+                # Verify the caatalog is found for a given stream
                 catalog = next(iter([catalog for catalog in found_catalogs
                                      if catalog["stream_name"] == stream]))
                 self.assertIsNotNone(catalog)
@@ -82,41 +84,33 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 ##########################################################################
 
                 # verify there is only 1 top level breadcrumb in metadata
-                self.assertTrue(len(stream_properties) == 1,
-                                msg="There is NOT only one top level breadcrumb for {}".format(stream) +
-                                "\nstream_properties | {}".format(stream_properties))
+                self.assertEqual(len(stream_properties), 1)
 
                 # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
                 if actual_replication_keys:
-                    self.assertTrue(actual_replication_method == self.INCREMENTAL,
-                                    msg="Expected INCREMENTAL replication "
-                                        "since there is a replication key")
+                    self.assertEqual(
+                        actual_replication_method, self.INCREMENTAL,
+                        msg="Expected INCREMENTAL replication since there is a replication key"
+                    )
                 else:
-                    self.assertTrue(actual_replication_method == self.FULL_TABLE,
-                                    msg="Expected FULL replication "
-                                    "since there is no replication key")
+                    self.assertEqual(
+                        actual_replication_method, self.FULL_TABLE,
+                        msg="Expected FULL replication since there is no replication key"
+                    )
 
                 # verify the actual replication matches our expected replication method
-                self.assertEqual(expected_replication_method, actual_replication_method,
-                                    msg="The actual replication method {} doesn't match the expected {}".format(
-                                        actual_replication_method, expected_replication_method))
+                self.assertEqual(expected_replication_method, actual_replication_method)
 
-                print(stream_properties[0].get(
-                    "metadata", {self.REPLICATION_KEYS: []}))
                 # verify replication key(s)
-                self.assertEqual(expected_replication_keys, actual_replication_keys,
-                                 msg="expected replication key {} but actual is {}".format(
-                                     expected_replication_keys, actual_replication_keys))
+                self.assertEqual(expected_replication_keys, actual_replication_keys)
+
 
                 # verify primary key(s) match expectations
-                self.assertSetEqual(
-                    expected_primary_keys, actual_primary_keys,
-                )
+                self.assertSetEqual(expected_primary_keys, actual_primary_keys)
 
                 # verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
-                self.assertSetEqual(expected_automatic_fields,
-                                    actual_automatic_fields)
+                self.assertSetEqual(expected_automatic_fields, actual_automatic_fields)
 
                 # verify that all other fields have inclusion of available
                 # This assumes there are no unsupported fields for SaaS sources
@@ -128,11 +122,14 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                          not in actual_automatic_fields}),
                     msg="Not all non key properties are set to available in metadata")
 
-    def test_run(self):
-        #Discovery test for standard server
+    def test_standard_discovery(self):
+        """Discovery test for standard server"""
+        self.eu_residency = False
+
         self.eu_residency = False
         self.discovery_test_run()
 
-        #Discovery test for EU recidency server
+    def test_eu_discovery(self):
+        """Discovery test for EU recidency server"""
         self.eu_residency = True
         self.discovery_test_run()

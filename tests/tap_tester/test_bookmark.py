@@ -7,7 +7,8 @@ from tap_tester import menagerie
 class MixPanelBookMarkTest(TestMixPanelBase):
     """Test tap sets a bookmark and respects it for the next sync of a stream"""
 
-    def name(self):
+    @staticmethod
+    def name():
         return "mix_panel_bookmark_test"
 
     def bookmark_test_run(self):
@@ -26,9 +27,17 @@ class MixPanelBookMarkTest(TestMixPanelBase):
         PREREQUISITE
         For EACH stream that is incrementally replicated there are multiple rows of data with
             different values for the replication key
-        """
 
-        expected_streams = self.expected_streams()
+        2022-05-17 13:02:54,159 TapTester - INFO        export = 38     pks: set()
+        2022-05-17 13:02:54,159 TapTester - INFO        engage = 12121  pks: {'distinct_id'}
+        2022-05-17 13:02:54,159 TapTester - INFO        funnels = 6     pks: {'funnel_id', 'date'}
+        2022-05-17 13:02:54,159 TapTester - INFO        cohorts = 7     pks: {'id'}
+        2022-05-17 13:02:54,160 TapTester - INFO        cohort_members = 1343   pks: {'distinct_id', 'cohort_id'}
+        2022-05-17 13:02:54,160 TapTester - INFO        revenue = 2     pks: {'date'}
+        2022-05-17 13:02:54,160 TapTester - INFO        annotations = 1 pks: {'date'}
+
+        """
+        expected_streams = {'export',}# self.expected_streams()
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()
 
@@ -169,11 +178,12 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 self.assertGreater(
                     second_sync_count, 0, msg="We are not fully testing bookmarking for {}".format(stream))
 
-    def test_run(self):
-        #Bookmark test for standard server
+    def test_standard_bookmarks(self):
+        """Bookmark test for standard server"""
         self.eu_residency = False
         self.bookmark_test_run()
 
-        #Bookmark test for EU recidency server
+    def test_eu_bookmarks(self):
+        """Bookmark test for EU recidency server"""
         self.eu_residency = True
         self.bookmark_test_run()
