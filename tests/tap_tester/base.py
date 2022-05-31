@@ -31,9 +31,6 @@ class TestMixPanelBase(BaseCase):
     end_date = ""
     eu_residency = True
 
-    def name(self):
-        return "mixpnel-base"
-
     def tap_name(self):
         """The name of the tap"""
         return "tap-mixpanel"
