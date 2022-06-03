@@ -9,7 +9,9 @@ from base import TestMixPanelBase
 
 
 class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
-    def name(self):
+
+    @staticmethod
+    def name():
         return "mixpanel_pagination_all_fields_test"
 
     def pagination_test_run(self):
