@@ -16,6 +16,7 @@ from tap_tester import menagerie
 from tap_tester.logger import LOGGER
 from tap_tester.base_case import BaseCase
 
+
 class TestMixPanelBase(BaseCase):
     """ Test the tap combined """
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"

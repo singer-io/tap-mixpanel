@@ -34,7 +34,7 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         """
 
         # Only following below 2 streams support pagination
-        streams_to_test = self.expected_streams()
+        streams_to_test_all_fields = self.expected_streams()
         streams_to_test_pagination = {'engage', 'cohort_members'}
 
         expected_automatic_fields = self.expected_automatic_fields()
@@ -44,7 +44,7 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
 
         # table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
-                                    if catalog.get('tap_stream_id') in streams_to_test]
+                                    if catalog.get('tap_stream_id') in streams_to_test_all_fields]
 
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_all_fields)
@@ -69,10 +69,10 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
 
         # Verify no unexpected streams were replicated
         synced_stream_names = set(synced_records.keys())
-        self.assertSetEqual(streams_to_test, synced_stream_names)
+        self.assertSetEqual(streams_to_test_all_fields, synced_stream_names)
 
         # All Fields Test
-        for stream in streams_to_test:
+        for stream in streams_to_test_all_fields:
             with self.subTest(logging="Primary Functional Test", stream=stream):
 
                 # expected values
