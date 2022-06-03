@@ -10,12 +10,14 @@ from datetime import timedelta
 import dateutil.parser
 import pytz
 
-import tap_tester.connections as connections
-import tap_tester.runner as runner
+from tap_tester import connections
+from tap_tester import runner
 from tap_tester import menagerie
+from tap_tester.logger import LOGGER
+from tap_tester.base_case import BaseCase
 
 
-class TestMixPanelBase(unittest.TestCase):
+class TestMixPanelBase(BaseCase):
     """ Test the tap combined """
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
     REPLICATION_KEYS = "valid-replication-keys"
@@ -29,9 +31,6 @@ class TestMixPanelBase(unittest.TestCase):
     start_date = ""
     end_date = ""
     eu_residency = True
-
-    def name(self):
-        return "mixpnel-base"
 
     def tap_name(self):
         """The name of the tap"""
@@ -87,6 +86,8 @@ class TestMixPanelBase(unittest.TestCase):
 
         if len(missing_envs) != 0:
             raise Exception("set " + ", ".join(missing_envs))
+
+        BaseCase.setUp(self)
 
     def get_type(self):
         """the expected url route ending"""
@@ -196,7 +197,7 @@ class TestMixPanelBase(unittest.TestCase):
         subset = self.expected_streams().issubset(found_catalog_names)
         self.assertTrue(
             subset, msg="Expected check streams are not subset of discovered catalog")
-        print("discovered schemas are OK")
+        LOGGER.info("discovered schemas are OK")
 
         return found_catalogs
 
@@ -221,8 +222,7 @@ class TestMixPanelBase(unittest.TestCase):
             sum(sync_record_count.values()), 0,
             msg="failed to replicate any data: {}".format(sync_record_count)
         )
-        print("total replicated row count: {}".format(
-            sum(sync_record_count.values())))
+        LOGGER.info(f"total replicated row count: {sum(sync_record_count.values())}")
 
         return sync_record_count
 
@@ -249,8 +249,8 @@ class TestMixPanelBase(unittest.TestCase):
 
             # Verify all testable streams are selected
             selected = catalog_entry.get('annotated-schema').get('selected')
-            print("Validating selection on {}: {}".format(
-                cat['stream_name'], selected))
+            LOGGER.info(f"Validating selection on {cat['stream_name']}: {selected}")
+
             if cat['stream_name'] not in expected_selected:
                 self.assertFalse(
                     selected, msg="Stream selected, but not testable.")
@@ -261,8 +261,8 @@ class TestMixPanelBase(unittest.TestCase):
                 # Verify all fields within each selected stream are selected
                 for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
                     field_selected = field_props.get('selected')
-                    print("\tValidating selection on {}.{}: {}".format(
-                        cat['stream_name'], field, field_selected))
+                    LOGGER.info(f"\tValidating selection on {cat['stream_name']}.{field}: {field_selected}")
+
                     self.assertTrue(field_selected, msg="Field not selected.")
             else:
                 # Verify only automatic fields are selected

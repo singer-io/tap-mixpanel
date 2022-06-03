@@ -1,9 +1,8 @@
 import re
+from tap_tester import menagerie, connections
+from tap_tester.logger import LOGGER
 
-import tap_tester.connections as connections
 from base import TestMixPanelBase
-from tap_tester import menagerie
-
 
 class MixPanelDiscoverTest(TestMixPanelBase):
     """
@@ -22,31 +21,37 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         • verify that all other fields have inclusion of available metadata.
     """
 
-    def name(self):
+    @staticmethod
+    def name():
         return "mix_panel_discover_test"
 
     def discovery_test_run(self):
+
+        region = "EU" if self.eu_residency else "Standard"
+        LOGGER.info(f"Testing against {region} account.")
+
+        self.assertion_logging_enabled = True
+
         streams_to_test = self.expected_streams()
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
 
         # Verify that there are catalogs found
-        found_catalogs = found_catalogs = self.run_and_verify_check_mode(
-            conn_id)
+        found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # Verify stream names follow naming convention
         # streams should only have lowercase alphas and underscores
         found_catalog_names = {c['tap_stream_id'] for c in found_catalogs}
         self.assertTrue(all([re.fullmatch(r"[a-z_]+",  name) for name in found_catalog_names]),
-                        msg="One or more streams don't follow standard naming")
+                        logging="asserting all streams defined in catalog follow the naming convention '[a-z_]+'")
 
         for stream in streams_to_test:
             with self.subTest(stream=stream):
 
-                # Verify ensure the caatalog is found for a given stream
+                # Verify the caatalog is found for a given stream
                 catalog = next(iter([catalog for catalog in found_catalogs
                                      if catalog["stream_name"] == stream]))
-                self.assertIsNotNone(catalog)
+                self.assertIsNotNone(catalog, logging="asserting entry is present in catalog")
 
                 # collecting expected values
                 expected_primary_keys = self.expected_pks()[stream]
@@ -82,41 +87,38 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 ##########################################################################
 
                 # verify there is only 1 top level breadcrumb in metadata
-                self.assertTrue(len(stream_properties) == 1,
-                                msg="There is NOT only one top level breadcrumb for {}".format(stream) +
-                                "\nstream_properties | {}".format(stream_properties))
+                self.assertEqual(len(stream_properties), 1,
+                                 logging='asserting there is only 1 top level breadcrumb in metadata')
 
                 # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
                 if actual_replication_keys:
-                    self.assertTrue(actual_replication_method == self.INCREMENTAL,
-                                    msg="Expected INCREMENTAL replication "
-                                        "since there is a replication key")
+                    self.assertEqual(
+                        actual_replication_method, self.INCREMENTAL,
+                        logging=f"asserting replication method is {self.INCREMENTAL} when replication keys are defined"
+                    )
                 else:
-                    self.assertTrue(actual_replication_method == self.FULL_TABLE,
-                                    msg="Expected FULL replication "
-                                    "since there is no replication key")
+                    self.assertEqual(
+                        actual_replication_method, self.FULL_TABLE,
+                        logging=f"asserting replication method is {self.FULL_TABLE} when replication keys are not defined"
+                    )
 
                 # verify the actual replication matches our expected replication method
                 self.assertEqual(expected_replication_method, actual_replication_method,
-                                    msg="The actual replication method {} doesn't match the expected {}".format(
-                                        actual_replication_method, expected_replication_method))
+                                 logging=f"asserting replication method is {expected_replication_method}")
 
-                print(stream_properties[0].get(
-                    "metadata", {self.REPLICATION_KEYS: []}))
                 # verify replication key(s)
                 self.assertEqual(expected_replication_keys, actual_replication_keys,
-                                 msg="expected replication key {} but actual is {}".format(
-                                     expected_replication_keys, actual_replication_keys))
+                                 logging=f"asserting replication keys are {expected_replication_keys}")
+
 
                 # verify primary key(s) match expectations
-                self.assertSetEqual(
-                    expected_primary_keys, actual_primary_keys,
-                )
+                self.assertSetEqual(expected_primary_keys, actual_primary_keys,
+                                    logging=f"asserting primary keys are {expected_primary_keys}")
 
                 # verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
-                self.assertSetEqual(expected_automatic_fields,
-                                    actual_automatic_fields)
+                self.assertSetEqual(expected_automatic_fields, actual_automatic_fields,
+                                    logging=f"asserting primary and replication keys {expected_automatic_fields} are automatic")
 
                 # verify that all other fields have inclusion of available
                 # This assumes there are no unsupported fields for SaaS sources
@@ -126,13 +128,15 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                          if item.get("breadcrumb", []) != []
                          and item.get("breadcrumb", ["properties", None])[1]
                          not in actual_automatic_fields}),
-                    msg="Not all non key properties are set to available in metadata")
+                    logging=f"asserting non-key-property fields are available for field selection")
 
-    def test_run(self):
-        #Discovery test for standard server
+
+    def test_standard_discovery(self):
+        """Discovery test for standard server"""
         self.eu_residency = False
         self.discovery_test_run()
 
-        #Discovery test for EU recidency server
+    def test_eu_discovery(self):
+        """Discovery test for EU recidency server"""
         self.eu_residency = True
         self.discovery_test_run()

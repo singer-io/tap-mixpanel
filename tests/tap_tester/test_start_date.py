@@ -7,7 +7,8 @@ class MixPanelStartDateTest(TestMixPanelBase):
     start_date_1 = ""
     start_date_2 = ""
 
-    def name(self):
+    @staticmethod
+    def name():
         return "mix_panel_start_date_test"
 
     def start_date_test_run(self):

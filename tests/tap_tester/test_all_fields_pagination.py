@@ -1,21 +1,33 @@
+from math import ceil
+
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 import tap_tester.menagerie as menagerie
+from tap_tester.logger import LOGGER
+
 from base import TestMixPanelBase
 
 
-class MixPanelPaginationTest(TestMixPanelBase):
-    def name(self):
-        return "mix_panel_pagination_test"
+class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
+
+    @staticmethod
+    def name():
+        return "mixpanel_pagination_all_fields_test"
 
     def pagination_test_run(self):
         """
-        • Verify that for each stream you can get multiple pages of data
+        All Fields Test
         • and that when all fields are selected more than the automatic fields are replicated.
         • Verify no unexpected streams were replicated
         • Verify that more than just the automatic fields are replicated for each stream.
         • verify all fields for each stream are replicated
         • verify that the automatic fields are sent to the target
+
+
+        Pagination Test
+        • Verify that for each stream you can get multiple pages of data
+        • Verify no duplicate pages are replicated
+        • Verify no unexpected streams were replicated
 
         PREREQUISITE
         For EACH stream add enough data that you surpass the limit of a single
@@ -24,10 +36,8 @@ class MixPanelPaginationTest(TestMixPanelBase):
         """
 
         # Only following below 2 streams support pagination
-        streams_to_test = ['engage', 'cohort_members']
-
-        # Streams to verify all fields tests
-        expected_streams = self.expected_streams()
+        streams_to_test_all_fields = self.expected_streams()
+        streams_to_test_pagination = {'engage', 'cohort_members'}
 
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
@@ -36,7 +46,7 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
         # table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
-                                    if catalog.get('tap_stream_id') in expected_streams]
+                                    if catalog.get('tap_stream_id') in streams_to_test_all_fields]
 
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_all_fields)
@@ -61,21 +71,23 @@ class MixPanelPaginationTest(TestMixPanelBase):
 
         # Verify no unexpected streams were replicated
         synced_stream_names = set(synced_records.keys())
-        self.assertSetEqual(expected_streams, synced_stream_names)
+        self.assertSetEqual(streams_to_test_all_fields, synced_stream_names)
 
-        for stream in expected_streams:
-            with self.subTest(stream=stream):
+        # All Fields Test
+        for stream in streams_to_test_all_fields:
+            with self.subTest(logging="Primary Functional Test", stream=stream):
 
                 # expected values
-                expected_primary_keys = self.expected_pks()[stream]
                 expected_all_keys = stream_to_all_catalog_fields[stream]
                 expected_automatic_keys = expected_automatic_fields.get(
                     stream, set())
 
                 # collect actual values
                 messages = synced_records.get(stream)
-                actual_all_keys = [set(message['data'].keys()) for message in messages['messages']
-                                   if message['action'] == 'upsert'][0]
+                actual_all_keys = set()
+                for message in messages['messages']:
+                    if message['action'] == 'upsert':
+                        actual_all_keys.update(set(message['data'].keys()))
 
                 # verify that the automatic fields are sent to the target
                 self.assertTrue(
@@ -101,33 +113,51 @@ class MixPanelPaginationTest(TestMixPanelBase):
                 if not stream == "engage": #Skip engage as it return records in random manner with dynamic fields.
                     self.assertSetEqual(expected_all_keys, actual_all_keys)
 
-                if stream in streams_to_test:
-                    # verify that we can paginate with all fields selected
-                    record_count_sync = record_count_by_stream.get(stream, 0)
-                    self.assertGreater(record_count_sync, self.API_LIMIT,
-                                       msg="The number of records is not over the stream max limit")
+        # Pagination Test
+        for stream in streams_to_test_pagination:
+            with self.subTest(stream=stream):
 
-                    primary_keys_list = [tuple([message.get('data').get(expected_pk) for expected_pk in expected_primary_keys])
-                                         for message in synced_records.get(stream).get('messages')
-                                         if message.get('action') == 'upsert']
+                # expected values
+                expected_primary_keys = self.expected_pks()[stream]
 
-                    if record_count_sync > self.API_LIMIT:
+                # collect actual values
+                messages = synced_records.get(stream)
+                primary_keys_list = [tuple([message['data'][expected_pk] for expected_pk in expected_primary_keys])
+                                     for message in messages['messages'] if message['action'] == 'upsert']
 
-                        primary_keys_list_1 = primary_keys_list[:self.API_LIMIT]
-                        primary_keys_list_2 = primary_keys_list[self.API_LIMIT:2*self.API_LIMIT]
+                # verify that we can paginate with all fields selected
+                record_count_sync = record_count_by_stream.get(stream, 0)
+                self.assertGreater(record_count_sync, self.API_LIMIT,
+                                   msg="The number of records is not over the stream max limit")
 
-                        primary_keys_page_1 = set(primary_keys_list_1)
-                        primary_keys_page_2 = set(primary_keys_list_2)
 
-                        # Verify by private keys that data is unique for page
-                        self.assertTrue(
-                            primary_keys_page_1.isdisjoint(primary_keys_page_2))
+                # Chunk the replicated records (just primary keys) into expected pages
+                pages = []
+                page_count = ceil(len(primary_keys_list) / self.API_LIMIT)
+                page_size = self.API_LIMIT
+                for page_index in range(page_count):
+                    page_start = page_index * page_size
+                    page_end = (page_index + 1) * page_size
+                    pages.append(set(primary_keys_list[page_start:page_end]))
+
+                # Verify by primary keys that data is unique for each page
+                for current_index, current_page in enumerate(pages):
+                    with self.subTest(current_page_primary_keys=current_page):
+
+                        for other_index, other_page in enumerate(pages):
+                            if current_index == other_index:
+                                continue  # don't compare the page to itself
+
+                            self.assertTrue(
+                                current_page.isdisjoint(other_page), msg=f'other_page_primary_keys={other_page}'
+                            )
 
     def test_run(self):
-        #Pagination test for standard server
+        # Pagination test for standard server
         self.eu_residency = False
         self.pagination_test_run()
 
-        #Pagination test for EU recidency server
+
+        # Pagination test for EU residency server
         self.eu_residency = True
         self.pagination_test_run()
