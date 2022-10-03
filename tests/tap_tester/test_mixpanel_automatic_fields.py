@@ -1,32 +1,38 @@
-import tap_tester.connections as connections
-import tap_tester.runner as runner
+from tap_tester import connections, runner
+
 from base import TestMixPanelBase
 
 
 class MixPanelAutomaticFieldsTest(TestMixPanelBase):
     """
-    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
+    Ensure running the tap with all streams selected and all fields
+    deselected results in the replication of just the
     primary keys and replication keys (automatic fields).
     """
 
     @staticmethod
     def name():
-        return "mix_panel_automatic_fields_test"
+        return "tap_tester_mixpanel_automatic_fields_test"
 
     def automatic_fields_test_run(self):
         """
-        Verify that for each stream you can get enough data
-        when no fields are selected and only the automatic fields are replicated.
+        • Verify we can deselect all fields except when inclusion=automatic,
+          which is handled by base.py methods
+        • Verify that only the automatic fields are sent to the target.
+        • Verify that all replicated records have unique primary key values.
         """
-        streams_to_test = self.expected_streams()
+        expected_streams = self.expected_streams()
 
         conn_id = connections.ensure_connection(self)
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
-        test_catalogs_automatic_fields = [catalog for catalog in found_catalogs
-                                          if catalog.get('tap_stream_id') in streams_to_test]
+        # Table and field selection
+        test_catalogs_automatic_fields = [
+            catalog
+            for catalog in found_catalogs
+            if catalog.get("tap_stream_id") in expected_streams
+        ]
 
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_automatic_fields, select_all_fields=False)
@@ -34,13 +40,13 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
         record_count_by_stream = self.run_and_verify_sync(conn_id)
         synced_records = runner.get_records_from_target_output()
 
-        for stream in streams_to_test:
+        for stream in expected_streams:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_keys = self.expected_automatic_fields().get(stream)
 
-                # collect actual values
+                # Collect actual values
                 data = synced_records.get(stream, {})
                 record_messages_keys = [set(row['data'].keys())
                                         for row in data.get('messages', [])]
@@ -55,13 +61,12 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
                 for actual_keys in record_messages_keys:
                     self.assertSetEqual(expected_keys, actual_keys)
 
-
     def test_standard_auto_fields(self):
         """Automatic fields test for standard server"""
         self.eu_residency = False
         self.automatic_fields_test_run()
 
     def test_eu_auto_fields(self):
-        """Automatic fields test for EU recidency server"""
+        """Automatic fields test for EU residency server"""
         self.eu_residency = True
         self.automatic_fields_test_run()

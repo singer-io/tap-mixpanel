@@ -15,12 +15,11 @@ jobs:
             pip install -U 'pip<19.2' 'setuptools<51.0.0'
             pip install .[dev]
             pip install pytest-cov
-      # TODO: Fails pylint a lot, skipping for now (https://stitchdata.atlassian.net/browse/SRCE-4606)
-      #- run:
-      #    name: 'pylint tap'
-      #    command: |
-      #      source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-      #      pylint tap_mixpanel -d 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,wrong-spelling-in-comment,wrong-spelling-in-docstring,too-many-public-methods'
+      - run:
+         name: 'pylint tap'
+         command: |
+           source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
+           pylint tap_mixpanel -d 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,too-many-public-methods,protected-access,too-many-statements,not-an-iterable'
       - run:
           name: 'JSON Validator'
           command: |
@@ -30,7 +29,8 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-            python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
+            pip install coverage parameterized
+			python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
       - store_test_results:
           path: test_output/report.xml
       - store_artifacts:
