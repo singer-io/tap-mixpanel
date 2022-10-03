@@ -8,7 +8,8 @@ from datetime import timedelta
 
 import dateutil.parser
 import pytz
-from tap_tester import LOGGER, BaseCase, connections, menagerie, runner
+from tap_tester import LOGGER, connections, menagerie, runner
+from tap_tester.base_case import BaseCase
 
 
 class TestMixPanelBase(BaseCase):
