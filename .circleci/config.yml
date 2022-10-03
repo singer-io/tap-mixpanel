@@ -30,7 +30,7 @@ jobs:
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
             pip install coverage parameterized
-			python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
+            python -m pytest --junitxml=junit/test-result.xml --cov=tap_mixpanel --cov-report=html tests/unittests/
       - store_test_results:
           path: test_output/report.xml
       - store_artifacts:
