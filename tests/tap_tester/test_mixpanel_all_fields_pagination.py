@@ -149,6 +149,11 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         self.eu_residency = False
         self.pagination_test_run()
 
+        # Pagination test with service account credentials
+        self.service_account_authentication = True
+        self.pagination_test_run()
+        self.service_account_authentication = False
+
         # Pagination test for EU residency server
         self.eu_residency = True
         self.pagination_test_run()

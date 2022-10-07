@@ -29,6 +29,7 @@ class TestMixPanelBase(BaseCase):
     start_date = ""
     end_date = ""
     eu_residency = True
+    service_account_authentication = False
 
     def tap_name(self):
         """The name of the tap."""
@@ -81,6 +82,10 @@ class TestMixPanelBase(BaseCase):
         missing_envs = []
         if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
+        elif self.service_account_authentication:
+            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+                    "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
+                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
 
@@ -132,6 +137,10 @@ class TestMixPanelBase(BaseCase):
         credentials_dict = {}
         if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
+        elif self.service_account_authentication:
+            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+                    "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
+                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
 

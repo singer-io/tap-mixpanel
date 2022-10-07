@@ -75,6 +75,7 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
             "https://mixpanel.com/api/2.0/engage",
             allow_redirects=True,
             headers=HEADER,
+            params={},
             timeout=REQUEST_TIMEOUT_DEFAULT,
         )
 
@@ -102,6 +103,7 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
             "GET",
             "https://mixpanel.com/api/2.0/engage",
             allow_redirects=True,
+            params={},
             headers=HEADER,
             timeout=expected_value,
         )
