@@ -25,7 +25,10 @@ def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 
-def get_dynamic_schema(client, properties_flag, stream_name, schema):
+def get_dynamic_schema(client, stream_name, schema):
+    """
+    For engage and export streams dynamic schema is written by making API call.
+    """
     if stream_name == "engage":
         properties = client.request(
             method="GET",
@@ -122,7 +125,7 @@ def get_schema(client, properties_flag, stream_name):
 
     try:
         if stream_name in ["engage", "export"]:
-            get_dynamic_schema(client, properties_flag, stream_name, schema)
+            get_dynamic_schema(client, stream_name, schema)
     except MixpanelPaymentRequiredError:
         LOGGER.warning(
             "Mixpanel returned a 402 from the %s API. So dynamic fields of %s stream will be skipped.",

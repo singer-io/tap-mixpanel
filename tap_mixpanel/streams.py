@@ -17,8 +17,8 @@ LOGGER = singer.get_logger()
 
 
 class MixPanel:
-    """A base class representing singer streams.
-
+    """
+    A base class representing singer streams.
     :param client: The API client used to extract records from external source
     """
 
@@ -589,8 +589,8 @@ class MixPanel:
 
 
 class Annotations(MixPanel):
-    """List the annotations for a given date range.
-
+    """
+    List the annotations for a given date range.
     Docs: https://developer.mixpanel.com/reference/annotations
     """
 
@@ -606,8 +606,8 @@ class Annotations(MixPanel):
 
 
 class CohortMembers(MixPanel):
-    """The list endpoint returns all of the cohorts in a given project.
-
+    """
+    The list endpoint returns all of the cohorts in a given project.
     The JSON formatted return contains the cohort name, id, count,
     description, creation date, and visibility for every cohort in the project.
     Docs: https://developer.mixpanel.com/reference/engage
@@ -628,9 +628,8 @@ class CohortMembers(MixPanel):
 
 
 class Cohorts(MixPanel):
-    """Takes a JSON object with a single key called id whose value is the
-    cohort ID.
-
+    """
+    Takes a JSON object with a single key called id whose value is the cohort ID.
     behaviors and filter_by_cohort are mutually exclusive.
     Docs: https://developer.mixpanel.com/reference/cohorts
     """
@@ -648,9 +647,8 @@ class Cohorts(MixPanel):
 
 
 class Engage(MixPanel):
-    """Query user profile data and return list of users that fit specified
-    parameters.
-
+    """
+    Query user profile data and return list of users that fit specified parameters.
     Docs: https://developer.mixpanel.com/reference/engage
     """
 
@@ -667,8 +665,8 @@ class Engage(MixPanel):
 
 
 class Export(MixPanel):
-    """Every data point sent to Mixpanel is stored as JSON in our data store.
-
+    """
+    Every data point sent to Mixpanel is stored as JSON in our data store.
     The raw export API allows you to download your event data as it is received and stored within Mixpanel,
     complete with all event properties (including distinct_id) and the exact timestamp the event was fired.
     Docs: https://developer.mixpanel.com/reference/export
@@ -704,8 +702,9 @@ class Export(MixPanel):
         parent_record,
         date_total,
     ):
-        """Get the records using the client get request and transform it using
-        transform_records and return the max_bookmark_value.
+        """
+        Get the records using the client get request and transform it using transform_records
+        and return the max_bookmark_value.
 
         Args:
             querystring (str): Params in URL query format to join with stream path
@@ -821,8 +820,8 @@ class Export(MixPanel):
 
 
 class Funnels(MixPanel):
-    """Get data for a funnel.
-
+    """
+    Get data for a funnel.
     funnel_id as a parameter to the API to get the funnel that you wish to get data for.
     Docs: https://developer.mixpanel.com/reference/funnels
     """
@@ -842,8 +841,9 @@ class Funnels(MixPanel):
 
 
 class Revenue(MixPanel):
-    """Get the revenue data."""
-
+    """
+    Get the revenue data.
+    """
     tap_stream_id = "revenue"
     path = "engage/revenue"
     key_properties = ["date"]
