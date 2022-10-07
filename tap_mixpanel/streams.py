@@ -2,6 +2,7 @@
 
 import json
 import math
+from copy import deepcopy
 from datetime import datetime, timedelta
 
 import pytz
@@ -16,8 +17,8 @@ LOGGER = singer.get_logger()
 
 
 class MixPanel:
-    """
-    A base class representing singer streams.
+    """A base class representing singer streams.
+
     :param client: The API client used to extract records from external source
     """
 
@@ -30,6 +31,7 @@ class MixPanel:
     path = None
     params = {}
     parent = None
+    child = None
     data_key = None
     bookmark_query_field_from = None
     bookmark_query_field_to = None
@@ -76,7 +78,8 @@ class MixPanel:
         return state.get("bookmarks", {}).get(stream, default)
 
     def write_bookmark(self, state, stream, value):
-        """Updates the stream bookmark value in the state. And writes the state.
+        """Updates the stream bookmark value in the state. And writes the
+        state.
 
         Args:
             state (dict): State containing bookmarks of the streams if available.
@@ -99,7 +102,8 @@ class MixPanel:
         max_bookmark_value=None,
         last_datetime=None,
     ):
-        """Transform the record as per the schema and writes record if replication value > bookmark.
+        """Transform the record as per the schema and write the record if
+        replication value > bookmark for incremental stream.
 
         Args:
             stream_name (str): Name of the syncing stream.
@@ -173,7 +177,10 @@ class MixPanel:
         querystring,
         project_timezone,
         max_bookmark_value,
+        state,
+        config,
         catalog,
+        selected_streams,
         last_datetime,
         endpoint_total,
         limit,
@@ -221,13 +228,27 @@ class MixPanel:
             endpoint=self.tap_stream_id,
         )
 
-        # time_extracted: datetime when the data was extracted from the API
-        time_extracted = utils.now()
         full_url = f"{self.url}/{self.path}{f'?{querystring}' if querystring else ''}"
         if not data:
             LOGGER.info("No data for URL: %s", full_url)
             # No data results
         else:  # Has data
+
+            # Sync child stream first
+            if self.child and self.child in selected_streams:
+                child_obj = STREAMS[self.child](self.client)
+                child_obj.sync(
+                    state,
+                    catalog,
+                    config,
+                    config["start_date"],
+                    selected_streams,
+                    parent_data=deepcopy(data),
+                )
+
+            # time_extracted: datetime when the data was extracted from the API
+            time_extracted = utils.now()
+
             # Transform data with transform_json from transform.py
             # The data_key identifies the array/list of records below the <root> element
             transformed_data = []  # initialize the record list
@@ -276,20 +297,21 @@ class MixPanel:
             # No transformed data results
             else:  # Has transformed data
                 # Process records and get the max_bookmark_value and record_count
-                max_bookmark_value, record_count = self.process_records(
-                    catalog=catalog,
-                    stream_name=self.tap_stream_id,
-                    records=transformed_data,
-                    time_extracted=time_extracted,
-                    bookmark_field=next(iter(self.replication_keys), None),
-                    max_bookmark_value=max_bookmark_value,
-                    last_datetime=last_datetime,
-                )
-                LOGGER.info(
-                    "Stream %s, batch processed %s records",
-                    self.tap_stream_id,
-                    record_count,
-                )
+                if self.tap_stream_id in selected_streams:
+                    max_bookmark_value, record_count = self.process_records(
+                        catalog=catalog,
+                        stream_name=self.tap_stream_id,
+                        records=transformed_data,
+                        time_extracted=time_extracted,
+                        bookmark_field=next(iter(self.replication_keys), None),
+                        max_bookmark_value=max_bookmark_value,
+                        last_datetime=last_datetime,
+                    )
+                    LOGGER.info(
+                        "Stream %s, batch processed %s records",
+                        self.tap_stream_id,
+                        record_count,
+                    )
 
                 # Set total_records and pagination fields
                 if page == 0:
@@ -370,7 +392,8 @@ class MixPanel:
                 LOGGER.warning("Setting bookmark start to 1 year ago.")
 
             start_window = now_datetime - timedelta(days=delta_days)
-            end_window = start_window + timedelta(days=days_interval)
+            # Reduce 1 day from end_window as last day data will be fetched too.
+            end_window = start_window + timedelta(days=days_interval - 1)
             end_window = min(end_window, now_datetime)
         else:
             start_window = strptime_to_utc(last_datetime)
@@ -381,8 +404,11 @@ class MixPanel:
 
         return start_window, end_window, days_interval
 
-    def sync(self, state, catalog, config, start_date):
-        """The sync method common to all the streams which internally call methods depending on different endpoints.
+    def sync(
+        self, state, catalog, config, start_date, selected_streams, parent_data=None
+    ):
+        """The sync method common to all the streams which internally call
+        methods depending on different endpoints.
 
         Args:
             state (dict): State containing bookmarks of the streams if available.
@@ -409,8 +435,6 @@ class MixPanel:
         # Get the latest bookmark for the stream and set the last_integer/datetime
         last_datetime = self.get_bookmark(state, self.tap_stream_id, start_date)
         max_bookmark_value = last_datetime
-
-        self.write_schema(catalog, self.tap_stream_id)
 
         # Windowing: loop through date days_interval date windows from last_datetime to now_datetime
         tzone = pytz.timezone(project_timezone)
@@ -449,8 +473,10 @@ class MixPanel:
                 params[self.bookmark_query_field_from] = from_date
                 params[self.bookmark_query_field_to] = to_date
 
+            if parent_data:
+                pass
             # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
-            if self.parent_path and self.parent_id_field:
+            elif self.parent_path and self.parent_id_field:
                 # API request data
                 LOGGER.info(
                     "URL for Parent Stream %s: %s/%s",
@@ -507,9 +533,6 @@ class MixPanel:
 
                     LOGGER.info("URL for Stream %s: %s", self.tap_stream_id, full_url)
 
-                    # API request data
-                    # data = {}
-
                     (
                         parent_total,
                         date_total,
@@ -523,7 +546,10 @@ class MixPanel:
                         querystring,
                         project_timezone,
                         max_bookmark_value,
+                        state,
+                        config,
                         catalog,
+                        selected_streams,
                         last_datetime,
                         endpoint_total,
                         limit,
@@ -546,7 +572,8 @@ class MixPanel:
                 LOGGER.info("Date window from: %s to %s", from_date, to_date)
             LOGGER.info("Total records for date window: %s", date_total)
             # Increment date window
-            start_window = end_window
+            # Start after the day of end_window
+            start_window = end_window + timedelta(days=1)
             next_end_window = end_window + timedelta(days=days_interval)
             if next_end_window > now_datetime:
                 end_window = now_datetime
@@ -562,8 +589,8 @@ class MixPanel:
 
 
 class Annotations(MixPanel):
-    """
-    List the annotations for a given date range.
+    """List the annotations for a given date range.
+
     Docs: https://developer.mixpanel.com/reference/annotations
     """
 
@@ -579,8 +606,8 @@ class Annotations(MixPanel):
 
 
 class CohortMembers(MixPanel):
-    """
-    The list endpoint returns all of the cohorts in a given project.
+    """The list endpoint returns all of the cohorts in a given project.
+
     The JSON formatted return contains the cohort name, id, count,
     description, creation date, and visibility for every cohort in the project.
     Docs: https://developer.mixpanel.com/reference/engage
@@ -592,7 +619,7 @@ class CohortMembers(MixPanel):
     params = {"filter_by_cohort": '{"id": [parent_id]}'}
     data_key = "results"
     pagination = True
-    parent_path = "cohorts/list"
+    parent = "cohorts"
     parent_id_field = "id"
     replication_keys = []
     replication_method = "FULL_TABLE"
@@ -601,8 +628,9 @@ class CohortMembers(MixPanel):
 
 
 class Cohorts(MixPanel):
-    """
-    Takes a JSON object with a single key called id whose value is the cohort ID.
+    """Takes a JSON object with a single key called id whose value is the
+    cohort ID.
+
     behaviors and filter_by_cohort are mutually exclusive.
     Docs: https://developer.mixpanel.com/reference/cohorts
     """
@@ -613,14 +641,16 @@ class Cohorts(MixPanel):
     data_key = None
     replication_method = "FULL_TABLE"
     params = {}
+    child = "cohort_members"
     replication_keys = []
     bookmark_query_field_from = None
     bookmark_query_field_to = None
 
 
 class Engage(MixPanel):
-    """
-    Query user profile data and return list of users that fit specified parameters.
+    """Query user profile data and return list of users that fit specified
+    parameters.
+
     Docs: https://developer.mixpanel.com/reference/engage
     """
 
@@ -637,8 +667,8 @@ class Engage(MixPanel):
 
 
 class Export(MixPanel):
-    """
-    Every data point sent to Mixpanel is stored as JSON in our data store.
+    """Every data point sent to Mixpanel is stored as JSON in our data store.
+
     The raw export API allows you to download your event data as it is received and stored within Mixpanel,
     complete with all event properties (including distinct_id) and the exact timestamp the event was fired.
     Docs: https://developer.mixpanel.com/reference/export
@@ -659,7 +689,10 @@ class Export(MixPanel):
         querystring,
         project_timezone,
         max_bookmark_value,
+        state,
+        config,
         catalog,
+        selected_streams,
         last_datetime,
         endpoint_total,
         limit,
@@ -671,9 +704,8 @@ class Export(MixPanel):
         parent_record,
         date_total,
     ):
-        """
-        Get the records using the client get request and transform it using transform_records
-        and return the max_bookmark_value.
+        """Get the records using the client get request and transform it using
+        transform_records and return the max_bookmark_value.
 
         Args:
             querystring (str): Params in URL query format to join with stream path
@@ -684,7 +716,7 @@ class Export(MixPanel):
             endpoint_total (int): Total number of records written yet.
             limit (int): Page size.
             total_records (int): Total number of records available for the sync.
-            parent_total (int): # Total records for parent ID
+            parent_total (int): Total records for parent ID
             record_count (int): Number of records per page written by tap.
             page (int): Page count.
             offset (int): Offset value of stream data for the pagination.
@@ -789,8 +821,8 @@ class Export(MixPanel):
 
 
 class Funnels(MixPanel):
-    """
-    Get data for a funnel.
+    """Get data for a funnel.
+
     funnel_id as a parameter to the API to get the funnel that you wish to get data for.
     Docs: https://developer.mixpanel.com/reference/funnels
     """
@@ -810,9 +842,8 @@ class Funnels(MixPanel):
 
 
 class Revenue(MixPanel):
-    """
-    Get the revenue data.
-    """
+    """Get the revenue data."""
+
     tap_stream_id = "revenue"
     path = "engage/revenue"
     key_properties = ["date"]

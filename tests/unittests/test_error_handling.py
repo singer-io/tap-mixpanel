@@ -1,7 +1,8 @@
 import unittest
 from unittest import mock
-from parameterized import parameterized
+
 import requests
+from parameterized import parameterized
 
 from tap_mixpanel import client
 
@@ -127,7 +128,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         with self.assertRaises(error) as e:
             mock_client.perform_request("GET")
 
-        expected_error_message = f"HTTP-error-code: {error_code}, Error: {error_message}"
+        expected_error_message = (
+            f"HTTP-error-code: {error_code}, Error: {error_message}"
+        )
 
         # Verifying the message formed for the custom exception
         self.assertEqual(str(e.exception), expected_error_message)
@@ -161,15 +164,19 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         with self.assertRaises(error) as e:
             mock_client.check_access()
 
-        expected_error_message = f"HTTP-error-code: {error_code}, Error: {error_message}"
+        expected_error_message = (
+            f"HTTP-error-code: {error_code}, Error: {error_message}"
+        )
 
         # Verifying the message formed for the custom exception
         self.assertEqual(str(e.exception), expected_error_message)
 
-    @parameterized.expand([
-        ["500 error", MockResponse(500), client.MixpanelInternalServiceError],
-        ["501 error", MockResponse(501), client.Server5xxError],
-    ])
+    @parameterized.expand(
+        [
+            ["500 error", MockResponse(500), client.MixpanelInternalServiceError],
+            ["501 error", MockResponse(501), client.Server5xxError],
+        ]
+    )
     @mock.patch("requests.Session.request")
     def test_request_with_handling_for_5xx_exception_handling(
         self, test_name, mock_response, error, mock_request, mock_sleep
@@ -202,3 +209,26 @@ class TestMixpanelErrorHandling(unittest.TestCase):
 
         # Verify that requests.Session.request is called 5 times
         self.assertEqual(mock_request.call_count, 5)
+
+    @mock.patch("requests.Session.request")
+    @mock.patch("tap_mixpanel.client.LOGGER.warning")
+    def test_check_access_402_exception_handling(
+        self, mock_logger, mock_request, mock_sleep
+    ):
+        """
+        Test that `check_access` method does not throw 402 error and prints
+        warning logger instead.
+        """
+        mock_request.return_value = MockResponse(402)
+        mock_client = client.MixpanelClient(
+            api_secret="mock_api_secret",
+            api_domain="mock_api_domain",
+            request_timeout=REQUEST_TIMEOUT,
+        )
+
+        mock_client.check_access()
+
+        # Verify that for 402 error expected logger is printed.
+        mock_logger.assert_called_with(
+            "Mixpanel returned a 402 from the Engage API. Engage stream will be skipped."
+        )

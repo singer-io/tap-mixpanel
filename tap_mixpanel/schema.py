@@ -4,6 +4,7 @@ import os
 import singer
 from singer import metadata
 
+from tap_mixpanel.client import MixpanelPaymentRequiredError
 from tap_mixpanel.streams import STREAMS
 
 LOGGER = singer.get_logger()
@@ -24,34 +25,7 @@ def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 
-def get_schema(client, properties_flag, stream_name):
-    """Creates schema for a stream by loading schema file and appending dynamic
-    fields schema if necessary.
-
-    Args:
-        client (MixpanelClient): Client to make http calls.
-        properties_flag (str): Setting this argument to `true` ensures that new properties on
-                               events and engage records are captured.
-        stream_name (str): Name of stream whose schema is to create.
-
-    Returns:
-        dict: Returns schema of the stream.
-    """
-    schema_path = get_abs_path(f"schemas/{stream_name}.json")
-
-    with open(schema_path, encoding="utf-8") as file:
-        schema = json.load(file)
-
-    # Set whether to allow additional properties for engage and export endpoints
-    # Event and Engage properties are dynamic and depend on the properties provided on upload,
-    #   when the Event or Engage (user/person) was created.
-    # Depending on the tap config parameter select_properties_by_default,
-    #   the json schema should allow additional properties (additionalProperties = true).
-    if stream_name in ("engage", "export") and str(properties_flag).lower() == "true":
-        schema["additionalProperties"] = True
-    else:
-        schema["additionalProperties"] = False
-
+def get_dynamic_schema(client, properties_flag, stream_name, schema):
     if stream_name == "engage":
         properties = client.request(
             method="GET",
@@ -114,6 +88,47 @@ def get_schema(client, properties_flag, stream_name):
             # String ONLY for event properties (no other datatypes)
             # Reference: https://help.mixpanel.com/hc/en-us/articles/360001355266-Event-Properties#field-size-character-limits-for-event-properties
             schema["properties"][new_key] = {"type": ["null", "string"]}
+
+    return schema
+
+
+def get_schema(client, properties_flag, stream_name):
+    """Creates schema for a stream by loading schema file and appending dynamic
+    fields schema if necessary.
+
+    Args:
+        client (MixpanelClient): Client to make http calls.
+        properties_flag (str): Setting this argument to `true` ensures that new properties on
+                               events and engage records are captured.
+        stream_name (str): Name of stream whose schema is to create.
+
+    Returns:
+        dict: Returns schema of the stream.
+    """
+    schema_path = get_abs_path(f"schemas/{stream_name}.json")
+
+    with open(schema_path, encoding="utf-8") as file:
+        schema = json.load(file)
+
+    # Set whether to allow additional properties for engage and export endpoints
+    # Event and Engage properties are dynamic and depend on the properties provided on upload,
+    #   when the Event or Engage (user/person) was created.
+    # Depending on the tap config parameter select_properties_by_default,
+    #   the json schema should allow additional properties (additionalProperties = true).
+    if stream_name in ("engage", "export") and str(properties_flag).lower() == "true":
+        schema["additionalProperties"] = True
+    else:
+        schema["additionalProperties"] = False
+
+    try:
+        if stream_name in ["engage", "export"]:
+            get_dynamic_schema(client, properties_flag, stream_name, schema)
+    except MixpanelPaymentRequiredError:
+        LOGGER.warning(
+            "Mixpanel returned a 402 from the %s API. So dynamic fields of %s stream will be skipped.",
+            stream_name,
+            stream_name,
+        )
 
     return schema
 

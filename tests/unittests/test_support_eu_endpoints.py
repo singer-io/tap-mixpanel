@@ -30,7 +30,7 @@ STANDARD_CONFIG = {
 
 
 class MockStream:
-    """Mock stream object class"""
+    """Mock stream object class."""
 
     def __init__(self, stream):
         self.stream = stream
@@ -105,6 +105,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=EU_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["revenue"],
         )
 
         # Verify that with EU config, base url has eu-domain.
@@ -112,7 +113,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://eu.mixpanel.com/api/2.0",
             path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
+            params="unit=day&from_date=2020-02-01&to_date=2020-03-01",
             endpoint="revenue",
         )
 
@@ -122,6 +123,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=STANDARD_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["revenue"],
         )
 
         # Verify that with standard config, base URL has default domain.
@@ -129,7 +131,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://mixpanel.com/api/2.0",
             path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
+            params="unit=day&from_date=2020-02-01&to_date=2020-03-01",
             endpoint="revenue",
         )
 
@@ -158,6 +160,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=EU_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["exports"],
         )
 
         # Verify that with EU config, base url has eu-domain.
@@ -165,7 +168,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://data-eu.mixpanel.com/api/2.0",
             path="export",
-            params="from_date=2020-02-01&to_date=2020-03-02",
+            params="from_date=2020-02-01&to_date=2020-03-01",
             endpoint="export",
         )
 
@@ -175,6 +178,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=STANDARD_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["exports"],
         )
 
         # Verify that with standard config, base URL has default domain.
@@ -182,7 +186,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://data.mixpanel.com/api/2.0",
             path="export",
-            params="from_date=2020-02-01&to_date=2020-03-02",
+            params="from_date=2020-02-01&to_date=2020-03-01",
             endpoint="export",
         )
 

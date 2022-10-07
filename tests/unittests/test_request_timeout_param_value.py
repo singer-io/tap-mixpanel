@@ -1,5 +1,6 @@
 import unittest
 from unittest import mock
+
 from parameterized import parameterized
 
 from tap_mixpanel.__init__ import main
@@ -78,14 +79,16 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
             timeout=REQUEST_TIMEOUT_DEFAULT,
         )
 
-    @parameterized.expand([
-        ["empty value", NULL_STRING, REQUEST_TIMEOUT_DEFAULT],
-        ["string value", STRING_INT, TIMEOUT_FLOAT],
-        ["integer value", TIMEOUT_INT, TIMEOUT_FLOAT],
-        ["float value", TIMEOUT_FLOAT, TIMEOUT_FLOAT],
-        ["zero value", ZERO_INT, REQUEST_TIMEOUT_DEFAULT],
-        ["zero(string) value", ZERO_STRING, REQUEST_TIMEOUT_DEFAULT],
-    ])
+    @parameterized.expand(
+        [
+            ["empty value", NULL_STRING, REQUEST_TIMEOUT_DEFAULT],
+            ["string value", STRING_INT, TIMEOUT_FLOAT],
+            ["integer value", TIMEOUT_INT, TIMEOUT_FLOAT],
+            ["float value", TIMEOUT_FLOAT, TIMEOUT_FLOAT],
+            ["zero value", ZERO_INT, REQUEST_TIMEOUT_DEFAULT],
+            ["zero(string) value", ZERO_STRING, REQUEST_TIMEOUT_DEFAULT],
+        ]
+    )
     def test_request_timeout(
         self, mock_discover, mock_parse_args, mock_request, test_name, input_value, expected_value
     ):

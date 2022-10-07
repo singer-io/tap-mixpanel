@@ -134,7 +134,7 @@ def test_check_access_backoff_on_remote_timeout_500(mock_sleep, mixpanel_client)
 @mock.patch("time.sleep", return_value=None)
 def test_request_backoff_on_timeout(mock_sleep, mixpanel_client):
     """
-    Test that for te `request` method of the client back max times for the timeout.
+    Test that for the `request` method of the client back max times for the timeout.
     """
     with requests_mock.Mocker() as mocker:
         mocker.request(
