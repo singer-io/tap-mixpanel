@@ -34,6 +34,8 @@ This tap:
   - Bookmark: `time`
   - Bookmark query field: `from_date`, `to_date`
 - Transformations: De-nest `properties` to root-level, re-name properties with leading `$...` to `mp_reserved_...`, convert datetimes from project timezone to UTC.
+- Optional parameters
+  - `export_events` to export only certain events
 
 **[engage](https://developer.mixpanel.com/docs/data-export-api#section-engage)**
   - Standard Server endpoint: https://mixpanel.com/api/2.0/engage
@@ -154,6 +156,12 @@ More details may be found in the [Mixpanel API Authentication](https://developer
     }
     ```
     
+      If you want to export only certain events from the [Raw export API](https://developer.mixpanel.com/reference/export)then provide the value of `export_events`
+
+    ```bash
+   "export_events": "event_one,event_two"
+   ```
+
     Optionally, also create a `state.json` file. `currently_syncing` is an optional attribute used for identifying the last object to be synced in case the job is interrupted mid-stream. The next run would begin where the last job left off.
 
     ```json
