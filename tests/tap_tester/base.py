@@ -29,6 +29,7 @@ class TestMixPanelBase(BaseCase):
     start_date = ""
     end_date = ""
     eu_residency = True
+    export_events = None
 
     def tap_name(self):
         """The name of the tap."""
@@ -112,6 +113,11 @@ class TestMixPanelBase(BaseCase):
         if self.eu_residency:
             return_value.update(
                 {"project_timezone": "Europe/Amsterdam", "eu_residency": "true"}
+            )
+
+        if self.export_events:
+            return_value.update(
+                {"export_events": self.export_events}
             )
 
         if original:

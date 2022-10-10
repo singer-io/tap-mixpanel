@@ -3,7 +3,7 @@ from math import ceil
 from tap_tester import connections, menagerie, runner
 
 from base import TestMixPanelBase
-
+import os
 
 class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
 
@@ -11,7 +11,7 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
     def name():
         return "tap_tester_mixpanel_pagination_all_fields_test"
 
-    def pagination_test_run(self):
+    def pagination_test_run(self, streams_to_test_all_fields, streams_to_test_pagination):
         """
         All Fields Test
         • Verify that when all fields are selected more than the automatic fields are replicated.
@@ -28,10 +28,6 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         fetch of data.  For instance if you have a limit of 250 records ensure
         that 251 (or more) records have been posted for that stream.
         """
-
-        # Only following below 2 streams support pagination
-        streams_to_test_all_fields = self.expected_streams()
-        streams_to_test_pagination = {'engage', 'cohort_members'}
 
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
@@ -145,10 +141,21 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
                             )
 
     def test_run(self):
+
+        streams_to_test_all_fields = self.expected_streams()
+        # Only following below 2 streams support pagination
+        streams_to_test_pagination = {'engage', 'cohort_members'}
+
         # Pagination test for standard server
         self.eu_residency = False
-        self.pagination_test_run()
+        self.pagination_test_run(streams_to_test_all_fields, streams_to_test_pagination)
 
         # Pagination test for EU residency server
         self.eu_residency = True
-        self.pagination_test_run()
+        self.pagination_test_run(streams_to_test_all_fields, streams_to_test_pagination)
+
+        # Test `export_events` param in config
+        self.export_events = os.getenv("TAP_MIXPANEL_EXPORT_EVENTS")
+        self.eu_residency = False
+        self.pagination_test_run({'exports'}, {})
+        self.export_events = None
