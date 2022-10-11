@@ -41,6 +41,7 @@ def write_schemas_recursive(stream_id, catalog, selected_streams):
     if stream_id in selected_streams:
         stream_obj.write_schema(catalog, stream_id)
 
+    # Write schema for selected child
     if stream_obj.child:
         write_schemas_recursive(stream_obj.child, catalog, selected_streams)
 

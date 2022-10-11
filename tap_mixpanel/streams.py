@@ -380,7 +380,6 @@ class MixPanel:
 
             last_dttm = strptime_to_utc(last_datetime)
             delta_days = (now_datetime - last_dttm).days
-            print(">>>>", delta_days)
             if delta_days <= attribution_window:
                 delta_days = attribution_window
                 LOGGER.info(
@@ -393,10 +392,11 @@ class MixPanel:
                 LOGGER.warning("Setting bookmark start to 1 year ago.")
 
             start_window = now_datetime - timedelta(days=delta_days)
-            print("<><><> %s %s", start_window, start_date)
+
+            # Records before start_date should not be queried
             start_window = max(start_window, strptime_to_utc(start_date))
-            # Reduce 1 day from end_window as last day data will be fetched too.
-            end_window = start_window + timedelta(days=days_interval - 1)
+
+            end_window = start_window + timedelta(days=days_interval)
             end_window = min(end_window, now_datetime)
         else:
             start_window = strptime_to_utc(last_datetime)
@@ -476,27 +476,27 @@ class MixPanel:
                 params[self.bookmark_query_field_from] = from_date
                 params[self.bookmark_query_field_to] = to_date
 
-            if parent_data:
-                pass
-            # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
-            elif self.parent_path and self.parent_id_field:
-                # API request data
-                LOGGER.info(
-                    "URL for Parent Stream %s: %s/%s",
-                    self.tap_stream_id,
-                    self.url,
-                    self.parent_path,
-                )
-                parent_data = self.client.request(
-                    method="GET",
-                    url=self.url,
-                    path=self.parent_path,
-                    endpoint="parent_data",
-                )
-            # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
-            else:
-                parent_data = [{"id": "none"}]
-                self.parent_id_field = "id"
+            if not parent_data:
+
+                # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
+                if self.parent_path and self.parent_id_field:
+                    # API request data
+                    LOGGER.info(
+                        "URL for Parent Stream %s: %s/%s",
+                        self.tap_stream_id,
+                        self.url,
+                        self.parent_path,
+                    )
+                    parent_data = self.client.request(
+                        method="GET",
+                        url=self.url,
+                        path=self.parent_path,
+                        endpoint="parent_data",
+                    )
+                # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
+                else:
+                    parent_data = [{"id": "none"}]
+                    self.parent_id_field = "id"
 
             for parent_record in parent_data:
                 parent_id = parent_record.get(self.parent_id_field)

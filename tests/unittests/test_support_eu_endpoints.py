@@ -113,7 +113,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://eu.mixpanel.com/api/2.0",
             path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-01",
+            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
             endpoint="revenue",
         )
 
@@ -131,7 +131,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://mixpanel.com/api/2.0",
             path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-01",
+            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
             endpoint="revenue",
         )
 
@@ -168,7 +168,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://data-eu.mixpanel.com/api/2.0",
             path="export",
-            params="from_date=2020-02-01&to_date=2020-03-01",
+            params="from_date=2020-02-01&to_date=2020-03-02",
             endpoint="export",
         )
 
@@ -186,7 +186,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             method="GET",
             url="https://data.mixpanel.com/api/2.0",
             path="export",
-            params="from_date=2020-02-01&to_date=2020-03-01",
+            params="from_date=2020-02-01&to_date=2020-03-02",
             endpoint="export",
         )
 
