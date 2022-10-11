@@ -358,7 +358,7 @@ class MixPanel:
         )
 
     def define_bookmark_filters(
-        self, days_interval, last_datetime, now_datetime, attribution_window
+        self, days_interval, last_datetime, now_datetime, attribution_window, start_date
     ):
         """Define the params from and to according to the filters provided in
         the bookmark_query_field_from and bookmark_query_field_to.
@@ -380,6 +380,7 @@ class MixPanel:
 
             last_dttm = strptime_to_utc(last_datetime)
             delta_days = (now_datetime - last_dttm).days
+            print(">>>>", delta_days)
             if delta_days <= attribution_window:
                 delta_days = attribution_window
                 LOGGER.info(
@@ -392,6 +393,8 @@ class MixPanel:
                 LOGGER.warning("Setting bookmark start to 1 year ago.")
 
             start_window = now_datetime - timedelta(days=delta_days)
+            print("<><><> %s %s", start_window, start_date)
+            start_window = max(start_window, strptime_to_utc(start_date))
             # Reduce 1 day from end_window as last day data will be fetched too.
             end_window = start_window + timedelta(days=days_interval - 1)
             end_window = min(end_window, now_datetime)
@@ -445,7 +448,7 @@ class MixPanel:
             now_datetime = strptime_to_utc(end_date)
 
         start_window, end_window, days_interval = self.define_bookmark_filters(
-            days_interval, last_datetime, now_datetime, attribution_window
+            days_interval, last_datetime, now_datetime, attribution_window, start_date
         )
         # LOOP order: Date Windows, Parent IDs, Page
         # Initialize counter
