@@ -3,7 +3,7 @@ from unittest import mock
 from parameterized import parameterized
 from singer.catalog import Catalog
 from tap_mixpanel.discover import discover
-from tap_mixpanel.schema import get_schema
+from tap_mixpanel.schema import get_schema, get_schemas
 from tap_mixpanel.client import MixpanelPaymentRequiredError
 
 @mock.patch("tap_mixpanel.schema.get_schema")
@@ -87,10 +87,18 @@ class TestGetSchema(unittest.TestCase):
         client = mock.Mock()
         client.request.side_effect = MixpanelPaymentRequiredError
 
-        get_schema(client, True, "export")
+        schemas, field_metadata = get_schemas(client, True)
 
         # Verify that expected warning logger is called
-        mock_logger.assert_called_with(
-            "Mixpanel returned a 402 from the %s API. So dynamic fields of %s stream will be skipped.",
-            "export", "export"
+        mock_logger.assert_any_call(
+            "Mixpanel returned a 402 indicating the Engage endpoint and stream is unavailable. Skipping."
         )
+        mock_logger.assert_any_call(
+            "Mixpanel returned a 402 from the %s API so %s stream will be skipped.",
+                "export",
+                "export",
+        )
+
+        # Verify that dynamic schema stream is not written in catalog.
+        self.assertNotIn("export", schemas)
+        self.assertNotIn("engage", schemas)
