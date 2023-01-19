@@ -117,11 +117,13 @@ def raise_for_error(response):
 
 class MixpanelClient(object):
     def __init__(self,
-                 api_secret,
+                 service_account_username,
+                 service_account_secret,
                  api_domain,
                  request_timeout,
                  user_agent=None):
-        self.__api_secret = api_secret
+        self.__service_account_username = service_account_username
+        self.__service_account_secret = service_account_secret
         self.__api_domain = api_domain
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
@@ -141,16 +143,17 @@ class MixpanelClient(object):
                           max_tries=5,
                           factor=2)
     def check_access(self):
-        if self.__api_secret is None:
-            raise Exception('Error: Missing api_secret in tap config.json.')
+        if self.__service_account_username is None:
+            raise Exception('Error: Missing service_account_username in tap config.json.')
+        if self.__service_account_secret is None:
+            raise Exception('Error: Missing service_account_secret in tap config.json.')
         headers = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
         url = 'https://{}/api/2.0/engage'.format(self.__api_domain)
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
-        headers['Authorization'] = 'Basic {}'.format(
-            str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
+        headers['Authorization'] = 'Basic {}:{}'.format(self.__service_account_username, self.__service_account_secret)
 
         try:
             response = self.__session.get(
@@ -230,8 +233,7 @@ class MixpanelClient(object):
         if method == 'POST':
             kwargs['headers']['Content-Type'] = 'application/json'
 
-        kwargs['headers']['Authorization'] = 'Basic {}'.format(
-            str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
+        kwargs['headers']['Authorization'] = 'Basic {}:{}'.format(self.__service_account_username, self.__service_account_secret)
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(method=method,
                                             url=url,
@@ -270,8 +272,7 @@ class MixpanelClient(object):
         if method == 'POST':
             kwargs['headers']['Content-Type'] = 'application/json'
 
-        kwargs['headers']['Authorization'] = 'Basic {}'.format(
-            str(base64.urlsafe_b64encode(self.__api_secret.encode("utf-8")), "utf-8"))
+        kwargs['headers']['Authorization'] = 'Basic {}:{}'.format(self.__service_account_username, self.__service_account_secret)
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(method=method,
                                             url=url,
