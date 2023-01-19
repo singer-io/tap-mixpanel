@@ -119,11 +119,13 @@ class MixpanelClient(object):
     def __init__(self,
                  service_account_username,
                  service_account_secret,
+                 project_id,
                  api_domain,
                  request_timeout,
                  user_agent=None):
         self.__service_account_username = service_account_username
         self.__service_account_secret = service_account_secret
+        self.__project_id = project_id
         self.__api_domain = api_domain
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
@@ -147,9 +149,11 @@ class MixpanelClient(object):
             raise Exception('Error: Missing service_account_username in tap config.json.')
         if self.__service_account_secret is None:
             raise Exception('Error: Missing service_account_secret in tap config.json.')
+        if self.__project_id is None:
+            raise Exception('Error: Missing project_id in tap config.json.')
         headers = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
-        url = 'https://{}/api/2.0/engage'.format(self.__api_domain)
+        url = 'https://{}/api/2.0/engage?project_id={}'.format(self.__api_domain, self.__project_id)
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Accept'] = 'application/json'
@@ -214,7 +218,7 @@ class MixpanelClient(object):
         if url and path:
             url = '{}/{}'.format(url, path)
         elif path and not url:
-            url = 'https://{}/api/2.0/{}'.format(self.__api_domain, path)
+            url = 'https://{}/api/2.0/{}?project_id={}'.format(self.__api_domain, path, self.__project_id)
 
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']

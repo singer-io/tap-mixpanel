@@ -18,6 +18,7 @@ REQUIRED_CONFIG_KEYS = [
     'project_timezone',
     'service_account_username',
     'service_account_secret',
+    'project_id',
     'attribution_window',
     'start_date',
     'user_agent'
@@ -63,6 +64,7 @@ def main():
 
     with MixpanelClient(parsed_args.config['service_account_username'],
                         parsed_args.config['service_account_secret'],
+                        parsed_args.config['project_id'],
                         api_domain,
                         request_timeout,
                         parsed_args.config['user_agent']) as client:
