@@ -38,6 +38,7 @@ class MixPanel:
     parent_path = None
     parent_id_field = None
     url = "https://mixpanel.com/api/2.0"
+    project_id = None
 
     def __init__(self, client: MixpanelClient):
         self.client = client
@@ -140,9 +141,10 @@ class MixPanel:
 
         # time_extracted: datetime when the data was extracted from the API
         time_extracted = utils.now()
-        full_url = '{}/{}{}'.format(
+        full_url = '{}/{}{}{}'.format(
             self.url,
             self.path,
+            '?project_id={}'.format(self.project_id),
             '?{}'.format(querystring) if querystring else '')
         if not data:
             LOGGER.info('No data for URL: %s',full_url)
@@ -284,6 +286,7 @@ class MixPanel:
         project_timezone = config.get("project_timezone", "UTC")
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
+        self.project_id = config["project_id"]
 
         #Update url if eu_residency is selected
         if str(config.get('eu_residency')).lower() == "true":
@@ -383,10 +386,11 @@ class MixPanel:
                     querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
                     querystring = querystring.replace('[parent_id]', str(parent_id))
 
-                    full_url = '{}/{}{}'.format(
+                    full_url = '{}/{}{}{}'.format(
                         self.url,
                         self.path,
-                        '?{}'.format(querystring) if querystring else '')
+                        '?project_id={}'.format(self.project_id),
+                        '&{}'.format(querystring) if querystring else '')
 
                     LOGGER.info('URL for Stream %s: %s', self.tap_stream_id, full_url)
 
