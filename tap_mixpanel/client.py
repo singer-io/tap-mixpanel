@@ -216,7 +216,7 @@ class MixpanelClient(object):
             self.__verified = self.check_access()
 
         if url and path:
-            url = '{}/{}'.format(url, path)
+            url = '{}/{}?project_id={}'.format(url, path, self.__project_id)
         elif path and not url:
             url = 'https://{}/api/2.0/{}?project_id={}'.format(self.__api_domain, path, self.__project_id)
 
