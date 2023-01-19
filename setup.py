@@ -11,7 +11,7 @@ setup(name='tap-mixpanel',
       install_requires=[
           'backoff==1.8.0',
           'requests==2.22.0',
-          'singer-python==5.12.1',
+          'singer-python @ git+https://github.com/peliqan-io/singer-python@master',
           'jsonlines==1.2.0'
       ],
       extras_require={
