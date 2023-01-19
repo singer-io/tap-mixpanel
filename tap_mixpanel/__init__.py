@@ -17,7 +17,7 @@ REQUEST_TIMEOUT = 300
 REQUIRED_CONFIG_KEYS = [
     'project_timezone',
     'service_account_username',
-    'service_account_secret'
+    'service_account_secret',
     'attribution_window',
     'start_date',
     'user_agent'
