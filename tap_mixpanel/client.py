@@ -6,6 +6,7 @@ import jsonlines
 import requests
 import singer
 from requests.exceptions import ConnectionError, Timeout
+from requests.models import ProtocolError
 from singer import metrics
 
 LOGGER = singer.get_logger()
@@ -137,7 +138,7 @@ class MixpanelClient(object):
         self.__session.close()
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
+                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout, ProtocolError),
                           max_tries=5,
                           factor=2)
     def check_access(self):
@@ -174,7 +175,7 @@ class MixpanelClient(object):
 
     @backoff.on_exception(
         backoff.expo,
-        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout),
+        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout, ProtocolError),
         max_tries=BACKOFF_MAX_TRIES_REQUEST,
         factor=3,
         logger=LOGGER)
