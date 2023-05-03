@@ -28,6 +28,7 @@ class TestMixPanelBase(BaseCase):
     FULL_TABLE = "FULL_TABLE"
     API_LIMIT = 250
     TYPE = "platform.mixpanel"
+    OBEYS_START_DATE = "obey-start-date"
     start_date = ""
     end_date = ""
     eu_residency = True
@@ -43,33 +44,40 @@ class TestMixPanelBase(BaseCase):
                 self.PRIMARY_KEYS: set(),
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'time'},
+                self.OBEYS_START_DATE: True,
             },
             'engage': {
                 self.PRIMARY_KEYS: {"distinct_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
+                self.OBEYS_START_DATE: False,
             },
             'funnels': {
                 self.PRIMARY_KEYS: {'funnel_id', 'date'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'datetime'},
+                self.OBEYS_START_DATE: True,
             },
             'cohorts': {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
+                self.OBEYS_START_DATE: False,
             },
             'cohort_members': {
                 self.PRIMARY_KEYS: {"cohort_id", "distinct_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
+                self.OBEYS_START_DATE: False,
             },
             'revenue': {
                 self.PRIMARY_KEYS: {"date"},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'datetime'},
+                self.OBEYS_START_DATE: True,
             },
 
             'annotations': {
                 self.PRIMARY_KEYS: {"date"},
-                self.REPLICATION_METHOD: self.FULL_TABLE
+                self.REPLICATION_METHOD: self.FULL_TABLE,
+                self.OBEYS_START_DATE: False,
             }
         }
 

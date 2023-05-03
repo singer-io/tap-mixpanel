@@ -1,6 +1,5 @@
 import re
-from tap_tester import menagerie, connections
-from tap_tester.logger import LOGGER
+from tap_tester import menagerie, connections, LOGGER
 
 from base import TestMixPanelBase
 
@@ -89,6 +88,13 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 # verify there is only 1 top level breadcrumb in metadata
                 self.assertEqual(len(stream_properties), 1,
                                  logging='asserting there is only 1 top level breadcrumb in metadata')
+
+                # Verify there is no duplicate metadata entries
+                self.assertEqual(
+                    len(actual_fields),
+                    len(set(actual_fields)),
+                    msg="Duplicates in the fields retrieved",
+                )
 
                 # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
                 if actual_replication_keys:

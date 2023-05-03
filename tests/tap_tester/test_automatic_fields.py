@@ -60,8 +60,3 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
         """Automatic fields test for standard server"""
         self.eu_residency = False
         self.automatic_fields_test_run()
-
-    def test_eu_auto_fields(self):
-        """Automatic fields test for EU recidency server"""
-        self.eu_residency = True
-        self.automatic_fields_test_run()

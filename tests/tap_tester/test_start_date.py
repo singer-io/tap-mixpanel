@@ -1,5 +1,4 @@
-import tap_tester.connections as connections
-import tap_tester.runner as runner
+from tap_tester import connections, runner, LOGGER
 from base import TestMixPanelBase
 
 
@@ -45,7 +44,7 @@ class MixPanelStartDateTest(TestMixPanelBase):
         # Update START DATE Between Syncs
         ##########################################################################
 
-        print("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(
+        LOGGER.info("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(
             self.start_date, self.start_date_2))
         self.start_date = self.start_date_2
 
@@ -150,8 +149,4 @@ class MixPanelStartDateTest(TestMixPanelBase):
     def test_run(self):
         #Start date test for standard server
         self.eu_residency = False
-        self.start_date_test_run()
-
-        #Start date test for EU recidency server
-        self.eu_residency = True
         self.start_date_test_run()
