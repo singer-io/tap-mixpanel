@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.2
+  * Adds ProtocolError to backoff handling [#58](https://github.com/singer-io/tap-mixpanel/pull/58)
+
 ## 1.4.1
   * Implement Request Timeout
 
