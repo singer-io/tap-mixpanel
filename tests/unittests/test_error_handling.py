@@ -234,10 +234,12 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         )
 
 
+# Mock time.sleep to reduce the time
+@mock.patch("time.sleep", return_value=None)
 class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=requests.models.ProtocolError)
-    def test_check_access_handle_timeout_error(self, mock_request):
+    def test_check_access_handle_timeout_error(self, mock_request, mock_time):
         '''
         Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
         '''
