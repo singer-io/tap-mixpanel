@@ -1,5 +1,5 @@
-from base import TestMixPanelBase
 from tap_tester import connections, runner, LOGGER
+from base import TestMixPanelBase
 
 
 class MixPanelStartDateTest(TestMixPanelBase):

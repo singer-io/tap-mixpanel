@@ -232,3 +232,18 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_logger.assert_called_with(
             "Mixpanel returned a 402 from the Engage API. Engage stream will be skipped."
         )
+
+
+class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
+
+    @mock.patch("requests.Session.request", side_effect=requests.models.ProtocolError)
+    def test_check_access_handle_timeout_error(self, mock_request):
+        '''
+        Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
+        '''
+        mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+        with self.assertRaises(requests.models.ProtocolError):
+            mock_client.check_access()
+
+        # Verify that requests.Session.request is called 5 times
+        self.assertEqual(mock_request.call_count, 5)
