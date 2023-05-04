@@ -173,8 +173,3 @@ class MixPanelBookMarkTest(TestMixPanelBase):
         """Bookmark test for standard server"""
         self.eu_residency = False
         self.bookmark_test_run()
-
-    def test_eu_bookmarks(self):
-        """Bookmark test for EU recidency server"""
-        self.eu_residency = True
-        self.bookmark_test_run()

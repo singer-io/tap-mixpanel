@@ -1,6 +1,5 @@
 import re
-from tap_tester import menagerie, connections
-from tap_tester.logger import LOGGER
+from tap_tester import menagerie, connections, LOGGER
 
 from base import TestMixPanelBase
 
