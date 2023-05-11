@@ -9,6 +9,7 @@ from tap_mixpanel.streams import STREAMS
 
 LOGGER = singer.get_logger()
 
+
 # Reference:
 # https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
 
@@ -75,15 +76,23 @@ def get_schema(client, properties_flag, stream_name):
                 property_type = val.get("type")
 
                 types = {
-                    "boolean": {"type": ["null", "boolean"]},
-                    "number": {"type": ["null", "string"], "format": "singer.decimal"},
-                    "datetime": {"type": ["null", "string"], "format": "date-time"},
+                    "boolean": {
+                        "type": ["null", "boolean"]},
+                    "number": {
+                        "type": ["null", "string"], "format": "singer.decimal"},
+                    "datetime": {
+                        "type": ["null", "string"],
+                        "format": "date-time"},
                     "object": {
                         "type": ["null", "object"],
                         "additionalProperties": True,
                     },
-                    "list": {"type": ["null", "array"], "required": False, "items": {}},
-                    "string": {"type": ["null", "string"]},
+                    "list": {
+                        "type": ["null", "array"],
+                        "required": False,
+                        "items": {}},
+                    "string": {
+                        "type": ["null", "string"]},
                 }
 
                 if property_type in types:

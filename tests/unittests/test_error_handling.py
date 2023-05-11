@@ -1,7 +1,7 @@
 import unittest
-from unittest import mock
-
 import requests
+
+from unittest import mock
 from parameterized import parameterized
 
 from tap_mixpanel import client
@@ -240,9 +240,9 @@ class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
 
     @mock.patch("requests.Session.request", side_effect=requests.models.ProtocolError)
     def test_check_access_handle_timeout_error(self, mock_request, mock_time):
-        '''
+        """
         Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
-        '''
+        """
         mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
         with self.assertRaises(requests.models.ProtocolError):
             mock_client.check_access()

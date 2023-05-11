@@ -94,8 +94,7 @@ class TestSyncMode(unittest.TestCase):
                                      config=TEST_CONFIG,
                                      catalog=Catalog.from_dict(self.mock_catalog),
                                      state=mock_state,
-                                     start_date=TEST_CONFIG['start_date'])
-
+                                     start_date=TEST_CONFIG["start_date"])
 
     @mock.patch("tap_mixpanel._discover")
     def test_discover_mode(self, mock_discover, mock_sync, mock_args, mock_check_access, mock_now):

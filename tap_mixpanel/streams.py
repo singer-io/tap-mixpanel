@@ -744,7 +744,7 @@ class Export(MixPanel):
         time_extracted = utils.now()
         transformed_data = []
         for record in data:
-            if record and str(record) != "":
+            if record and str(record):
                 # Transform record and append to transformed_data array
                 transformed_record = transform_record(
                     record, self.tap_stream_id, project_timezone

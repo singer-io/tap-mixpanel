@@ -1,8 +1,7 @@
-import unittest
-from datetime import datetime
-
 import pytz
+import unittest
 
+from datetime import datetime
 from tap_mixpanel.transform import transform_event_times
 
 UTC = pytz.utc

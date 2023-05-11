@@ -131,7 +131,7 @@ class MixPanelStartDateTest(TestMixPanelBase):
                         if row.get("data")
                     ]
 
-                    # # Verify replication key is greater or equal to start_date for sync 1
+                    # Verify replication key is greater or equal to start_date for sync 1
                     for replication_date in replication_dates_1:
                         self.assertGreaterEqual(
                             self.parse_date(replication_date),

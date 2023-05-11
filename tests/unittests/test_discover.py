@@ -59,10 +59,10 @@ class TestGetSchema(unittest.TestCase):
         self.assertEqual(stream_path, args["path"])
 
         # Verify that field without '$' is written as it is
-        self.assertIn("country", schema['properties'])
+        self.assertIn("country", schema["properties"])
 
         # Verify that field with '$' is written with 'mp_reserved_'
-        self.assertIn("mp_reserved_last_seen", schema['properties'])
+        self.assertIn("mp_reserved_last_seen", schema["properties"])
 
     def test_other_schema(self):
         """
