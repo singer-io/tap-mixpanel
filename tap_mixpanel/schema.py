@@ -79,7 +79,8 @@ def get_schema(client, properties_flag, stream_name):
                     "boolean": {
                         "type": ["null", "boolean"]},
                     "number": {
-                        "type": ["null", "string"], "format": "singer.decimal"},
+                        "type": ["null", "string"],
+                        "format": "singer.decimal"},
                     "datetime": {
                         "type": ["null", "string"],
                         "format": "date-time"},
