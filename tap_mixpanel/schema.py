@@ -181,7 +181,8 @@ def get_schemas(client, properties_flag):
         if stream_metadata.replication_keys:
             mdata = metadata.write(
                 mdata,
-                ("properties", stream_metadata.replication_keys[0]),
+                ("properties",
+                 stream_metadata.replication_keys[0]),
                 "inclusion",
                 "automatic",
             )
