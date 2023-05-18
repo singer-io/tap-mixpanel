@@ -1,9 +1,6 @@
 from math import ceil
 
-import tap_tester.connections as connections
-import tap_tester.runner as runner
-import tap_tester.menagerie as menagerie
-from tap_tester.logger import LOGGER
+from tap_tester import connections, menagerie, runner
 
 from base import TestMixPanelBase
 
@@ -12,23 +9,20 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
 
     @staticmethod
     def name():
-        return "mixpanel_pagination_all_fields_test"
+        return "tap_tester_mixpanel_pagination_all_fields_test"
 
     def pagination_test_run(self):
         """
         All Fields Test
-        • and that when all fields are selected more than the automatic fields are replicated.
+        • Verify that when all fields are selected more than the automatic fields are replicated.
         • Verify no unexpected streams were replicated
         • Verify that more than just the automatic fields are replicated for each stream.
-        • verify all fields for each stream are replicated
-        • verify that the automatic fields are sent to the target
-
-
+        • Verify all fields for each stream are replicated
+        • Verify that the automatic fields are sent to the target
         Pagination Test
         • Verify that for each stream you can get multiple pages of data
         • Verify no duplicate pages are replicated
         • Verify no unexpected streams were replicated
-
         PREREQUISITE
         For EACH stream add enough data that you surpass the limit of a single
         fetch of data.  For instance if you have a limit of 250 records ensure
@@ -44,14 +38,14 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
                                     if catalog.get('tap_stream_id') in streams_to_test_all_fields]
 
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_all_fields)
 
-        # grab metadata after performing table-and-field selection to set expectations
+        # Grab metadata after performing table-and-field selection to set expectations
         # used for asserting all fields are replicated
         stream_to_all_catalog_fields = dict()
         for catalog in test_catalogs_all_fields:
@@ -60,8 +54,7 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
             fields_from_field_level_md = [md_entry['breadcrumb'][1]
                                           for md_entry in catalog_entry['metadata']
                                           if md_entry['breadcrumb'] != []]
-            stream_to_all_catalog_fields[stream_name] = set(
-                fields_from_field_level_md)
+            stream_to_all_catalog_fields[stream_name] = set(fields_from_field_level_md)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
@@ -77,19 +70,18 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         for stream in streams_to_test_all_fields:
             with self.subTest(logging="Primary Functional Test", stream=stream):
 
-                # expected values
+                # Expected values
                 expected_all_keys = stream_to_all_catalog_fields[stream]
-                expected_automatic_keys = expected_automatic_fields.get(
-                    stream, set())
+                expected_automatic_keys = expected_automatic_fields.get(stream, set())
 
-                # collect actual values
+                # Collect actual values
                 messages = synced_records.get(stream)
                 actual_all_keys = set()
                 for message in messages['messages']:
                     if message['action'] == 'upsert':
                         actual_all_keys.update(set(message['data'].keys()))
 
-                # verify that the automatic fields are sent to the target
+                # Verify that the automatic fields are sent to the target
                 self.assertTrue(
                     actual_fields_by_stream.get(stream, set()).issuperset(
                         expected_automatic_keys),
@@ -109,27 +101,27 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
                     expected_all_keys = expected_all_keys - {'labels', 'sampling_factor', 'dataset', 'mp_reserved_duration_s', 'mp_reserved_origin_end',
                                                              'mp_reserved_origin_start', 'mp_reserved_event_count'}
 
-                # verify all fields for each stream are replicated
-                if not stream == "engage": #Skip engage as it return records in random manner with dynamic fields.
+                # Verify all fields for each stream are replicated
+                # Skip engage as it return records in random manner with dynamic fields.
+                if not stream == "engage":
                     self.assertSetEqual(expected_all_keys, actual_all_keys)
 
         # Pagination Test
         for stream in streams_to_test_pagination:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_primary_keys = self.expected_pks()[stream]
 
-                # collect actual values
+                # Collect actual values
                 messages = synced_records.get(stream)
                 primary_keys_list = [tuple([message['data'][expected_pk] for expected_pk in expected_primary_keys])
                                      for message in messages['messages'] if message['action'] == 'upsert']
 
-                # verify that we can paginate with all fields selected
+                # Verify that we can paginate with all fields selected
                 record_count_sync = record_count_by_stream.get(stream, 0)
                 self.assertGreater(record_count_sync, self.API_LIMIT,
                                    msg="The number of records is not over the stream max limit")
-
 
                 # Chunk the replicated records (just primary keys) into expected pages
                 pages = []
@@ -156,7 +148,6 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         # Pagination test for standard server
         self.eu_residency = False
         self.pagination_test_run()
-
 
         # Pagination test for EU residency server
         self.eu_residency = True
