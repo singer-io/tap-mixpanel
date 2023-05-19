@@ -4,9 +4,11 @@ import os
 import singer
 from singer import metadata
 
+from tap_mixpanel.client import MixpanelPaymentRequiredError
 from tap_mixpanel.streams import STREAMS
 
 LOGGER = singer.get_logger()
+
 
 # Reference:
 # https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
@@ -74,15 +76,24 @@ def get_schema(client, properties_flag, stream_name):
                 property_type = val.get("type")
 
                 types = {
-                    "boolean": {"type": ["null", "boolean"]},
-                    "number": {"type": ["null", "string"], "format": "singer.decimal"},
-                    "datetime": {"type": ["null", "string"], "format": "date-time"},
+                    "boolean": {
+                        "type": ["null", "boolean"]},
+                    "number": {
+                        "type": ["null", "string"],
+                        "format": "singer.decimal"},
+                    "datetime": {
+                        "type": ["null", "string"],
+                        "format": "date-time"},
                     "object": {
                         "type": ["null", "object"],
                         "additionalProperties": True,
                     },
-                    "list": {"type": ["null", "array"], "required": False, "items": {}},
-                    "string": {"type": ["null", "string"]},
+                    "list": {
+                        "type": ["null", "array"],
+                        "required": False,
+                        "items": {}},
+                    "string": {
+                        "type": ["null", "string"]},
                 }
 
                 if property_type in types:
@@ -141,7 +152,15 @@ def get_schemas(client, properties_flag):
             )
             continue
 
-        schema = get_schema(client, properties_flag, stream_name)
+        try:
+            schema = get_schema(client, properties_flag, stream_name)
+        except MixpanelPaymentRequiredError:
+            LOGGER.warning(
+                "Mixpanel returned a 402 from the %s API so %s stream will be skipped.",
+                stream_name,
+                stream_name,
+            )
+            continue
 
         schemas[stream_name] = schema
         mdata = metadata.new()
@@ -162,7 +181,8 @@ def get_schemas(client, properties_flag):
         if stream_metadata.replication_keys:
             mdata = metadata.write(
                 mdata,
-                ("properties", stream_metadata.replication_keys[0]),
+                ("properties",
+                 stream_metadata.replication_keys[0]),
                 "inclusion",
                 "automatic",
             )

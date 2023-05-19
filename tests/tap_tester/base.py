@@ -406,13 +406,10 @@ class TestMixPanelBase(BaseCase):
 
             except ValueError:
                 return Exception(
-                    "Datetime object is not of the format: {}".format(
-                        self.START_DATE_FORMAT
-                    )
+                    f"Datetime object is not of the format: {self.START_DATE_FORMAT}"
                 )
 
     def is_incremental(self, stream):
         return (
-            self.expected_metadata().get(stream).get(self.REPLICATION_METHOD)
-            == self.INCREMENTAL
+            self.expected_metadata().get(stream).get(self.REPLICATION_METHOD) == self.INCREMENTAL
         )

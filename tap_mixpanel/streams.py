@@ -2,6 +2,7 @@
 
 import json
 import math
+from copy import deepcopy
 from datetime import datetime, timedelta
 
 import pytz
@@ -30,6 +31,7 @@ class MixPanel:
     path = None
     params = {}
     parent = None
+    child = None
     data_key = None
     bookmark_query_field_from = None
     bookmark_query_field_to = None
@@ -76,7 +78,8 @@ class MixPanel:
         return state.get("bookmarks", {}).get(stream, default)
 
     def write_bookmark(self, state, stream, value):
-        """Updates the stream bookmark value in the state. And writes the state.
+        """Updates the stream bookmark value in the state. And writes the
+        state.
 
         Args:
             state (dict): State containing bookmarks of the streams if available.
@@ -99,7 +102,8 @@ class MixPanel:
         max_bookmark_value=None,
         last_datetime=None,
     ):
-        """Transform the record as per the schema and writes record if replication value > bookmark.
+        """Transform the record as per the schema and write the record if
+        replication value > bookmark for incremental stream.
 
         Args:
             stream_name (str): Name of the syncing stream.
@@ -173,7 +177,10 @@ class MixPanel:
         querystring,
         project_timezone,
         max_bookmark_value,
+        state,
+        config,
         catalog,
+        selected_streams,
         last_datetime,
         endpoint_total,
         limit,
@@ -221,13 +228,27 @@ class MixPanel:
             endpoint=self.tap_stream_id,
         )
 
-        # time_extracted: datetime when the data was extracted from the API
-        time_extracted = utils.now()
         full_url = f"{self.url}/{self.path}{f'?{querystring}' if querystring else ''}"
         if not data:
             LOGGER.info("No data for URL: %s", full_url)
             # No data results
         else:  # Has data
+
+            # Sync child stream first
+            if self.child and self.child in selected_streams:
+                child_obj = STREAMS[self.child](self.client)
+                child_obj.sync(
+                    state,
+                    catalog,
+                    config,
+                    config["start_date"],
+                    selected_streams,
+                    parent_data=deepcopy(data),
+                )
+
+            # time_extracted: datetime when the data was extracted from the API
+            time_extracted = utils.now()
+
             # Transform data with transform_json from transform.py
             # The data_key identifies the array/list of records below the <root> element
             transformed_data = []  # initialize the record list
@@ -276,20 +297,21 @@ class MixPanel:
             # No transformed data results
             else:  # Has transformed data
                 # Process records and get the max_bookmark_value and record_count
-                max_bookmark_value, record_count = self.process_records(
-                    catalog=catalog,
-                    stream_name=self.tap_stream_id,
-                    records=transformed_data,
-                    time_extracted=time_extracted,
-                    bookmark_field=next(iter(self.replication_keys), None),
-                    max_bookmark_value=max_bookmark_value,
-                    last_datetime=last_datetime,
-                )
-                LOGGER.info(
-                    "Stream %s, batch processed %s records",
-                    self.tap_stream_id,
-                    record_count,
-                )
+                if self.tap_stream_id in selected_streams:
+                    max_bookmark_value, record_count = self.process_records(
+                        catalog=catalog,
+                        stream_name=self.tap_stream_id,
+                        records=transformed_data,
+                        time_extracted=time_extracted,
+                        bookmark_field=next(iter(self.replication_keys), None),
+                        max_bookmark_value=max_bookmark_value,
+                        last_datetime=last_datetime,
+                    )
+                    LOGGER.info(
+                        "Stream %s, batch processed %s records",
+                        self.tap_stream_id,
+                        record_count,
+                    )
 
                 # Set total_records and pagination fields
                 if page == 0:
@@ -336,7 +358,7 @@ class MixPanel:
         )
 
     def define_bookmark_filters(
-        self, days_interval, last_datetime, now_datetime, attribution_window
+        self, days_interval, last_datetime, now_datetime, attribution_window, start_date
     ):
         """Define the params from and to according to the filters provided in
         the bookmark_query_field_from and bookmark_query_field_to.
@@ -370,6 +392,10 @@ class MixPanel:
                 LOGGER.warning("Setting bookmark start to 1 year ago.")
 
             start_window = now_datetime - timedelta(days=delta_days)
+
+            # Records before start_date should not be queried
+            start_window = max(start_window, strptime_to_utc(start_date))
+
             end_window = start_window + timedelta(days=days_interval)
             end_window = min(end_window, now_datetime)
         else:
@@ -381,8 +407,11 @@ class MixPanel:
 
         return start_window, end_window, days_interval
 
-    def sync(self, state, catalog, config, start_date):
-        """The sync method common to all the streams which internally call methods depending on different endpoints.
+    def sync(
+        self, state, catalog, config, start_date, selected_streams, parent_data=None
+    ):
+        """The sync method common to all the streams which internally call
+        methods depending on different endpoints.
 
         Args:
             state (dict): State containing bookmarks of the streams if available.
@@ -410,8 +439,6 @@ class MixPanel:
         last_datetime = self.get_bookmark(state, self.tap_stream_id, start_date)
         max_bookmark_value = last_datetime
 
-        self.write_schema(catalog, self.tap_stream_id)
-
         # Windowing: loop through date days_interval date windows from last_datetime to now_datetime
         tzone = pytz.timezone(project_timezone)
         now_datetime = datetime.now(tzone)
@@ -421,7 +448,7 @@ class MixPanel:
             now_datetime = strptime_to_utc(end_date)
 
         start_window, end_window, days_interval = self.define_bookmark_filters(
-            days_interval, last_datetime, now_datetime, attribution_window
+            days_interval, last_datetime, now_datetime, attribution_window, start_date
         )
         # LOOP order: Date Windows, Parent IDs, Page
         # Initialize counter
@@ -449,25 +476,27 @@ class MixPanel:
                 params[self.bookmark_query_field_from] = from_date
                 params[self.bookmark_query_field_to] = to_date
 
-            # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
-            if self.parent_path and self.parent_id_field:
-                # API request data
-                LOGGER.info(
-                    "URL for Parent Stream %s: %s/%s",
-                    self.tap_stream_id,
-                    self.url,
-                    self.parent_path,
-                )
-                parent_data = self.client.request(
-                    method="GET",
-                    url=self.url,
-                    path=self.parent_path,
-                    endpoint="parent_data",
-                )
-            # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
-            else:
-                parent_data = [{"id": "none"}]
-                self.parent_id_field = "id"
+            if not parent_data:
+
+                # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
+                if self.parent_path and self.parent_id_field:
+                    # API request data
+                    LOGGER.info(
+                        "URL for Parent Stream %s: %s/%s",
+                        self.tap_stream_id,
+                        self.url,
+                        self.parent_path,
+                    )
+                    parent_data = self.client.request(
+                        method="GET",
+                        url=self.url,
+                        path=self.parent_path,
+                        endpoint="parent_data",
+                    )
+                # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
+                else:
+                    parent_data = [{"id": "none"}]
+                    self.parent_id_field = "id"
 
             for parent_record in parent_data:
                 parent_id = parent_record.get(self.parent_id_field)
@@ -507,9 +536,6 @@ class MixPanel:
 
                     LOGGER.info("URL for Stream %s: %s", self.tap_stream_id, full_url)
 
-                    # API request data
-                    # data = {}
-
                     (
                         parent_total,
                         date_total,
@@ -523,7 +549,10 @@ class MixPanel:
                         querystring,
                         project_timezone,
                         max_bookmark_value,
+                        state,
+                        config,
                         catalog,
+                        selected_streams,
                         last_datetime,
                         endpoint_total,
                         limit,
@@ -546,7 +575,8 @@ class MixPanel:
                 LOGGER.info("Date window from: %s to %s", from_date, to_date)
             LOGGER.info("Total records for date window: %s", date_total)
             # Increment date window
-            start_window = end_window
+            # Start after the day of end_window
+            start_window = end_window + timedelta(days=1)
             next_end_window = end_window + timedelta(days=days_interval)
             if next_end_window > now_datetime:
                 end_window = now_datetime
@@ -592,7 +622,7 @@ class CohortMembers(MixPanel):
     params = {"filter_by_cohort": '{"id": [parent_id]}'}
     data_key = "results"
     pagination = True
-    parent_path = "cohorts/list"
+    parent = "cohorts"
     parent_id_field = "id"
     replication_keys = []
     replication_method = "FULL_TABLE"
@@ -613,6 +643,7 @@ class Cohorts(MixPanel):
     data_key = None
     replication_method = "FULL_TABLE"
     params = {}
+    child = "cohort_members"
     replication_keys = []
     bookmark_query_field_from = None
     bookmark_query_field_to = None
@@ -659,7 +690,10 @@ class Export(MixPanel):
         querystring,
         project_timezone,
         max_bookmark_value,
+        state,
+        config,
         catalog,
+        selected_streams,
         last_datetime,
         endpoint_total,
         limit,
@@ -684,7 +718,7 @@ class Export(MixPanel):
             endpoint_total (int): Total number of records written yet.
             limit (int): Page size.
             total_records (int): Total number of records available for the sync.
-            parent_total (int): # Total records for parent ID
+            parent_total (int): Total records for parent ID
             record_count (int): Number of records per page written by tap.
             page (int): Page count.
             offset (int): Offset value of stream data for the pagination.
@@ -710,7 +744,7 @@ class Export(MixPanel):
         time_extracted = utils.now()
         transformed_data = []
         for record in data:
-            if record and str(record) != "":
+            if record and str(record):
                 # Transform record and append to transformed_data array
                 transformed_record = transform_record(
                     record, self.tap_stream_id, project_timezone

@@ -30,7 +30,7 @@ STANDARD_CONFIG = {
 
 
 class MockStream:
-    """Mock stream object class"""
+    """Mock stream object class."""
 
     def __init__(self, stream):
         self.stream = stream
@@ -105,6 +105,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=EU_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["revenue"],
         )
 
         # Verify that with EU config, base url has eu-domain.
@@ -122,6 +123,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=STANDARD_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["revenue"],
         )
 
         # Verify that with standard config, base URL has default domain.
@@ -158,6 +160,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=EU_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["exports"],
         )
 
         # Verify that with EU config, base url has eu-domain.
@@ -175,6 +178,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             state=state,
             config=STANDARD_CONFIG,
             start_date="2020-02-01T00:00:00Z",
+            selected_streams=["exports"],
         )
 
         # Verify that with standard config, base URL has default domain.
