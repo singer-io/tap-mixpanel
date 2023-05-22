@@ -3,6 +3,7 @@ import unittest
 from parameterized import parameterized
 from tap_mixpanel.transform import transform_record
 
+
 class TestTransformRecord(unittest.TestCase):
     """
     Test case for transforming record.
