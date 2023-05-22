@@ -9,6 +9,7 @@ from tap_mixpanel.streams import STREAMS
 
 LOGGER = singer.get_logger()
 
+
 # Reference:
 # https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
 
@@ -25,10 +26,34 @@ def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 
-def get_dynamic_schema(client, stream_name, schema):
+def get_schema(client, properties_flag, stream_name):
+    """Creates schema for a stream by loading schema file and appending dynamic
+    fields schema if necessary.
+
+    Args:
+        client (MixpanelClient): Client to make http calls.
+        properties_flag (str): Setting this argument to `true` ensures that new properties on
+                               events and engage records are captured.
+        stream_name (str): Name of stream whose schema is to create.
+
+    Returns:
+        dict: Returns schema of the stream.
     """
-    For engage and export streams dynamic schema is written by making API call.
-    """
+    schema_path = get_abs_path(f"schemas/{stream_name}.json")
+
+    with open(schema_path, encoding="utf-8") as file:
+        schema = json.load(file)
+
+    # Set whether to allow additional properties for engage and export endpoints
+    # Event and Engage properties are dynamic and depend on the properties provided on upload,
+    #   when the Event or Engage (user/person) was created.
+    # Depending on the tap config parameter select_properties_by_default,
+    #   the json schema should allow additional properties (additionalProperties = true).
+    if stream_name in ("engage", "export") and str(properties_flag).lower() == "true":
+        schema["additionalProperties"] = True
+    else:
+        schema["additionalProperties"] = False
+
     if stream_name == "engage":
         properties = client.request(
             method="GET",
@@ -51,15 +76,24 @@ def get_dynamic_schema(client, stream_name, schema):
                 property_type = val.get("type")
 
                 types = {
-                    "boolean": {"type": ["null", "boolean"]},
-                    "number": {"type": ["null", "string"], "format": "singer.decimal"},
-                    "datetime": {"type": ["null", "string"], "format": "date-time"},
+                    "boolean": {
+                        "type": ["null", "boolean"]},
+                    "number": {
+                        "type": ["null", "string"],
+                        "format": "singer.decimal"},
+                    "datetime": {
+                        "type": ["null", "string"],
+                        "format": "date-time"},
                     "object": {
                         "type": ["null", "object"],
                         "additionalProperties": True,
                     },
-                    "list": {"type": ["null", "array"], "required": False, "items": {}},
-                    "string": {"type": ["null", "string"]},
+                    "list": {
+                        "type": ["null", "array"],
+                        "required": False,
+                        "items": {}},
+                    "string": {
+                        "type": ["null", "string"]},
                 }
 
                 if property_type in types:
@@ -95,47 +129,6 @@ def get_dynamic_schema(client, stream_name, schema):
     return schema
 
 
-def get_schema(client, properties_flag, stream_name):
-    """Creates schema for a stream by loading schema file and appending dynamic
-    fields schema if necessary.
-
-    Args:
-        client (MixpanelClient): Client to make http calls.
-        properties_flag (str): Setting this argument to `true` ensures that new properties on
-                               events and engage records are captured.
-        stream_name (str): Name of stream whose schema is to create.
-
-    Returns:
-        dict: Returns schema of the stream.
-    """
-    schema_path = get_abs_path(f"schemas/{stream_name}.json")
-
-    with open(schema_path, encoding="utf-8") as file:
-        schema = json.load(file)
-
-    # Set whether to allow additional properties for engage and export endpoints
-    # Event and Engage properties are dynamic and depend on the properties provided on upload,
-    #   when the Event or Engage (user/person) was created.
-    # Depending on the tap config parameter select_properties_by_default,
-    #   the json schema should allow additional properties (additionalProperties = true).
-    if stream_name in ("engage", "export") and str(properties_flag).lower() == "true":
-        schema["additionalProperties"] = True
-    else:
-        schema["additionalProperties"] = False
-
-    try:
-        if stream_name in ["engage", "export"]:
-            get_dynamic_schema(client, stream_name, schema)
-    except MixpanelPaymentRequiredError:
-        LOGGER.warning(
-            "Mixpanel returned a 402 from the %s API. So dynamic fields of %s stream will be skipped.",
-            stream_name,
-            stream_name,
-        )
-
-    return schema
-
-
 def get_schemas(client, properties_flag):
     """Load the schema references, prepare metadata for each streams and return
     schema and metadata for the catalog.
@@ -159,7 +152,15 @@ def get_schemas(client, properties_flag):
             )
             continue
 
-        schema = get_schema(client, properties_flag, stream_name)
+        try:
+            schema = get_schema(client, properties_flag, stream_name)
+        except MixpanelPaymentRequiredError:
+            LOGGER.warning(
+                "Mixpanel returned a 402 from the %s API so %s stream will be skipped.",
+                stream_name,
+                stream_name,
+            )
+            continue
 
         schemas[stream_name] = schema
         mdata = metadata.new()
@@ -180,7 +181,8 @@ def get_schemas(client, properties_flag):
         if stream_metadata.replication_keys:
             mdata = metadata.write(
                 mdata,
-                ("properties", stream_metadata.replication_keys[0]),
+                ("properties",
+                 stream_metadata.replication_keys[0]),
                 "inclusion",
                 "automatic",
             )

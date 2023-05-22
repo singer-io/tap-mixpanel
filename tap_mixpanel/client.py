@@ -151,10 +151,12 @@ class MixpanelClient:
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
-    @backoff.on_exception(backoff.expo,
-                          (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout, ProtocolError),
-                          max_tries=5,
-                          factor=2)
+    @backoff.on_exception(
+        backoff.expo,
+        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout, ProtocolError),
+        max_tries=5,
+        factor=2,
+    )
     def check_access(self):
         """Call rest API to verify user's credentials.
 

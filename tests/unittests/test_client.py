@@ -41,7 +41,12 @@ class TestClientMethods(unittest.TestCase):
             user_agent="USER_AGENT"
         )
 
+<<<<<<< HEAD
         response = mock_client.request(method="GET", url="https://sample_url", path="sample_path", endpoint={})
+=======
+        response = mock_client.request(method="GET", url="https://sample_url", path="sample_path",
+                                       endpoint={})
+>>>>>>> master
 
         # Verify that check_access is called.
         self.assertTrue(mock_check_access.called)
@@ -91,8 +96,21 @@ class TestClientMethods(unittest.TestCase):
         response = list(mock_client.request_export(
             method="POST", url="https://sample_url", path="sample_path", endpoint={}))
 
+<<<<<<< HEAD
         expected_data = [{'event': 'Page View', 'properties': {'time': 1583044147, 'distinct_id': 'test_id_1'}}, {
             'event': 'Page View', 'properties': {'time': 1583225657, 'distinct_id': 'test_id_2'}}]
+=======
+        expected_data = [
+            {"event": "Page View",
+             "properties": {
+                 "time": 1583044147,
+                 "distinct_id": "test_id_1"}},
+            {"event": "Page View",
+             "properties": {
+                 "time": 1583225657,
+                 "distinct_id": "test_id_2"}}
+        ]
+>>>>>>> master
 
         # Verify that check_access is called.
         self.assertTrue(mock_check_access.called)
@@ -117,8 +135,21 @@ class TestClientMethods(unittest.TestCase):
 
         response = list(mock_client.request_export(method="POST", path="sample_path", endpoint={}))
 
+<<<<<<< HEAD
         expected_data = [{'event': 'Page View', 'properties': {'time': 1583044147, 'distinct_id': 'test_id_1'}}, {
             'event': 'Page View', 'properties': {'time': 1583225657, 'distinct_id': 'test_id_2'}}]
+=======
+        expected_data = [
+            {"event": "Page View",
+             "properties": {
+                 "time": 1583044147,
+                 "distinct_id": "test_id_1"}},
+            {"event": "Page View",
+             "properties": {
+                 "time": 1583225657,
+                 "distinct_id": "test_id_2"}}
+        ]
+>>>>>>> master
 
         # Verify that check_access method is called.
         self.assertTrue(mock_check_access.called)

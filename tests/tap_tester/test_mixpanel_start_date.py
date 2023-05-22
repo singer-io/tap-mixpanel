@@ -48,8 +48,9 @@ class MixPanelStartDateTest(TestMixPanelBase):
         # Update START DATE Between Syncs
         ##########################################################################
 
-        LOGGER.info("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(
-            self.start_date, self.start_date_2))
+        LOGGER.info(
+            f"REPLICATION START DATE CHANGE: {self.start_date} ===>>> {self.start_date_2} "
+        )
         self.start_date = self.start_date_2
 
         ##########################################################################
@@ -130,7 +131,7 @@ class MixPanelStartDateTest(TestMixPanelBase):
                         if row.get("data")
                     ]
 
-                    # # Verify replication key is greater or equal to start_date for sync 1
+                    # Verify replication key is greater or equal to start_date for sync 1
                     for replication_date in replication_dates_1:
                         self.assertGreaterEqual(
                             self.parse_date(replication_date),

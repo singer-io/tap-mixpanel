@@ -359,7 +359,7 @@ class MixPanel:
         )
 
     def define_bookmark_filters(
-        self, days_interval, last_datetime, now_datetime, attribution_window
+        self, days_interval, last_datetime, now_datetime, attribution_window, start_date
     ):
         """Define the params from and to according to the filters provided in
         the bookmark_query_field_from and bookmark_query_field_to.
@@ -393,8 +393,11 @@ class MixPanel:
                 LOGGER.warning("Setting bookmark start to 1 year ago.")
 
             start_window = now_datetime - timedelta(days=delta_days)
-            # Reduce 1 day from end_window as last day data will be fetched too.
-            end_window = start_window + timedelta(days=days_interval - 1)
+
+            # Records before start_date should not be queried
+            start_window = max(start_window, strptime_to_utc(start_date))
+
+            end_window = start_window + timedelta(days=days_interval)
             end_window = min(end_window, now_datetime)
         else:
             start_window = strptime_to_utc(last_datetime)
@@ -447,7 +450,7 @@ class MixPanel:
             now_datetime = strptime_to_utc(end_date)
 
         start_window, end_window, days_interval = self.define_bookmark_filters(
-            days_interval, last_datetime, now_datetime, attribution_window
+            days_interval, last_datetime, now_datetime, attribution_window, start_date
         )
         # LOOP order: Date Windows, Parent IDs, Page
         # Initialize counter
@@ -475,27 +478,27 @@ class MixPanel:
                 params[self.bookmark_query_field_from] = from_date
                 params[self.bookmark_query_field_to] = to_date
 
-            if parent_data:
-                pass
-            # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
-            elif self.parent_path and self.parent_id_field:
-                # API request data
-                LOGGER.info(
-                    "URL for Parent Stream %s: %s/%s",
-                    self.tap_stream_id,
-                    self.url,
-                    self.parent_path,
-                )
-                parent_data = self.client.request(
-                    method="GET",
-                    url=self.url,
-                    path=self.parent_path,
-                    endpoint="parent_data",
-                )
-            # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
-            else:
-                parent_data = [{"id": "none"}]
-                self.parent_id_field = "id"
+            if not parent_data:
+
+                # Funnels and cohorts have a parent endpoint with parent_data and parent_id_field
+                if self.parent_path and self.parent_id_field:
+                    # API request data
+                    LOGGER.info(
+                        "URL for Parent Stream %s: %s/%s",
+                        self.tap_stream_id,
+                        self.url,
+                        self.parent_path,
+                    )
+                    parent_data = self.client.request(
+                        method="GET",
+                        url=self.url,
+                        path=self.parent_path,
+                        endpoint="parent_data",
+                    )
+                # Other endpoints (not funnels, cohorts): Simulate parent_data with single record
+                else:
+                    parent_data = [{"id": "none"}]
+                    self.parent_id_field = "id"
 
             for parent_record in parent_data:
                 parent_id = parent_record.get(self.parent_id_field)
@@ -751,7 +754,7 @@ class Export(MixPanel):
         time_extracted = utils.now()
         transformed_data = []
         for record in data:
-            if record and str(record) != "":
+            if record and str(record):
                 # Transform record and append to transformed_data array
                 transformed_record = transform_record(
                     record, self.tap_stream_id, project_timezone
