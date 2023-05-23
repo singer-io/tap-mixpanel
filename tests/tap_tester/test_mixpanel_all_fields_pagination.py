@@ -152,4 +152,3 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         # Pagination test for EU residency server
         self.eu_residency = True
         self.pagination_test_run()
-

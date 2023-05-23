@@ -29,7 +29,7 @@ class TestMixPanelBase(BaseCase):
     start_date = ""
     end_date = ""
     eu_residency = True
-    export_events = None
+    export_events = os.getenv("TAP_MIXPANEL_EXPORT_EVENTS")
 
     def tap_name(self):
         """The name of the tap."""
