@@ -102,8 +102,8 @@ class TestMixPanelBase(BaseCase):
         """Configuration properties required for the tap."""
 
         return_value = {
-            "start_date": "2020-02-01T00:00:00Z",
-            "end_date": "2020-03-01T00:00:00Z",
+            "start_date": "2023-04-23T00:00:00Z",
+            "end_date": "2023-05-23T00:00:00Z",
             "date_window_size": "30",
             "attribution_window": "5",
             "project_timezone": "US/Pacific",
