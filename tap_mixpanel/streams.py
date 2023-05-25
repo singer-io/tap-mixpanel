@@ -5,6 +5,7 @@ import math
 from copy import deepcopy
 from datetime import datetime, timedelta
 
+import urllib
 import pytz
 import singer
 from singer import Transformer, metadata, metrics, utils
@@ -427,6 +428,7 @@ class MixPanel:
         project_timezone = config.get("project_timezone", "UTC")
         days_interval = int(config.get("date_window_size", "30"))
         attribution_window = int(config.get("attribution_window", "5"))
+        export_events = config.get('export_events')
 
         # Update url if eu_residency is selected
         if str(config.get("eu_residency")).lower() == "true":
@@ -531,6 +533,14 @@ class MixPanel:
                         [f"{key}={value}" for (key, value) in params.items()]
                     )
                     querystring = querystring.replace("[parent_id]", str(parent_id))
+
+                    # To fetch specific event date add event from config if given
+                    if self.tap_stream_id == 'export' and export_events:
+                        event = json.dumps(
+                            list(map(str.strip, export_events.split(',')))
+                        )
+                        url_encoded = urllib.parse.quote(event)
+                        querystring += f'&event={url_encoded}'
 
                     full_url = f"{self.url}/{self.path}{f'?{querystring}' if querystring else ''}"
 
