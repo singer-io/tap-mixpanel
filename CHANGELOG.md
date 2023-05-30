@@ -1,7 +1,7 @@
 # Changelog
 
-## 1.5.0
-  * Adds `export_events` as optional param to filter the data for export stream based on event names [#56](https://github.com/singer-io/tap-mixpanel/pull/56)
+## 1.5.1
+  * Dependabot update [#60](https://github.com/singer-io/tap-mixpanel/pull/60)
 
 ## 1.4.3
   * Code Refactoring [#55](https://github.com/singer-io/tap-mixpanel/pull/55) 
