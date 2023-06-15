@@ -89,11 +89,14 @@ def main():
 
         if parsed_args.discover:
             do_discover(client, properties_flag)
-        elif parsed_args.catalog:
+        else:
+            catalog = parsed_args.catalog
+            if not catalog:
+                catalog = _discover(client, properties_flag)
             _sync(
                 client=client,
                 config=config,
-                catalog=parsed_args.catalog,
+                catalog=catalog,
                 state=state,
                 start_date=start_date,
             )
