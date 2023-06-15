@@ -85,6 +85,7 @@ def main():
             state = parsed_args.state
 
         config = parsed_args.config
+        client.__api_domain = api_domain
         properties_flag = config.get("select_properties_by_default")
 
         if parsed_args.discover:
