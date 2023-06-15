@@ -135,11 +135,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                             replication_key_value,
                             first_bookmark_value_utc,
                             msg="First sync bookmark was set incorrectly,"
-<<<<<<< HEAD
                             "a record with a greater replication-key value was synced.",
-=======
-                            " a record with a greater replication-key value was synced.",
->>>>>>> master
                         )
 
                     for record in second_sync_messages:
