@@ -143,7 +143,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         ["400 different timezone error", 400, mock_400_different_timezone(), client.MixpanelBadRequestError, "A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."],
         ["400 timeout error", 400, MockResponse(400, text=timeout_400_error), client.MixpanelBadRequestError, "Timeout Error.(Please verify your credentials.)"],
         ["401 error", 401, MockResponse(401), client.MixpanelUnauthorizedError, "Invalid authorization credentials."],
-       # ["403 error", 403, MockResponse(403), client.MixpanelForbiddenError, "User is not a member of this project: project_id or this project is invalid"],
         ["404 error", 404, MockResponse(404), client.MixpanelNotFoundError, "The resource you have specified cannot be found."],
         ["404 error", 404, mock_send_error(), client.MixpanelNotFoundError, "Resource not found error message from API response field 'error'."],
         ["404 error", 404, mock_send_message(), client.MixpanelNotFoundError, "Resource not found error message from API response field 'message'."],
