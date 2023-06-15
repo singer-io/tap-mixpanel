@@ -154,7 +154,7 @@ class MixpanelClient:
         """
         Set auth_header with provided credentials. If credentials is not provided, then raise the exception.
         """
-        if self.__auth_type == 'project_secret' and self.__api_secret:
+        if self.__auth_type == 'api_secret' and self.__api_secret:
             self.auth_header = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
         elif self.__service_account_username and self.__service_account_secret:
             service_account_auth = f"{self.__service_account_username}:{self.__service_account_secret}"

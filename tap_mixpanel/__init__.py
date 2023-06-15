@@ -72,7 +72,7 @@ def main():
 
     auth_type = parsed_args.config.get("auth_type")
     if not auth_type:
-        auth_type = "project_secret"
+        auth_type = "api_secret"
 
     with MixpanelClient(
         parsed_args.config.get("api_secret"),
