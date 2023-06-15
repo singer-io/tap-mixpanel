@@ -136,7 +136,7 @@ class MixpanelClient:
     The client class used for making REST calls to the Mixpanel API.
     """
     def __init__(self, api_secret, service_account_username, service_account_secret, project_id, api_domain,
-                 request_timeout, user_agent=None):
+                 request_timeout, user_agent=None, auth_type='project_secret'):
         self.__api_secret = api_secret
         self.__service_account_username = service_account_username
         self.__service_account_secret = service_account_secret
@@ -145,6 +145,7 @@ class MixpanelClient:
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
         self.__session = requests.Session()
+        self.__auth_type = auth_type
         self.__verified = False
         self.auth_header = None
         self.disable_engage_endpoint = False
@@ -153,7 +154,7 @@ class MixpanelClient:
         """
         Set auth_header with provided credentials. If credentials is not provided, then raise the exception.
         """
-        if self.__api_secret:
+        if self.__auth_type == 'project_secret' and self.__api_secret:
             self.auth_header = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
         elif self.__service_account_username and self.__service_account_secret:
             service_account_auth = f"{self.__service_account_username}:{self.__service_account_secret}"

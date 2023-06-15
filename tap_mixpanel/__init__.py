@@ -70,6 +70,10 @@ def main():
     else:
         api_domain = "mixpanel.com"
 
+    auth_type = parsed_args.config.get("auth_type")
+    if not auth_type:
+        auth_type = "project_secret"
+
     with MixpanelClient(
         parsed_args.config.get("api_secret"),
         parsed_args.config.get("service_account_username"),
@@ -78,6 +82,7 @@ def main():
         api_domain,
         request_timeout,
         parsed_args.config["user_agent"],
+        auth_type
     ) as client:
 
         state = {}
