@@ -9,8 +9,8 @@ from singer import utils
 from singer.utils import strftime, strptime_to_utc
 
 from tap_mixpanel.client import MixpanelClient
-from tap_mixpanel.discover import discover
-from tap_mixpanel.sync import sync
+from tap_mixpanel.discover import discover as _discover
+from tap_mixpanel.sync import sync as _sync
 
 LOGGER = singer.get_logger()
 
@@ -32,7 +32,7 @@ def do_discover(client, properties_flag):
                                events and engage records are captured.
     """
     LOGGER.info("Starting discover")
-    catalog = discover(client, properties_flag)
+    catalog = _discover(client, properties_flag)
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info("Finished discover")
 
@@ -88,10 +88,9 @@ def main():
         properties_flag = config.get("select_properties_by_default")
 
         if parsed_args.discover:
-            client.__api_domain = api_domain
             do_discover(client, properties_flag)
         elif parsed_args.catalog:
-            sync(
+            _sync(
                 client=client,
                 config=config,
                 catalog=parsed_args.catalog,

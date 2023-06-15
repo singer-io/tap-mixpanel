@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0
+  * Adds `export_events` as optional param to filter the data for export stream based on event names [#56](https://github.com/singer-io/tap-mixpanel/pull/56)
+
+## 1.4.3
+  * Code Refactoring [#55](https://github.com/singer-io/tap-mixpanel/pull/55) 
+    * Reduced record duplication.
+    * Optimized parent-child stream, by making common parent API calls.
+    * Handled 402 error (Payment require) in discover mode for a free plan Mixpanel account.
+
+## 1.4.2
+  * Adds ProtocolError to backoff handling [#58](https://github.com/singer-io/tap-mixpanel/pull/58)
+
 ## 1.4.1
   * Implement Request Timeout
 

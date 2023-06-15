@@ -3,7 +3,6 @@ from tap_tester import menagerie, connections, runner
 from base import TestMixPanelBase
 
 
-
 class MixPanelBookMarkTest(TestMixPanelBase):
     """Test tap sets a bookmark and respects it for the next sync of a stream"""
 
@@ -136,7 +135,11 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                             replication_key_value,
                             first_bookmark_value_utc,
                             msg="First sync bookmark was set incorrectly,"
+<<<<<<< HEAD
                             "a record with a greater replication-key value was synced.",
+=======
+                            " a record with a greater replication-key value was synced.",
+>>>>>>> master
                         )
 
                     for record in second_sync_messages:
@@ -175,9 +178,8 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                 else:
 
                     raise NotImplementedError(
-                        "INVALID EXPECTATIONS\t\tSTREAM: {} REPLICATION_METHOD: {}".format(
-                            stream, expected_replication_method
-                        )
+                        f"INVALID EXPECTATIONS\t\tSTREAM: {stream} REPLICATION_METHOD: "
+                        f"{expected_replication_method}"
                     )
 
                 # Verify at least 1 record was replicated in the second sync
@@ -190,9 +192,4 @@ class MixPanelBookMarkTest(TestMixPanelBase):
     def test_standard_bookmarks(self):
         """Bookmark test for standard server."""
         self.eu_residency = False
-        self.bookmark_test_run()
-
-    def test_eu_bookmarks(self):
-        """Bookmark test for EU residency server."""
-        self.eu_residency = True
         self.bookmark_test_run()

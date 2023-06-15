@@ -30,6 +30,7 @@ class TestMixPanelBase(BaseCase):
     end_date = ""
     eu_residency = True
     service_account_authentication = False
+    export_events = os.getenv("TAP_MIXPANEL_EXPORT_EVENTS")
 
     def tap_name(self):
         """The name of the tap."""
@@ -47,7 +48,7 @@ class TestMixPanelBase(BaseCase):
             "engage": {
                 self.PRIMARY_KEYS: {"distinct_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False,
+                self.OBEYS_START_DATE: True,
             },
             "funnels": {
                 self.PRIMARY_KEYS: {"funnel_id", "date"},
@@ -58,12 +59,12 @@ class TestMixPanelBase(BaseCase):
             "cohorts": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False,
+                self.OBEYS_START_DATE: True,
             },
             "cohort_members": {
                 self.PRIMARY_KEYS: {"cohort_id", "distinct_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False,
+                self.OBEYS_START_DATE: True,
             },
             "revenue": {
                 self.PRIMARY_KEYS: {"date"},
@@ -74,7 +75,7 @@ class TestMixPanelBase(BaseCase):
             "annotations": {
                 self.PRIMARY_KEYS: {"date"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False,
+                self.OBEYS_START_DATE: True,
             },
         }
 
@@ -106,8 +107,8 @@ class TestMixPanelBase(BaseCase):
         """Configuration properties required for the tap."""
 
         return_value = {
-            "start_date": "2020-02-01T00:00:00Z",
-            "end_date": "2020-03-01T00:00:00Z",
+            "start_date": "2023-04-18T00:00:00Z",
+            "end_date": "2023-05-23T00:00:00Z",
             "date_window_size": "30",
             "attribution_window": "5",
             "project_timezone": "US/Pacific",
@@ -117,6 +118,11 @@ class TestMixPanelBase(BaseCase):
         if self.eu_residency:
             return_value.update(
                 {"project_timezone": "Europe/Amsterdam", "eu_residency": "true"}
+            )
+
+        if self.export_events:
+            return_value.update(
+                {"export_events": self.export_events}
             )
 
         if original:
@@ -415,13 +421,10 @@ class TestMixPanelBase(BaseCase):
 
             except ValueError:
                 return Exception(
-                    "Datetime object is not of the format: {}".format(
-                        self.START_DATE_FORMAT
-                    )
+                    f"Datetime object is not of the format: {self.START_DATE_FORMAT}"
                 )
 
     def is_incremental(self, stream):
         return (
-            self.expected_metadata().get(stream).get(self.REPLICATION_METHOD)
-            == self.INCREMENTAL
+            self.expected_metadata().get(stream).get(self.REPLICATION_METHOD) == self.INCREMENTAL
         )
