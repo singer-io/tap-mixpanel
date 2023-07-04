@@ -27,7 +27,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
         Args:
             mock_check_access: Mock the check_access method to test authentication.
         """
-        with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300) as client_:
+        with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300, auth_type="saa") as client_:
             pass
         
         self.assertEqual(client_.auth_header, "Basic c2VydmljZV9hY2NvdW50X3VzZXJuYW1lOnNlcnZpY2VfYWNjb3VudF9zZWNyZXQ=")
@@ -55,7 +55,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             mock_request: Mock Session.request to explicitly raise the forbidden(403) error.
         """
         with self.assertRaises(MixpanelForbiddenError):
-            with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300) as client_:
+            with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300, auth_type="saa") as client_:
                     client_.check_access()
     
         mock_logger.assert_called_with('HTTP-error-code: 403, Error: User is not a member of this project: %s or this project is invalid', 'project_id')
