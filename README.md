@@ -134,6 +134,7 @@ More details may be found in the [Mixpanel API Authentication](https://developer
 3. Create your tap's `config.json` file.  The tap config file for this tap should include these entries:
    - `start_date` - the default value to use if no bookmark exists for an endpoint (rfc3339 date string)
    - `user_agent` (string, optional): Process and email for API logging purposes. Example: `tap-mixpanel <api_user_email@your_company.com>`
+   - `auth_type` (`saa` or `api_secret`): Used to toggle between [service account authentication](https://developer.mixpanel.com/reference/service-accounts) and [api secret based authentication](https://docs.mixpanel.com/docs/tracking/how-tos/api-credentials#api-secret), it is recommended by mixpanel to use service account authentication
    - `api_secret` (string, `ABCdef123`): an API secret for each project in Mixpanel. This can be found in the Mixpanel Console, upper-right Settings (gear icon), Organization Settings > Projects and in the Access Keys section. For this tap, only the api_secret is needed (the api_key is legacy and the token is used only for uploading data). Each Mixpanel project has a different api_secret; therefore each Singer tap pipeline instance is for a single project.
    - `service_account_username` (string, `username12`): Username of the service account.
    - `service_account_secret` (string, `ABCdef123`): Secret of the service account.

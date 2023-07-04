@@ -163,7 +163,7 @@ class MixpanelClient:
             self.auth_header = f"Basic {str(base64.urlsafe_b64encode(service_account_auth.encode('utf-8')), 'utf-8')}"
         else:
             raise ConfigurationError("Error: Missing api_secret or service account username/secret in tap config.json")
-        print(self.__auth_type)
+
         self.__verified = self.check_access()
         return self
 
@@ -354,7 +354,7 @@ class MixpanelClient:
             url = f"{url}/{path}"
         elif path and not url:
             url = f"https://{self.__api_domain}/api/2.0/{path}"
-        
+
         endpoint = kwargs.pop("endpoint","export")
 
         if self.__project_id:
