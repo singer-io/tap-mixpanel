@@ -70,8 +70,9 @@ def main():
     else:
         api_domain = "mixpanel.com"
 
-    auth_type = parsed_args.config.get("auth_type")
-    if not auth_type:
+    auth_type = parsed_args.config.get("auth_type","").lower()
+    # default to api_secret as authentication_type
+    if auth_type not in ("saa","api_secret"):
         auth_type = "api_secret"
 
     with MixpanelClient(

@@ -17,6 +17,8 @@ REQUEST_TIMEOUT = 300
 class ReadTimeoutError(Exception):
     """Custom error for request timeout."""
 
+class ConfigurationError(Exception):
+    """Custom error for incorrect configuration"""
 
 class Server5xxError(Exception):
     """Custom error class for all the 5xx error."""
@@ -156,12 +158,12 @@ class MixpanelClient:
         """
         if self.__auth_type == 'api_secret' and self.__api_secret:
             self.auth_header = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
-        elif self.__service_account_username and self.__service_account_secret:
+        elif self.__auth_type == 'saa' and self.__service_account_username and self.__service_account_secret:
             service_account_auth = f"{self.__service_account_username}:{self.__service_account_secret}"
             self.auth_header = f"Basic {str(base64.urlsafe_b64encode(service_account_auth.encode('utf-8')), 'utf-8')}"
         else:
-            raise Exception("Error: Missing api_secret or service account username/secret in tap config.json")
-
+            raise ConfigurationError("Error: Missing api_secret or service account username/secret in tap config.json")
+        print(self.__auth_type)
         self.__verified = self.check_access()
         return self
 
@@ -192,9 +194,7 @@ class MixpanelClient:
         if self.__user_agent:
             headers["User-Agent"] = self.__user_agent
         headers["Accept"] = "application/json"
-        headers[
-            "Authorization"
-        ] = self.auth_header
+        headers["Authorization"] = self.auth_header
 
         if self.__project_id:
             params["project_id"] = self.__project_id
@@ -321,9 +321,7 @@ class MixpanelClient:
             else:
                 params = f"{params}&project_id={self.__project_id}"
 
-        kwargs["headers"][
-            "Authorization"
-        ] = self.auth_header
+        kwargs["headers"]["Authorization"] = self.auth_header
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(
                 method=method, url=url, params=params, json=json, **kwargs
@@ -349,19 +347,15 @@ class MixpanelClient:
         Yields:
             dict: Records of export stream.
         """
-        if not self.__verified:
-            self.__verified = self.check_access()
+
+        self.__verified = self.__verified if self.__verified else self.check_access()
 
         if url and path:
             url = f"{url}/{path}"
         elif path and not url:
             url = f"https://{self.__api_domain}/api/2.0/{path}"
-
-        if "endpoint" in kwargs:
-            endpoint = kwargs["endpoint"]
-            del kwargs["endpoint"]
-        else:
-            endpoint = "export"
+        
+        endpoint = kwargs.pop("endpoint","export")
 
         if self.__project_id:
             if isinstance(params, dict):
@@ -369,8 +363,7 @@ class MixpanelClient:
             else:
                 params = f"{params}&project_id={self.__project_id}"
 
-        if "headers" not in kwargs:
-            kwargs["headers"] = {}
+        kwargs["headers"] = kwargs.get("headers",{})
 
         kwargs["headers"]["Accept"] = "application/json"
 
@@ -380,9 +373,7 @@ class MixpanelClient:
         if method == "POST":
             kwargs["headers"]["Content-Type"] = "application/json"
 
-        kwargs["headers"][
-            "Authorization"
-        ] = self.auth_header
+        kwargs["headers"]["Authorization"] = self.auth_header
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(
                 method=method, url=url, params=params, json=json, stream=True, **kwargs
