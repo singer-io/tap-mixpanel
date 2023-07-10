@@ -302,6 +302,12 @@ class MixpanelClient:
         response_json = response.json()
         return response_json
 
+    @backoff.on_exception(
+        backoff.expo,
+        (Server5xxError, Server429Error, ReadTimeoutError, ConnectionError, Timeout, ProtocolError),
+        max_tries=5,
+        factor=2,
+    )
     def request_export(
         self, method, url=None, path=None, params=None, json=None, **kwargs
     ):
