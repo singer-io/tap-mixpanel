@@ -1,10 +1,12 @@
 import unittest
 import requests
 
+import jsonlines
 from unittest import mock
 from parameterized import parameterized
 
 from tap_mixpanel import client
+from tap_mixpanel import streams
 
 # Mock response
 REQUEST_TIMEOUT = 300
@@ -249,3 +251,40 @@ class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
 
         # Verify that requests.Session.request is called 5 times
         self.assertEqual(mock_request.call_count, 5)
+
+    @mock.patch("jsonlines.jsonlines.Reader.iter", side_effect=requests.exceptions.ChunkedEncodingError)
+    def test_ChunkedEncodingError(self, mock_jsonlines, mock_time):
+        """
+        Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
+        """
+        mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+        mock_client._MixpanelClient__verified = True
+
+        fake_response = MockResponse(500)
+        fake_response.iter_lines = lambda : []
+        mock_client.perform_request = lambda *args, **kwargs: fake_response
+
+        stream = streams.Export(mock_client)
+
+        with self.assertRaises(requests.exceptions.ChunkedEncodingError) as error:
+            stream.get_and_transform_records(
+                querystring={},
+                project_timezone=None,
+                max_bookmark_value=None,
+                state=None,
+                config=None,
+                catalog=None,
+                selected_streams=None,
+                last_datetime=None,
+                endpoint_total=None,
+                limit=None,
+                total_records=None,
+                parent_total=None,
+                record_count=None,
+                page=None,
+                offset=None,
+                parent_record=None,
+                date_total=None,
+            )
+
+        self.assertEqual(mock_jsonlines.call_count, 5)
