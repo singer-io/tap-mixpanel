@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.1
+  * Add retry logic for `ChunkedEncodingError`s [#61](https://github.com/singer-io/tap-mixpanel/pull/61)
+
 ## 1.5.0
   * Adds `export_events` as optional param to filter the data for export stream based on event names [#56](https://github.com/singer-io/tap-mixpanel/pull/56)
 
