@@ -17,10 +17,10 @@ LOGGER = singer.get_logger()
 REQUEST_TIMEOUT = 300
 REQUIRED_CONFIG_KEYS = [
     "project_timezone",
+    "api_secret",
     "attribution_window",
     "start_date",
     "user_agent",
-    "api_secret"
 ]
 
 
@@ -72,10 +72,10 @@ def main():
         api_domain = "mixpanel.com"
 
     with MixpanelClient(
-        parsed_args.config.get("api_secret")
+        parsed_args.config["api_secret"],
         api_domain,
         request_timeout,
-        parsed_args.config["user_agent"]
+        parsed_args.config["user_agent"],
     ) as client:
 
         state = {}

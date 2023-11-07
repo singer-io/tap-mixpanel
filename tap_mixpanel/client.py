@@ -138,8 +138,8 @@ class MixpanelClient:
     The client class used for making REST calls to the Mixpanel API.
     """
     def __init__(self, api_secret, api_domain,
-                 request_timeout, user_agent=None,):
-        
+                 request_timeout, user_agent=None):
+
         if isinstance(api_secret,str):
             self.__api_secret = api_secret
             self.__auth_type = "api_secret"
@@ -154,7 +154,6 @@ class MixpanelClient:
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
         self.__session = requests.Session()
-        self.__auth_type = auth_type
         self.__verified = False
         self.auth_header = None
         self.disable_engage_endpoint = False
