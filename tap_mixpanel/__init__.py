@@ -20,6 +20,7 @@ REQUIRED_CONFIG_KEYS = [
     "attribution_window",
     "start_date",
     "user_agent",
+    "api_secret"
 ]
 
 
@@ -70,20 +71,11 @@ def main():
     else:
         api_domain = "mixpanel.com"
 
-    auth_type = parsed_args.config.get("auth_type","").lower()
-    # default to api_secret as authentication_type
-    if auth_type not in ("saa","api_secret"):
-        auth_type = "api_secret"
-
     with MixpanelClient(
-        parsed_args.config.get("api_secret"),
-        parsed_args.config.get("service_account_username"),
-        parsed_args.config.get("service_account_secret"),
-        parsed_args.config.get("project_id"),
+        parsed_args.config.get("api_secret")
         api_domain,
         request_timeout,
-        parsed_args.config["user_agent"],
-        auth_type
+        parsed_args.config["user_agent"]
     ) as client:
 
         state = {}

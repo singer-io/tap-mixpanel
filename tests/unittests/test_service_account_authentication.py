@@ -15,7 +15,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
         Args:
             mock_check_access: Mock the check_access method to test authentication.
         """
-        with MixpanelClient("api_secret", None, None, None,"api_domain", 300) as client_:
+        with MixpanelClient("api_secret", "api_domain", 300) as client_:
             pass
         
         self.assertEqual(client_.auth_header, "Basic YXBpX3NlY3JldA==")
@@ -27,7 +27,12 @@ class TestServiceAccountAuthentication(unittest.TestCase):
         Args:
             mock_check_access: Mock the check_access method to test authentication.
         """
-        with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300, auth_type="saa") as client_:
+        config = {
+            "service_account_username" : "service_account_username",
+            "service_account_secret" :"service_account_secret",
+            "project_id":"project_id",
+        }
+        with MixpanelClient(config, "api_domain", 300) as client_:
             pass
         
         self.assertEqual(client_.auth_header, "Basic c2VydmljZV9hY2NvdW50X3VzZXJuYW1lOnNlcnZpY2VfYWNjb3VudF9zZWNyZXQ=")
@@ -40,10 +45,10 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             mock_check_access: Mock the check_access method to test authentication.
         """
         with self.assertRaises(Exception) as e:
-            with MixpanelClient(None, None, None, None,"api_domain", 300) as client_:
+            with MixpanelClient(None, "api_domain", 300) as client_:
                 pass
         
-        self.assertEqual(str(e.exception), "Error: Missing api_secret or service account username/secret in tap config.json")
+        self.assertEqual(str(e.exception), "valid/Unknown authentication method")
 
     @mock.patch("requests.Session.request", return_value = MockResponse(403))
     @mock.patch("tap_mixpanel.client.LOGGER.error")
@@ -54,8 +59,13 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             mock_logger: Mock of LOGGER to verify the logger message
             mock_request: Mock Session.request to explicitly raise the forbidden(403) error.
         """
+        config = {
+            "service_account_username" : "service_account_username",
+            "service_account_secret" :"service_account_secret",
+            "project_id":"project_id",
+        }
         with self.assertRaises(MixpanelForbiddenError):
-            with MixpanelClient(None, "service_account_username", "service_account_secret", "project_id","api_domain", 300, auth_type="saa") as client_:
+            with MixpanelClient(config, "api_domain", 300) as client_:
                     client_.check_access()
     
         mock_logger.assert_called_with('HTTP-error-code: 403, Error: User is not a member of this project: %s or this project is invalid', 'project_id')

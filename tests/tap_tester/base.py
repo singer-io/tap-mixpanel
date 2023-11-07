@@ -84,9 +84,9 @@ class TestMixPanelBase(BaseCase):
         if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
         elif self.service_account_authentication:
-            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+            creds = {"api_secret": {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
                     "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
-                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
+                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
 
@@ -144,9 +144,9 @@ class TestMixPanelBase(BaseCase):
         if self.eu_residency:
             creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
         elif self.service_account_authentication:
-            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+            creds = {"api_secret": {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
                     "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
-                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
+                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}}
         else:
             creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
 

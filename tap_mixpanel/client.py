@@ -137,12 +137,19 @@ class MixpanelClient:
     """
     The client class used for making REST calls to the Mixpanel API.
     """
-    def __init__(self, api_secret, service_account_username, service_account_secret, project_id, api_domain,
-                 request_timeout, user_agent=None, auth_type='api_secret'):
-        self.__api_secret = api_secret
-        self.__service_account_username = service_account_username
-        self.__service_account_secret = service_account_secret
-        self.__project_id = project_id
+    def __init__(self, api_secret, api_domain,
+                 request_timeout, user_agent=None,):
+        
+        if type(api_secret) is str:
+            self.__api_secret = api_secret
+            self.__auth_type = "api_secret"
+        elif type(api_secret) is dict:
+            self.__service_account_username = api_secret["service_account_username"]
+            self.__service_account_secret =  api_secret["service_account_secret"]
+            self.__project_id =  api_secret["project_id"]
+            self.__auth_type = "saa"
+        else:
+            raise Exception("Invalid/Unknown Authentication method")
         self.__api_domain = api_domain
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
