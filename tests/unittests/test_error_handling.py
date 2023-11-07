@@ -122,9 +122,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
         )
@@ -160,9 +157,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
             auth_type="saa"
@@ -193,9 +187,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
             auth_type="saa"
@@ -209,14 +200,15 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         Check whether the request back off properly for `check_access`
         method for 5 times in case of Timeout error.
         """
+        mock_api_secret = {
+            "service_account_username" : "service_account_username",
+            "service_account_secret" :"service_account_secret",
+            "project_id":"project_id",
+        }
         mock_client = client.MixpanelClient(
-            api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
+            api_secret=mock_api_secret,
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
-            auth_type="saa"
         )
         with self.assertRaises(client.ReadTimeoutError):
             mock_client.check_access()
@@ -236,9 +228,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = MockResponse(402)
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
         )
@@ -260,10 +249,12 @@ class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
         """
         Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
         """
-        mock_client = client.MixpanelClient(api_secret="mock_api_secret",
-                                            service_account_username="mock_service_account_username",
-                                            service_account_secret="service_account_secret",
-                                            project_id="project_id",
+        mock_api_secret = {
+            "service_account_username" : "service_account_username",
+            "service_account_secret" :"service_account_secret",
+            "project_id":"project_id",
+        }
+        mock_client = client.MixpanelClient(api_secret=mock_api_secret,
                                             api_domain="mock_api_domain",
                                             request_timeout=REQUEST_TIMEOUT)
         with self.assertRaises(requests.models.ProtocolError):

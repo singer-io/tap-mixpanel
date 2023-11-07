@@ -36,9 +36,6 @@ class TestClientMethods(unittest.TestCase):
         mock_perform_request.return_value = MockResponse()
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=300,
             user_agent="USER_AGENT"
@@ -64,9 +61,6 @@ class TestClientMethods(unittest.TestCase):
         mock_perform_request.return_value = MockResponse()
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=300,
             user_agent="USER_AGENT"
@@ -90,9 +84,6 @@ class TestClientMethods(unittest.TestCase):
         mock_perform_request.return_value = MockResponse()
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=300,
             user_agent="USER_AGENT"
@@ -128,9 +119,6 @@ class TestClientMethods(unittest.TestCase):
         mock_perform_request.return_value = MockResponse()
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
-            service_account_username="mock_service_account_username",
-            service_account_secret="service_account_secret",
-            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=300,
             user_agent="USER_AGENT"
