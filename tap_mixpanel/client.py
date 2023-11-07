@@ -140,10 +140,10 @@ class MixpanelClient:
     def __init__(self, api_secret, api_domain,
                  request_timeout, user_agent=None,):
         
-        if type(api_secret) is str:
+        if isinstance(api_secret,str):
             self.__api_secret = api_secret
             self.__auth_type = "api_secret"
-        elif type(api_secret) is dict:
+        elif isinstance(api_secret, dict):
             self.__service_account_username = api_secret["service_account_username"]
             self.__service_account_secret =  api_secret["service_account_secret"]
             self.__project_id =  api_secret["project_id"]
