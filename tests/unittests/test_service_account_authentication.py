@@ -48,7 +48,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             with MixpanelClient(None, "api_domain", 300) as client_:
                 pass
         
-        self.assertEqual(str(e.exception), "valid/Unknown authentication method")
+        self.assertEqual(str(e.exception), "Invalid/Unknown Authentication method")
 
     @mock.patch("requests.Session.request", return_value = MockResponse(403))
     @mock.patch("tap_mixpanel.client.LOGGER.error")
