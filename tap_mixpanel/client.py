@@ -139,6 +139,10 @@ class MixpanelClient:
     """
     def __init__(self, api_secret, api_domain,
                  request_timeout, user_agent=None):
+        # Default to None
+        self.__project_id = None
+        self.__service_account_username = None
+        self.__service_account_secret = None
 
         if isinstance(api_secret,str):
             self.__api_secret = api_secret

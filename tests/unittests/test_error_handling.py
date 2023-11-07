@@ -159,7 +159,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
             api_secret="mock_api_secret",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
-            auth_type="saa"
         )
         with self.assertRaises(error) as e:
             mock_client.check_access()
@@ -188,8 +187,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
             api_domain="mock_api_domain",
-            request_timeout=REQUEST_TIMEOUT,
-            auth_type="saa"
+            request_timeout=REQUEST_TIMEOUT
         )
         with self.assertRaises(error):
             mock_client.perform_request("GET")
