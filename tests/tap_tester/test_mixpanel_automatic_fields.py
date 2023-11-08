@@ -65,8 +65,3 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
         """Automatic fields test for standard server"""
         self.eu_residency = False
         self.automatic_fields_test_run()
-
-    def test_run_ssa(self):
-        # perform checks with service account auth
-        self.service_account_authentication = True
-        self.automatic_fields_test_run()

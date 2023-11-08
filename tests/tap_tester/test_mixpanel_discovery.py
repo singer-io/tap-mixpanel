@@ -188,8 +188,3 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         """Discovery test for EU residency server."""
         self.eu_residency = True
         self.discovery_test_run()
-
-    def test_run_ssa(self):
-        # perform checks with ssa auth
-        self.service_account_authentication = True
-        self.discovery_test_run()

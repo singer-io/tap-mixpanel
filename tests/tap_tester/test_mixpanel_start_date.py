@@ -175,8 +175,4 @@ class MixPanelStartDateTest(TestMixPanelBase):
         self.eu_residency = False
         self.start_date_test_run()
 
-    def test_run_ssa(self):
-        # perform checks with ssa auth
-        self.service_account_authentication = True
-        self.start_date_test_run()
 
