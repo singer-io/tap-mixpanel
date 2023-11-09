@@ -153,7 +153,7 @@ class MixpanelClient:
             self.__project_id =  api_secret["project_id"]
             self.__auth_type = "saa"
         else:
-            raise Exception("Invalid/Unknown Authentication method")
+            raise ConfigurationError("Invalid/Unknown Authentication method")
         self.__api_domain = api_domain
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent

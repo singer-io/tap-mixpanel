@@ -174,5 +174,3 @@ class MixPanelStartDateTest(TestMixPanelBase):
         # Start date test for standard server
         self.eu_residency = False
         self.start_date_test_run()
-
-
