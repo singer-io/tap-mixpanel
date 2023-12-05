@@ -15,10 +15,8 @@ class TestServiceAccountAuthentication(unittest.TestCase):
         Args:
             mock_check_access: Mock the check_access method to test authentication.
         """
-        with MixpanelClient("api_secret", "api_domain", 300) as client_:
-            pass
-        
-        self.assertEqual(client_.auth_header, "Basic YXBpX3NlY3JldA==")
+        client = MixpanelClient("api_secret", "api_domain", 300)        
+        self.assertEqual(client.auth_header, "Basic YXBpX3NlY3JldA==")
 
     @mock.patch("tap_mixpanel.client.MixpanelClient.check_access")
     def test_service_account_creds(self, mock_check_access):
@@ -32,10 +30,9 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             "service_account_secret" :"service_account_secret",
             "project_id":"project_id",
         }
-        with MixpanelClient(config, "api_domain", 300) as client_:
-            pass
+        client = MixpanelClient("api_secret", "api_domain", 300)   
         
-        self.assertEqual(client_.auth_header, "Basic c2VydmljZV9hY2NvdW50X3VzZXJuYW1lOnNlcnZpY2VfYWNjb3VudF9zZWNyZXQ=")
+        self.assertEqual(client.auth_header, "Basic c2VydmljZV9hY2NvdW50X3VzZXJuYW1lOnNlcnZpY2VfYWNjb3VudF9zZWNyZXQ=")
 
     @mock.patch("tap_mixpanel.client.MixpanelClient.check_access")
     def test_no_creds(self, mock_check_access):
@@ -45,8 +42,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             mock_check_access: Mock the check_access method to test authentication.
         """
         with self.assertRaises(Exception) as e:
-            with MixpanelClient(None, "api_domain", 300) as client_:
-                pass
+            MixpanelClient("api_secret", "api_domain", 300)   
         
         self.assertEqual(str(e.exception), "Invalid/Unknown Authentication method")
 
@@ -65,7 +61,6 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             "project_id":"project_id",
         }
         with self.assertRaises(MixpanelForbiddenError):
-            with MixpanelClient(config, "api_domain", 300) as client_:
-                    client_.check_access()
+            MixpanelClient(config, "api_domain", 300).check_access()
     
         mock_logger.assert_called_with('HTTP-error-code: 403, Error: User is not a member of this project: %s or this project is invalid', 'project_id')
