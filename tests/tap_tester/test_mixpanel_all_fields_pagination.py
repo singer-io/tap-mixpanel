@@ -154,6 +154,10 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         self.pagination_test_run()
 
     def test_run_ssa(self):
-        # perform checks with service account auth
         self.service_account_authentication = True
+        # perform checks with api_secret auth
+        self.eu_residency = False
+        self.pagination_test_run()
+
+        self.eu_residency = True
         self.pagination_test_run()

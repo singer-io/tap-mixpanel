@@ -182,9 +182,11 @@ class MixPanelDiscoverTest(TestMixPanelBase):
     def test_standard_discovery(self):
         """Discovery test for standard server."""
         self.eu_residency = False
+        self.service_account_authentication = True
         self.discovery_test_run()
 
     def test_eu_discovery(self):
         """Discovery test for EU residency server."""
         self.eu_residency = True
+        self.service_account_authentication = True
         self.discovery_test_run()
