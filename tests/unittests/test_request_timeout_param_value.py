@@ -1,6 +1,5 @@
 import unittest
 from unittest import mock
-
 from parameterized import parameterized
 
 from tap_mixpanel.__init__ import main
@@ -76,6 +75,7 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
             "https://mixpanel.com/api/2.0/engage",
             allow_redirects=True,
             headers=HEADER,
+            params={},
             timeout=REQUEST_TIMEOUT_DEFAULT,
         )
 
@@ -106,5 +106,6 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
             "https://mixpanel.com/api/2.0/engage",
             allow_redirects=True,
             headers=HEADER,
+            params={},
             timeout=expected_value,
         )

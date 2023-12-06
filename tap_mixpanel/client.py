@@ -17,6 +17,8 @@ REQUEST_TIMEOUT = 300
 class ReadTimeoutError(Exception):
     """Custom error for request timeout."""
 
+class ConfigurationError(Exception):
+    """Custom error for incorrect configuration"""
 
 class Server5xxError(Exception):
     """Custom error class for all the 5xx error."""
@@ -135,16 +137,33 @@ class MixpanelClient:
     """
     The client class used for making REST calls to the Mixpanel API.
     """
-    def __init__(self, api_secret, api_domain, request_timeout, user_agent=None):
+    def __init__(self, api_secret, service_account_username, service_account_secret, project_id, api_domain,
+                 request_timeout, user_agent=None, auth_type='api_secret'):
         self.__api_secret = api_secret
+        self.__service_account_username = service_account_username
+        self.__service_account_secret = service_account_secret
+        self.__project_id = project_id
         self.__api_domain = api_domain
         self.__request_timeout = request_timeout
         self.__user_agent = user_agent
         self.__session = requests.Session()
+        self.__auth_type = auth_type
         self.__verified = False
+        self.auth_header = None
         self.disable_engage_endpoint = False
 
     def __enter__(self):
+        """
+        Set auth_header with provided credentials. If credentials is not provided, then raise the exception.
+        """
+        if self.__auth_type == 'api_secret' and self.__api_secret:
+            self.auth_header = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
+        elif self.__auth_type == 'saa' and self.__service_account_username and self.__service_account_secret:
+            service_account_auth = f"{self.__service_account_username}:{self.__service_account_secret}"
+            self.auth_header = f"Basic {str(base64.urlsafe_b64encode(service_account_auth.encode('utf-8')), 'utf-8')}"
+        else:
+            raise ConfigurationError("Error: Missing api_secret or service account username/secret in tap config.json")
+
         self.__verified = self.check_access()
         return self
 
@@ -168,24 +187,31 @@ class MixpanelClient:
             bool: Returns true if credentials are verified.
                   (else raises Exception)
         """
-        if self.__api_secret is None:
-            raise Exception("Error: Missing api_secret in tap config.json.")
         headers = {}
+        params = {}
         # Endpoint: simple API call to return a single record (org settings) to test access
         url = f"https://{self.__api_domain}/api/2.0/engage"
         if self.__user_agent:
             headers["User-Agent"] = self.__user_agent
         headers["Accept"] = "application/json"
-        headers[
-            "Authorization"
-        ] = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
+        headers["Authorization"] = self.auth_header
 
+        if self.__project_id:
+            params["project_id"] = self.__project_id
         try:
             response = self.__session.get(
                 url=url,
+                params=params,
                 timeout=self.__request_timeout,  # Request timeout parameter
                 headers=headers,
             )
+
+            if response.status_code == 403:
+                LOGGER.error(
+                    "HTTP-error-code: 403, Error: User is not a member of this project: %s or this project is invalid",
+                    self.__project_id)
+                raise MixpanelForbiddenError from None
+
         except requests.exceptions.Timeout as err:
             LOGGER.error("TIMEOUT ERROR: %s", str(err))
             raise ReadTimeoutError from None
@@ -289,9 +315,13 @@ class MixpanelClient:
         if method == "POST":
             kwargs["headers"]["Content-Type"] = "application/json"
 
-        kwargs["headers"][
-            "Authorization"
-        ] = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
+        if self.__project_id:
+            if isinstance(params, dict):
+                params['project_id'] = self.__project_id
+            else:
+                params = f"{params}&project_id={self.__project_id}"
+
+        kwargs["headers"]["Authorization"] = self.auth_header
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(
                 method=method, url=url, params=params, json=json, **kwargs
@@ -317,22 +347,23 @@ class MixpanelClient:
         Yields:
             dict: Records of export stream.
         """
-        if not self.__verified:
-            self.__verified = self.check_access()
+
+        self.__verified = self.__verified if self.__verified else self.check_access()
 
         if url and path:
             url = f"{url}/{path}"
         elif path and not url:
             url = f"https://{self.__api_domain}/api/2.0/{path}"
 
-        if "endpoint" in kwargs:
-            endpoint = kwargs["endpoint"]
-            del kwargs["endpoint"]
-        else:
-            endpoint = "export"
+        endpoint = kwargs.pop("endpoint","export")
 
-        if "headers" not in kwargs:
-            kwargs["headers"] = {}
+        if self.__project_id:
+            if isinstance(params, dict):
+                params['project_id'] = self.__project_id
+            else:
+                params = f"{params}&project_id={self.__project_id}"
+
+        kwargs["headers"] = kwargs.get("headers",{})
 
         kwargs["headers"]["Accept"] = "application/json"
 
@@ -342,9 +373,7 @@ class MixpanelClient:
         if method == "POST":
             kwargs["headers"]["Content-Type"] = "application/json"
 
-        kwargs["headers"][
-            "Authorization"
-        ] = f"Basic {str(base64.urlsafe_b64encode(self.__api_secret.encode('utf-8')), 'utf-8')}"
+        kwargs["headers"]["Authorization"] = self.auth_header
         with metrics.http_request_timer(endpoint) as timer:
             response = self.perform_request(
                 method=method, url=url, params=params, json=json, stream=True, **kwargs
