@@ -41,7 +41,7 @@ class TestServiceAccountAuthentication(unittest.TestCase):
             mock_check_access: Mock the check_access method to test authentication.
         """
         with self.assertRaises(Exception) as e:
-            MixpanelClient("api_secret", "api_domain", 300)   
+            MixpanelClient(None, "api_domain", 300)   
         
         self.assertEqual(str(e.exception), "Invalid/Unknown Authentication method")
 
