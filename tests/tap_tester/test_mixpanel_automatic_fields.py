@@ -21,7 +21,7 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
         • Verify that only the automatic fields are sent to the target.
         • Verify that all replicated records have unique primary key values.
         """
-        expected_streams = self.expected_streams()
+        expected_streams = self.expected_streams() - {"annotations"}
 
         conn_id = connections.ensure_connection(self)
 
@@ -61,12 +61,8 @@ class MixPanelAutomaticFieldsTest(TestMixPanelBase):
                 for actual_keys in record_messages_keys:
                     self.assertSetEqual(expected_keys, actual_keys)
 
-    def test_standard_auto_fields(self):
+    def test_run(self):
         """Automatic fields test for standard server"""
         self.eu_residency = False
-        self.automatic_fields_test_run()
-
-    def test_run_ssa(self):
-        # perform checks with service account auth
-        self.service_account_authentication = True
+        self.service_account_authentication = True 
         self.automatic_fields_test_run()

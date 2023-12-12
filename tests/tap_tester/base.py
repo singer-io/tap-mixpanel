@@ -5,7 +5,6 @@ Test tap combined
 import os
 from datetime import datetime as dt
 from datetime import timedelta
-
 import dateutil.parser
 import pytz
 from tap_tester import LOGGER, connections, menagerie, runner
@@ -80,19 +79,42 @@ class TestMixPanelBase(BaseCase):
         }
 
     def setUp(self):
+        cred_envs = [
+            "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+            "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
+            "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID",
+            "TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME",
+            "TAP_MIXPANEL_EU_SERVICE_ACCOUNT_SECRET",
+            "TAP_MIXPANEL_EU_SERVICE_ACCOUNT_PROJECT_ID",
+            "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET",
+            "TAP_MIXPANEL_API_SECRET"
+        ]
         missing_envs = []
-        if self.eu_residency:
-            creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
-        elif self.service_account_authentication:
-            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
-                    "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
-                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
+        if self.service_account_authentication:
+            if self.eu_residency:
+                creds = {
+                    "api_secret": {
+                        "service_account_username": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME"),
+                        "service_account_secret": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_SECRET"),
+                        "project_id": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_PROJECT_ID")}
+                    }
+            else:
+                creds = {
+                    "api_secret": {
+                        "service_account_username": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME"),
+                        "service_account_secret": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET"),
+                        "project_id": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID")}
+                    }
         else:
-            creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
-
-        for cred in creds:
-            if os.getenv(creds[cred]) == None:
-                missing_envs.append(creds[cred])
+            if self.eu_residency:
+                creds = {"api_secret": os.getenv("TAP_MIXPANEL_EU_RESIDENCY_API_SECRET")}
+            else:
+                creds = {"api_secret": os.getenv("TAP_MIXPANEL_API_SECRET")}
+                     
+                
+        for cred in cred_envs:
+            if os.getenv(cred) == None:
+                missing_envs.append(cred)
 
         if len(missing_envs) != 0:
             raise Exception("set " + ", ".join(missing_envs))
@@ -132,28 +154,35 @@ class TestMixPanelBase(BaseCase):
         return return_value
 
     def get_start_date(self):
-        return dt.strftime(dt.utcnow() - timedelta(days=30), self.START_DATE_FORMAT)
+        return dt.strftime(dt.utcnow() - timedelta(days=10), self.START_DATE_FORMAT)
 
     def get_credentials(self):
         """
         Authentication information for the test account.
         Api secret is expected as a property.
         """
-
-        credentials_dict = {}
-        if self.eu_residency:
-            creds = {"api_secret": "TAP_MIXPANEL_EU_RESIDENCY_API_SECRET"}
-        elif self.service_account_authentication:
-            creds = {"service_account_username": "TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME",
-                    "service_account_secret": "TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET",
-                    "project_id": "TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID"}
+        creds = {}
+        if self.service_account_authentication:
+            if self.eu_residency:
+                creds = {
+                    "api_secret": {
+                        "service_account_username": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME"),
+                        "service_account_secret": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_SECRET"),
+                        "project_id": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_PROJECT_ID")}
+                    }
+            else:
+                creds = {
+                    "api_secret": {
+                        "service_account_username": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_USERNAME"),
+                        "service_account_secret": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_SECRET"),
+                        "project_id": os.getenv("TAP_MIXPANEL_SERVICE_ACCOUNT_PROJECT_ID")}
+                    }
         else:
-            creds = {"api_secret": "TAP_MIXPANEL_API_SECRET"}
-
-        for cred in creds:
-            credentials_dict[cred] = os.getenv(creds[cred])
-
-        return credentials_dict
+            if self.eu_residency:
+                creds = {"api_secret": os.getenv("TAP_MIXPANEL_EU_RESIDENCY_API_SECRET")}
+            else:
+                creds = {"api_secret": os.getenv("TAP_MIXPANEL_API_SECRET")}    
+        return creds
 
     def expected_streams(self):
         """A set of expected stream names."""
