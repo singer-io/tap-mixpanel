@@ -5,7 +5,6 @@ Test tap combined
 import os
 from datetime import datetime as dt
 from datetime import timedelta
-
 import dateutil.parser
 import pytz
 from tap_tester import LOGGER, connections, menagerie, runner
@@ -95,7 +94,7 @@ class TestMixPanelBase(BaseCase):
             if self.eu_residency:
                 creds = {
                     "api_secret": {
-                        "service_account_username": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME",),
+                        "service_account_username": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME"),
                         "service_account_secret": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_SECRET"),
                         "project_id": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_PROJECT_ID")}
                     }
@@ -169,7 +168,7 @@ class TestMixPanelBase(BaseCase):
                     "api_secret": {
                         "service_account_username": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_USERNAME"),
                         "service_account_secret": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_SECRET"),
-                        "project_id": os.getenv("TAP_MIXPANEL_SERVICE_EU_ACCOUNT_PROJECT_ID")}
+                        "project_id": os.getenv("TAP_MIXPANEL_EU_SERVICE_ACCOUNT_PROJECT_ID")}
                     }
             else:
                 creds = {

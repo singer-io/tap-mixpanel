@@ -179,14 +179,12 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                     logging="Asserting non-key-property fields are available for field selection",
                 )
 
-    def test_standard_discovery(self):
+    def test_run(self):
         """Discovery test for standard server."""
-        self.eu_residency = False
-        self.service_account_authentication = True
+        self.eu_residency = True
+        self.service_account_authentication = False  
         self.discovery_test_run()
 
-    def test_eu_discovery(self):
-        """Discovery test for EU residency server."""
-        self.eu_residency = True
+        self.eu_residency = False
         self.service_account_authentication = True
         self.discovery_test_run()

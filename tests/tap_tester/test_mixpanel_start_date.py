@@ -172,5 +172,6 @@ class MixPanelStartDateTest(TestMixPanelBase):
 
     def test_run(self):
         # Start date test for standard server
-        self.eu_residency = True
+        self.eu_residency = False
+        self.service_account_authentication = True
         self.start_date_test_run()

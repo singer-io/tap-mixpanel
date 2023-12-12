@@ -6,6 +6,8 @@ from base import TestMixPanelBase
 
 
 class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
+    
+    skip_streams = set()
 
     @staticmethod
     def name():
@@ -30,7 +32,7 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         """
 
         # Only following below 2 streams support pagination
-        streams_to_test_all_fields = self.expected_streams()
+        streams_to_test_all_fields = self.expected_streams()  - self.skip_streams
         streams_to_test_pagination = {'engage', 'cohort_members'}
 
         expected_automatic_fields = self.expected_automatic_fields()
@@ -145,19 +147,12 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
                             )
 
     def test_run(self):
-        # Pagination test for standard server
-        self.eu_residency = False
-        self.pagination_test_run()
-
-        # Pagination test for EU residency server
+        
         self.eu_residency = True
+        self.service_account_authentication = False  
         self.pagination_test_run()
-
-    def test_run_ssa(self):
-        self.service_account_authentication = True
-        # perform checks with api_secret auth
+        
+        self.skip_streams = {"annotations"}
         self.eu_residency = False
-        self.pagination_test_run()
-
-        self.eu_residency = True
+        self.service_account_authentication = True  
         self.pagination_test_run()

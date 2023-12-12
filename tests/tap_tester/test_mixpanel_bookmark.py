@@ -185,8 +185,8 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                     msg=f"We are not fully testing bookmarking for {stream}",
                 )
 
-    def test_standard_bookmarks(self):
+    def test_run(self):
         """Bookmark test for standard server."""
-        self.eu_residency = True
+        self.eu_residency = False
         self.service_account_authentication = True
         self.bookmark_test_run()
