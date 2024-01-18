@@ -33,9 +33,9 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-            pip install nose2
+            pip install nose2 parameterized nose2[coverage_plugin]>=0.6.5
             pip install parameterized
-            nose2 -v -s tests/unittests
+            nose2 --with-coverage -v -s tests/unittests
       - store_test_results:
           path: test_output/report.xml
       - store_artifacts:
