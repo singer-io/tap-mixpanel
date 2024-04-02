@@ -454,6 +454,9 @@ class MixPanel:
         start_window, end_window, days_interval = self.define_bookmark_filters(
             days_interval, last_datetime, now_datetime, attribution_window, start_date
         )
+        LOGGER.info("Current Bookmark: %s Attribution window start date: %s", max_bookmark_value, start_window)
+        last_datetime = start_window.isoformat()
+        max_bookmark_value = last_datetime
         # LOOP order: Date Windows, Parent IDs, Page
         # Initialize counter
         endpoint_total = 0  # Total for ALL: parents, date windows, and pages
