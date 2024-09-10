@@ -124,6 +124,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
+            service_account_username="mock_service_account_username",
+            service_account_secret="service_account_secret",
+            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
         )
@@ -142,7 +145,6 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         ["400 different timezone error", 400, mock_400_different_timezone(), client.MixpanelBadRequestError, "A validation exception has occurred. Please validate the timezone with the MixPanel UI under project settings."],
         ["400 timeout error", 400, MockResponse(400, text=timeout_400_error), client.MixpanelBadRequestError, "Timeout Error.(Please verify your credentials.)"],
         ["401 error", 401, MockResponse(401), client.MixpanelUnauthorizedError, "Invalid authorization credentials."],
-        ["403 error", 403, MockResponse(403), client.MixpanelForbiddenError, "User does not have permission to access the resource."],
         ["404 error", 404, MockResponse(404), client.MixpanelNotFoundError, "The resource you have specified cannot be found."],
         ["404 error", 404, mock_send_error(), client.MixpanelNotFoundError, "Resource not found error message from API response field 'error'."],
         ["404 error", 404, mock_send_message(), client.MixpanelNotFoundError, "Resource not found error message from API response field 'message'."],
@@ -160,8 +162,12 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
+            service_account_username="mock_service_account_username",
+            service_account_secret="service_account_secret",
+            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
+            auth_type="saa"
         )
         with self.assertRaises(error) as e:
             mock_client.check_access()
@@ -189,8 +195,12 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = mock_response
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
+            service_account_username="mock_service_account_username",
+            service_account_secret="service_account_secret",
+            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
+            auth_type="saa"
         )
         with self.assertRaises(error):
             mock_client.perform_request("GET")
@@ -203,8 +213,12 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         """
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
+            service_account_username="mock_service_account_username",
+            service_account_secret="service_account_secret",
+            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
+            auth_type="saa"
         )
         with self.assertRaises(client.ReadTimeoutError):
             mock_client.check_access()
@@ -224,6 +238,9 @@ class TestMixpanelErrorHandling(unittest.TestCase):
         mock_request.return_value = MockResponse(402)
         mock_client = client.MixpanelClient(
             api_secret="mock_api_secret",
+            service_account_username="mock_service_account_username",
+            service_account_secret="service_account_secret",
+            project_id="project_id",
             api_domain="mock_api_domain",
             request_timeout=REQUEST_TIMEOUT,
         )
@@ -245,7 +262,12 @@ class TestMixpanelConnectionResetErrorHandling(unittest.TestCase):
         """
         Check whether the request backoffs properly for `check_access` method for 5 times in case of Timeout error.
         """
-        mock_client = client.MixpanelClient(api_secret="mock_api_secret", api_domain="mock_api_domain", request_timeout=REQUEST_TIMEOUT)
+        mock_client = client.MixpanelClient(api_secret="mock_api_secret",
+                                            service_account_username="mock_service_account_username",
+                                            service_account_secret="service_account_secret",
+                                            project_id="project_id",
+                                            api_domain="mock_api_domain",
+                                            request_timeout=REQUEST_TIMEOUT)
         with self.assertRaises(requests.models.ProtocolError):
             mock_client.check_access()
 

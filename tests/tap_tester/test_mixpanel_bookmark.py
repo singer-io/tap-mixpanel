@@ -135,7 +135,7 @@ class MixPanelBookMarkTest(TestMixPanelBase):
                             replication_key_value,
                             first_bookmark_value_utc,
                             msg="First sync bookmark was set incorrectly,"
-                            " a record with a greater replication-key value was synced.",
+                            "a record with a greater replication-key value was synced.",
                         )
 
                     for record in second_sync_messages:
@@ -188,4 +188,9 @@ class MixPanelBookMarkTest(TestMixPanelBase):
     def test_standard_bookmarks(self):
         """Bookmark test for standard server."""
         self.eu_residency = False
+        self.bookmark_test_run()
+
+    def test_run_ssa(self):
+        # perform checks with ssa auth
+        self.service_account_authentication = True
         self.bookmark_test_run()

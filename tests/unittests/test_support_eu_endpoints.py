@@ -98,7 +98,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         state = {}
         catalog = MockCatalog("revenue")
 
-        client = MixpanelClient("", "", "")
+        client = MixpanelClient("", "", "", "", "", "")
         revenue_obj = Revenue(client)
         revenue_obj.sync(
             catalog=catalog,
@@ -153,7 +153,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
         state = {}
         catalog = MockCatalog("export")
 
-        client = MixpanelClient("", "", "")
+        client = MixpanelClient("", "", "", "", "", "")
         export_obj = Export(client)
         export_obj.sync(
             catalog=catalog,
@@ -221,6 +221,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             "https://eu.mixpanel.com/api/2.0/engage",
             allow_redirects=True,
             headers=header,
+            params={},
             timeout=300,
         )
 
@@ -235,5 +236,6 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             "https://mixpanel.com/api/2.0/engage",
             allow_redirects=True,
             headers=header,
+            params={},
             timeout=300,
         )
