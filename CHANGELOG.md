@@ -1,5 +1,6 @@
 # Changelog
 
+
 ## 1.6.0
   * Requirement updates to run on python 3.11.7 [#63](https://github.com/singer-io/tap-mixpanel/pull/63)
 
