@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 
 import urllib
 import pytz
+import requests
+import backoff
 import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
@@ -695,6 +697,13 @@ class Export(MixPanel):
     replication_method = "INCREMENTAL"
     params = {}
 
+
+    @backoff.on_exception(
+        backoff.expo,
+        (requests.exceptions.ChunkedEncodingError,),
+        max_tries=5,
+        factor=2,
+    )
     def get_and_transform_records(
         self,
         querystring,

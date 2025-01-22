@@ -1,7 +1,14 @@
 # Changelog
 
+
+## 1.6.0
+  * Requirement updates to run on python 3.11.7 [#63](https://github.com/singer-io/tap-mixpanel/pull/63)
+
 ## 1.5.1
-  * Dependabot update [#60](https://github.com/singer-io/tap-mixpanel/pull/60)
+  * Add retry logic for `ChunkedEncodingError`s [#61](https://github.com/singer-io/tap-mixpanel/pull/61)
+
+## 1.5.0
+  * Adds `export_events` as optional param to filter the data for export stream based on event names [#56](https://github.com/singer-io/tap-mixpanel/pull/56)
 
 ## 1.4.3
   * Code Refactoring [#55](https://github.com/singer-io/tap-mixpanel/pull/55) 
