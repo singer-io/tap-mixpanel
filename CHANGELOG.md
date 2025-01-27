@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+  * Adds `mp_reserved_insert_id` field in export schema [#64](https://github.com/singer-io/tap-mixpanel/pull/64)
+  * Bump requests from 2.22.0 to 2.32.3
+
 ## 1.6.0
   * Requirement updates to run on python 3.11.7 [#63](https://github.com/singer-io/tap-mixpanel/pull/63)
 

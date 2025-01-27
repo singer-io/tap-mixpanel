@@ -12,6 +12,9 @@
       "type": ["null", "string"],
       "format": "date-time"
     },
+    "mp_reserved_insert_id": {
+      "type": ["null", "string"]
+    },
     "labels": {
       "anyOf": [
         {

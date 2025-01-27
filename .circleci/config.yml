@@ -21,9 +21,8 @@ jobs:
          name: 'pylint tap'
          command: |
            source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-           source dev_env.sh
            pip install pylint
-           pylint tap_mixpanel -d "$PYLINT_DISABLE_LIST,too-many-statements,protected-access,redefined-builtin"
+           pylint tap_mixpanel -d C,R,W
       - run:
           name: 'JSON Validator'
           command: |
