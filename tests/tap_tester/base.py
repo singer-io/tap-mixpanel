@@ -10,6 +10,10 @@ import dateutil.parser
 import pytz
 from tap_tester import LOGGER, connections, menagerie, runner
 from tap_tester.base_case import BaseCase
+from tap_tester.jira_client import JiraClient as jira_client
+from tap_tester.jira_client import CONFIGURATION_ENVIRONMENT as jira_config
+
+JIRA_CLIENT = jira_client({ **jira_config })
 
 
 class TestMixPanelBase(BaseCase):
@@ -157,7 +161,10 @@ class TestMixPanelBase(BaseCase):
         if self.eu_residency:
             return set(self.expected_metadata().keys()) - {"export", "revenue"}
 
-        return set(self.expected_metadata().keys())
+        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
+                    'done',
+                    msg='JIRA ticket has moved to done, re-add export stream to testable streams')
+        return set(self.expected_metadata().keys() - {"export"})
 
     def expected_pks(self):
         """Return a dictionary with key of table name and value as a set of primary key fields"""
