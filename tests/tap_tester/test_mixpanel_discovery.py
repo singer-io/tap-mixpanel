@@ -36,11 +36,10 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         self.assertion_logging_enabled = True
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
-        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
         self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
                     'done',
                     msg='JIRA ticket has moved to done, remove the explicitly added streams in streams_to_test')
-        streams_to_test = self.expected_streams() | UPGRADED_PLAN_STREAMS
+        streams_to_test = self.expected_streams() | {"annotations", "cohort_members", "cohorts", "funnels"}
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
 
