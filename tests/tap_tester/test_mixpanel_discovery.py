@@ -1,5 +1,9 @@
 import re
 from tap_tester import menagerie, connections, LOGGER
+from tap_tester.jira_client import JiraClient as jira_client
+from tap_tester.jira_client import CONFIGURATION_ENVIRONMENT as jira_config
+
+JIRA_CLIENT = jira_client({ **jira_config })
 
 from base import TestMixPanelBase
 
@@ -30,8 +34,10 @@ class MixPanelDiscoverTest(TestMixPanelBase):
         LOGGER.info(f"Testing against {region} account.")
 
         self.assertion_logging_enabled = True
-
-        streams_to_test = self.expected_streams()
+        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
+                    'done',
+                    msg='JIRA ticket has moved to done, remove the explicitly added streams in streams_to_test')
+        streams_to_test = self.expected_streams() + {"annotations", "cohort_members", "cohorts", "export", "funnels"}
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
 

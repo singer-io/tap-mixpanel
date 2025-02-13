@@ -163,8 +163,8 @@ class TestMixPanelBase(BaseCase):
 
         self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
                     'done',
-                    msg='JIRA ticket has moved to done, re-add export stream to testable streams')
-        return set(self.expected_metadata().keys() - {"export"})
+                    msg='JIRA ticket has moved to done, re-add the streams which are skipped below to expected_streams')
+        return set(self.expected_metadata().keys() - {"annotations", "cohort_members", "cohorts", "export", "funnels"})
 
     def expected_pks(self):
         """Return a dictionary with key of table name and value as a set of primary key fields"""
