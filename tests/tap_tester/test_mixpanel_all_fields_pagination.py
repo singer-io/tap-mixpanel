@@ -1,6 +1,10 @@
 from math import ceil
 
 from tap_tester import connections, menagerie, runner
+from tap_tester.jira_client import JiraClient as jira_client
+from tap_tester.jira_client import CONFIGURATION_ENVIRONMENT as jira_config
+
+JIRA_CLIENT = jira_client({ **jira_config })
 
 from base import TestMixPanelBase
 
@@ -29,9 +33,12 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         that 251 (or more) records have been posted for that stream.
         """
 
-        # Only following below 2 streams support pagination
+        # Only these 2 streams ('engage' and 'cohort_members') support pagination
         streams_to_test_all_fields = self.expected_streams()
-        streams_to_test_pagination = {'engage', 'cohort_members'}
+        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
+                    'done',
+                    msg='JIRA ticket has moved to done, re-add the cohort_members in streams_to_test_pagination')
+        streams_to_test_pagination = {'engage'}
 
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)

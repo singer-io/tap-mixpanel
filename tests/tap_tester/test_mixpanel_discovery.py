@@ -1,5 +1,9 @@
 import re
 from tap_tester import menagerie, connections, LOGGER
+from tap_tester.jira_client import JiraClient as jira_client
+from tap_tester.jira_client import CONFIGURATION_ENVIRONMENT as jira_config
+
+JIRA_CLIENT = jira_client({ **jira_config })
 
 from base import TestMixPanelBase
 
@@ -31,7 +35,13 @@ class MixPanelDiscoverTest(TestMixPanelBase):
 
         self.assertion_logging_enabled = True
 
-        streams_to_test = self.expected_streams()
+        # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
+        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
+                    'done',
+                    msg='JIRA ticket has moved to done, remove the explicitly added streams in streams_to_test')
+        # The 'export' stream is not explicitly included here because generating the catalog requires making API calls.
+        # Currently, our plan does not include access to the necessary API, so we cannot make these calls.
+        streams_to_test = self.expected_streams() | {"annotations", "cohort_members", "cohorts", "funnels"}
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
 

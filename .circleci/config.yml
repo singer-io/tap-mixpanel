@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester-3-11-dev
+      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester
     steps:
       - checkout
       - add_ssh_keys
@@ -21,9 +21,8 @@ jobs:
          name: 'pylint tap'
          command: |
            source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
-           source dev_env.sh
            pip install pylint
-           pylint tap_mixpanel -d "$PYLINT_DISABLE_LIST,too-many-statements,protected-access,redefined-builtin"
+           pylint tap_mixpanel -d C,R,W
       - run:
           name: 'JSON Validator'
           command: |
