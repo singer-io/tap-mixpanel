@@ -90,7 +90,6 @@ def get_schema(client, properties_flag, stream_name):
                     },
                     "list": {
                         "type": ["null", "array"],
-                        "required": False,
                         "items": {}},
                     "string": {
                         "type": ["null", "string"]},
