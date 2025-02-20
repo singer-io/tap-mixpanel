@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.1
+  * Remove `required: False` for engage schema  [#65](https://github.com/singer-io/tap-mixpanel/pull/65)
+
 ## 1.7.0
   * Adds `mp_reserved_insert_id` field in export schema [#64](https://github.com/singer-io/tap-mixpanel/pull/64)
   * Bump requests from 2.22.0 to 2.32.3
