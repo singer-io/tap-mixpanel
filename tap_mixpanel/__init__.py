@@ -85,7 +85,7 @@ def main():
         config = parsed_args.config
         client.__api_domain = api_domain
         properties_flag = config.get("select_properties_by_default")
-
+        LOGGER.info("On test branch hi")
         if parsed_args.discover:
             do_discover(client, properties_flag)
         else:
