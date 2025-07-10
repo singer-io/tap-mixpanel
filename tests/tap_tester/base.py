@@ -370,9 +370,9 @@ class TestMixPanelBase(BaseCase):
         }
 
         stream_to_calculated_state = {
-            stream: "" for stream in current_state["bookmarks"].keys()
+            stream: "" for stream in current_state.get("bookmarks", {}).keys()
         }
-        for stream, state in current_state["bookmarks"].items():
+        for stream, state in current_state.get("bookmarks", {}).items():
 
             state_as_datetime = dateutil.parser.parse(state)
 
