@@ -33,12 +33,9 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         that 251 (or more) records have been posted for that stream.
         """
 
-        # Only these 2 streams ('engage' and 'cohort_members') support pagination
+        # Only following below 2 streams support pagination
         streams_to_test_all_fields = self.expected_streams()
-        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
-                    'done',
-                    msg='JIRA ticket has moved to done, re-add the cohort_members in streams_to_test_pagination')
-        streams_to_test_pagination = {'engage'}
+        streams_to_test_pagination = {'engage', 'cohort_members'}
 
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
