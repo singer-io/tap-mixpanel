@@ -35,7 +35,10 @@ class MixPanelDiscoverTest(TestMixPanelBase):
 
         self.assertion_logging_enabled = True
 
-        streams_to_test = self.expected_streams()
+        # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
+        # The 'export' stream is not explicitly included here because generating the catalog requires making API calls.
+        # Currently, our plan does not include access to the necessary API, so we cannot make these calls.
+        streams_to_test = self.expected_streams() | {"annotations", "cohort_members", "cohorts", "funnels"}
 
         conn_id = connections.ensure_connection(self, payload_hook=None)
 

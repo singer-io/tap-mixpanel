@@ -159,10 +159,13 @@ class TestMixPanelBase(BaseCase):
         # So, as per discussion decided that let the customer come with the issues
         # that these streams are not working. Skip the streams in the circleci.
 
-        if self.eu_residency:
-            return set(self.expected_metadata().keys()) - {"export", "revenue"}
+        # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
+        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
 
-        return set(self.expected_metadata().keys())
+        if self.eu_residency:
+            return set(self.expected_metadata().keys()) - {"export", "revenue"} - UPGRADED_PLAN_STREAMS
+
+        return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
 
     def expected_pks(self):
         """Return a dictionary with key of table name and value as a set of primary key fields"""

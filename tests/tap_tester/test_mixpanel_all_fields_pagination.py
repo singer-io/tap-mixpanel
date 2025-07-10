@@ -33,9 +33,9 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         that 251 (or more) records have been posted for that stream.
         """
 
-        # Only following below 2 streams support pagination
+        # Only these 2 streams ('engage' and 'cohort_members') support pagination
         streams_to_test_all_fields = self.expected_streams()
-        streams_to_test_pagination = {'engage', 'cohort_members'}
+        streams_to_test_pagination = {'engage'}
 
         expected_automatic_fields = self.expected_automatic_fields()
         conn_id = connections.ensure_connection(self)
