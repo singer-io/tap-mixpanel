@@ -160,10 +160,10 @@ class TestMixPanelBase(BaseCase):
         # that these streams are not working. Skip the streams in the circleci.
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
-        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
+        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels", "revenue"}
 
         if self.eu_residency:
-            return set(self.expected_metadata().keys()) - {"export", "revenue"} - UPGRADED_PLAN_STREAMS
+            return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
 
         return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
 
