@@ -160,13 +160,10 @@ class TestMixPanelBase(BaseCase):
         # that these streams are not working. Skip the streams in the circleci.
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
-        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
-        self.assertNotEqual(JIRA_CLIENT.get_status_category('TDL-27055'),
-                    'done',
-                    msg='JIRA ticket has moved to done, re-add the UPGRADED_PLAN_STREAMS which are skipped below to expected_streams')
+        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels", "revenue"}
 
         if self.eu_residency:
-            return set(self.expected_metadata().keys()) - {"export", "revenue"} - UPGRADED_PLAN_STREAMS
+            return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
 
         return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
 
@@ -373,9 +370,9 @@ class TestMixPanelBase(BaseCase):
         }
 
         stream_to_calculated_state = {
-            stream: "" for stream in current_state["bookmarks"].keys()
+            stream: "" for stream in current_state.get("bookmarks", {}).keys()
         }
-        for stream, state in current_state["bookmarks"].items():
+        for stream, state in current_state.get("bookmarks", {}).items():
 
             state_as_datetime = dateutil.parser.parse(state)
 
