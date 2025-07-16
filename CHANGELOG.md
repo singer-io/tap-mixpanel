@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.2
+  * Bump dependency versions for twistlock compliance
+  * Update tests to pass circle build
+  * [#66](https://github.com/singer-io/tap-mixpanel/pull/66)
+
 ## 1.7.1
   * Remove `required: False` for engage schema  [#65](https://github.com/singer-io/tap-mixpanel/pull/65)
 
