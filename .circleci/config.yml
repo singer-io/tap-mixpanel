@@ -10,6 +10,7 @@ jobs:
       - run:
           name: 'Setup virtual env'
           command: |
+            source /usr/local/share/virtualenvs/tap-tester/bin/activate
             uv pip install --upgrade awscli
             aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
@@ -34,6 +35,7 @@ jobs:
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
             pip install pytest parameterized coverage
             coverage run -m pytest tests/unittests
+            coverage html
       - store_test_results:
           path: test_output/report.xml
       - store_artifacts:
