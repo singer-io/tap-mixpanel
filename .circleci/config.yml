@@ -14,7 +14,7 @@ jobs:
             uv pip install --upgrade awscli
             aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
-            uv venv --python 3.11 /usr/local/share/virtualenvs/tap-mixpanel
+            uv venv --python 3.12 /usr/local/share/virtualenvs/tap-mixpanel
             source /usr/local/share/virtualenvs/tap-mixpanel/bin/activate
             uv pip install -U 'pip==23.3.2' 'setuptools<51.0.0'
             uv pip install .[dev]
