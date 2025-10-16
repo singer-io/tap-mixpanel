@@ -199,6 +199,12 @@ class TestMixPanelBase(BaseCase):
             )
         return auto_fields
 
+    def expected_parent_stream_ids(self):
+        """Return a dictionary with key of stream name and value as parent stream id if applicable"""
+        return {
+            "cohort_members": "cohorts",
+        }
+
     #########################
     #   Helper Methods      #
     #########################
