@@ -108,7 +108,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 actual_parent_stream_id = (
                     stream_properties[0]
                     .get("metadata", {})
-                    .get("parent-tap-stream-id")
+                    .get(self.PARENT_STREAM_ID)
                 )
 
                 actual_fields = []
@@ -181,7 +181,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 self.assertEqual(
                     expected_parent_stream_id,
                     actual_parent_stream_id,
-                    logging=f"asserting parent-tap-stream-id is {expected_parent_stream_id}",
+                    logging=f"asserting {self.PARENT_STREAM_ID} is {expected_parent_stream_id}",
                 )
 
                 # Verify that all other fields have inclusion of available.
