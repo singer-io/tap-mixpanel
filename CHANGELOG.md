@@ -1,9 +1,8 @@
 # Changelog
 
 ## 1.8.0
-  * Streams the credentials cannot access (403) are now excluded from the catalog during discovery instead of raising an error
-  * Added unit tests for stream access check during discovery
-
+  * Exclude Streams that the credentials cannot access (403) from the catalog during discovery; discovery fails only if the credentials cannot read any supported parent stream. [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
+  
 ## 1.7.3
   * Bump requests library version [#71](https://github.com/singer-io/tap-mixpanel/pull/71)
 

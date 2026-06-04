@@ -131,6 +131,17 @@ class TestCheckAccess(unittest.TestCase):
 
         self.assertFalse(result)
 
+    def test_check_access_payment_required(self):
+        """Test check_access returns False when a 402 error is raised."""
+        client = mock.Mock()
+        client.request.side_effect = MixpanelPaymentRequiredError("402 Payment Required")
+
+        stream_cls = STREAMS["funnels"]
+        stream = stream_cls(client=client)
+        result = stream.check_access()
+
+        self.assertFalse(result)
+
     def test_check_access_child_stream_always_true(self):
         """Test that child streams always return True without making a request."""
         client = mock.Mock()
