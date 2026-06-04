@@ -13,7 +13,7 @@ import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
 
-from tap_mixpanel.client import MixpanelClient
+from tap_mixpanel.client import MixpanelClient, MixpanelForbiddenError
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
@@ -45,6 +45,41 @@ class MixPanel:
 
     def __init__(self, client: MixpanelClient):
         self.client = client
+
+    def check_access(self) -> bool:
+        """Verify that the API credentials have read access to this stream.
+
+        Returns True if accessible, False if a 403 Forbidden error is raised.
+        Child streams always return True (access is governed by the parent check).
+        """
+        if self.parent:
+            return True
+
+        # Determine the endpoint to probe
+        path = self.parent_path if self.parent_path else self.path
+
+        # Build minimal params; streams with date filters need valid dates
+        params = {}
+        if self.bookmark_query_field_from and self.bookmark_query_field_to:
+            today = datetime.now().strftime("%Y-%m-%d")
+            params[self.bookmark_query_field_from] = today
+            params[self.bookmark_query_field_to] = today
+
+        try:
+            self.client.request(
+                method="GET",
+                url=self.url,
+                path=path,
+                params=params,
+                endpoint=self.tap_stream_id,
+            )
+            return True
+        except MixpanelForbiddenError:
+            LOGGER.warning(
+                "Stream '%s' does not have read permission, excluding from catalog.",
+                self.tap_stream_id,
+            )
+            return False
 
     def write_schema(self, catalog, stream_name):
         """Writes the schema of the stream form the catalog.
