@@ -13,7 +13,8 @@ import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
 
-from tap_mixpanel.client import MixpanelClient, MixpanelForbiddenError, MixpanelPaymentRequiredError
+from tap_mixpanel.client import (MixpanelClient, MixpanelForbiddenError,
+                                MixpanelNotFoundError, MixpanelPaymentRequiredError)
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
@@ -75,7 +76,7 @@ class MixPanel:
                 endpoint=self.tap_stream_id,
             )
             return True
-        except (MixpanelForbiddenError, MixpanelPaymentRequiredError):
+        except (MixpanelForbiddenError, MixpanelNotFoundError, MixpanelPaymentRequiredError):
             LOGGER.warning(
                 "Stream '%s' does not have read permission, excluding from catalog.",
                 self.tap_stream_id,
@@ -713,6 +714,10 @@ class Engage(MixPanel):
     bookmark_query_field_to = None
     params = {}
     replication_keys = []
+
+    def check_access(self):
+        """Engage access is validated during schema discovery via engage_properties."""
+        return True
 
 
 class Export(MixPanel):
