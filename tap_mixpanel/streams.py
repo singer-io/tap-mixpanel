@@ -13,7 +13,7 @@ import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
 
-from tap_mixpanel.client import MixpanelClient, MixpanelError
+from tap_mixpanel.client import MixpanelClient, MixpanelForbiddenError, MixpanelPaymentRequiredError
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
@@ -49,8 +49,9 @@ class MixPanel:
     def check_access(self) -> bool:
         """Verify that the API credentials have read access to this stream.
 
-        Returns True if accessible, False if a client error (400, 401, 402, 403, 404)
-        is raised. Child streams always return True (access is governed by the parent check).
+        Returns True if accessible, False if a 402 (Payment Required) or
+        403 (Forbidden) error is raised. Child streams always return True
+        (access is governed by the parent check).
         """
         if self.parent:
             return True
@@ -74,7 +75,7 @@ class MixPanel:
                 endpoint=self.tap_stream_id,
             )
             return True
-        except MixpanelError:
+        except (MixpanelForbiddenError, MixpanelPaymentRequiredError):
             LOGGER.warning(
                 "Stream '%s' does not have read permission, excluding from catalog.",
                 self.tap_stream_id,
