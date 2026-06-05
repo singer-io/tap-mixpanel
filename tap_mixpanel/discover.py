@@ -46,7 +46,11 @@ def _apply_access_checks(client, schemas, field_metadata):
 
     if inaccessible_streams:
         total_parent_streams = len(
-            [name for name, s in STREAMS.items() if not s.parent and name in schemas or name in inaccessible_streams]
+            [
+                name
+                for name, s in STREAMS.items()
+                if not s.parent and (name in schemas or name in inaccessible_streams)
+            ]
         )
         if len(inaccessible_streams) == total_parent_streams:
             raise MixpanelForbiddenError(
