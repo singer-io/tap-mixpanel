@@ -1,8 +1,7 @@
 # Changelog
 
 ## 1.8.0
-  * Exclude Streams that the credentials cannot access (403) from the catalog during discovery; discovery fails only if the credentials cannot read any supported parent stream. [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
-  
+  * Exclude streams that the credentials cannot access (e.g., 403 Forbidden; and other non-readable endpoints such as 402/404 handled by the tap) from the catalog during discovery; discovery fails only if the credentials cannot read any supported parent stream. [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
 ## 1.7.3
   * Bump requests library version [#71](https://github.com/singer-io/tap-mixpanel/pull/71)
 
