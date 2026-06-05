@@ -60,12 +60,22 @@ class MixPanel:
         # Determine the endpoint to probe
         path = self.parent_path if self.parent_path else self.path
 
-        # Build minimal params; streams with date filters need valid dates
-        params = {}
-        if self.bookmark_query_field_from and self.bookmark_query_field_to:
-            today = datetime.now().strftime("%Y-%m-%d")
-            params[self.bookmark_query_field_from] = today
-            params[self.bookmark_query_field_to] = today
+        # Build minimal params:
+        # - When probing a parent/list endpoint, no extra params needed.
+        # - When probing the stream's own endpoint, include static params
+        #   (e.g. Revenue's "unit") but exclude placeholders like "[parent_id]".
+        if path == self.path:
+            params = {k: v for k, v in (self.params or {}).items()
+                      if "[parent_id]" not in str(v)}
+        else:
+            params = {}
+
+        # Add date params only when probing the stream's own endpoint
+        if path == self.path and self.bookmark_query_field_from and self.bookmark_query_field_to:
+            # Use UTC yesterday to avoid future-date errors across timezones
+            probe_date = (datetime.now(tz=pytz.UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
+            params[self.bookmark_query_field_from] = probe_date
+            params[self.bookmark_query_field_to] = probe_date
 
         try:
             self.client.request(
