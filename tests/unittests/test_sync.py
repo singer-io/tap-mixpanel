@@ -29,7 +29,6 @@ def get_catalog(parent=False, child=False):
             get_stream_catalog("engage"),
             get_stream_catalog("cohorts", parent),
             get_stream_catalog("cohort_members", child),
-            get_stream_catalog("revenue", parent),
         ]
     })
 
@@ -41,9 +40,9 @@ class TestSyncFunctions(unittest.TestCase):
 
     @parameterized.expand([
         # ["test_name", "mock_catalog", "selected_streams", "synced_streams"]
-        ["only_parent_selected", get_catalog(parent=True), ["cohorts", "revenue"], 2],
+        ["only_parent_selected", get_catalog(parent=True), ["cohorts",], 1],
         ["only_child_selected", get_catalog(child=True), ["cohort_members"], 1],
-        ["both_selected", get_catalog(parent=True, child=True), ["cohorts", "cohort_members", "revenue"], 2],
+        ["both_selected", get_catalog(parent=True, child=True), ["cohorts", "cohort_members"], 1],
         ["No_streams_selected", get_catalog(), [], 0],
     ])
     @mock.patch("singer.write_state")
@@ -75,7 +74,7 @@ class TestGetStreamsToSync(unittest.TestCase):
         # ["test_name", "selected_streams", "expected_streams"]
         ['test_parent_selected', ["funnels", "cohorts"], ["funnels", "cohorts"]],
         ['test_child_selected', ["cohort_members"], ["cohorts"]],
-        ['test_both_selected', ["cohorts", "cohort_members", "revenue"], ["cohorts", "revenue"]]
+        ['test_both_selected', ["cohorts", "cohort_members"], ["cohorts"]]
     ])
     def test_sync_streams(self, test_name, selected_streams, expected_streams):
         """
@@ -96,8 +95,7 @@ class TestWriteSchemas(unittest.TestCase):
 
     test_catalog = Catalog.from_dict({"streams": [
         get_stream_catalog("cohorts"),
-        get_stream_catalog("cohort_members"),
-        get_stream_catalog("revenue")
+        get_stream_catalog("cohort_members")
     ]})
 
     @parameterized.expand([
