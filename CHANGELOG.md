@@ -3,6 +3,9 @@
 ## 1.8.0
   * Add `parent-tap-stream-id` field to stream metadata for child streams [#70](https://github.com/singer-io/tap-mixpanel/pull/70)
 
+## 1.7.3
+  * Bump requests library version [#71](https://github.com/singer-io/tap-mixpanel/pull/71)
+
 ## 1.7.2
   * Bump dependency versions for twistlock compliance
   * Update tests to pass circle build
