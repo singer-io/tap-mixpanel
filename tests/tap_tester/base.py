@@ -25,6 +25,7 @@ class TestMixPanelBase(BaseCase):
     PRIMARY_KEYS = "table-key-properties"
     FOREIGN_KEYS = "table-foreign-key-properties"
     REPLICATION_METHOD = "forced-replication-method"
+    PARENT_STREAM_ID = "parent-tap-stream-id"
     INCREMENTAL = "INCREMENTAL"
     FULL_TABLE = "FULL_TABLE"
     API_LIMIT = 250
@@ -68,6 +69,7 @@ class TestMixPanelBase(BaseCase):
                 self.PRIMARY_KEYS: {"cohort_id", "distinct_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: True,
+                self.PARENT_STREAM_ID: "cohorts",
             },
             "revenue": {
                 self.PRIMARY_KEYS: {"date"},
@@ -198,6 +200,14 @@ class TestMixPanelBase(BaseCase):
                 | v.get(self.FOREIGN_KEYS, set())
             )
         return auto_fields
+
+    def expected_parent_stream_ids(self):
+        """Return a dictionary with key of stream name and value as parent stream id if applicable"""
+        return {
+            table: properties.get(self.PARENT_STREAM_ID)
+            for table, properties in self.expected_metadata().items()
+            if properties.get(self.PARENT_STREAM_ID) is not None
+        }
 
     #########################
     #   Helper Methods      #
