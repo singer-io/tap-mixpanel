@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.0
+  * Removes deprecated revenue stream [#73](https://github.com/singer-io/tap-mixpanel/pull/73)
+
 ## 1.7.3
   * Bump requests library version [#71](https://github.com/singer-io/tap-mixpanel/pull/71)
 
