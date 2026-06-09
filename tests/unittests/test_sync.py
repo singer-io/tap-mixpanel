@@ -40,7 +40,7 @@ class TestSyncFunctions(unittest.TestCase):
 
     @parameterized.expand([
         # ["test_name", "mock_catalog", "selected_streams", "synced_streams"]
-        ["only_parent_selected", get_catalog(parent=True), ["cohorts",], 1],
+        ["only_parent_selected", get_catalog(parent=True), ["cohorts"], 1],
         ["only_child_selected", get_catalog(child=True), ["cohort_members"], 1],
         ["both_selected", get_catalog(parent=True, child=True), ["cohorts", "cohort_members"], 1],
         ["No_streams_selected", get_catalog(), [], 0],
