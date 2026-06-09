@@ -69,12 +69,6 @@ class TestMixPanelBase(BaseCase):
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: True,
             },
-            "revenue": {
-                self.PRIMARY_KEYS: {"date"},
-                self.REPLICATION_METHOD: self.INCREMENTAL,
-                self.REPLICATION_KEYS: {"datetime"},
-                self.OBEYS_START_DATE: True,
-            },
             "annotations": {
                 self.PRIMARY_KEYS: {"date"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
@@ -153,14 +147,13 @@ class TestMixPanelBase(BaseCase):
     def expected_streams(self):
         """A set of expected stream names."""
 
-        # Skip `export` and `revenue` stream for EU residency server as
-        # revenue stream endpoint returns 400 bad request and
+        # Skip `export` stream for EU residency server as
         # export stream endpoint returns 200 terminated early response.
         # So, as per discussion decided that let the customer come with the issues
         # that these streams are not working. Skip the streams in the circleci.
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
-        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels", "revenue"}
+        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
 
         if self.eu_residency:
             return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS

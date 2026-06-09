@@ -70,7 +70,7 @@ class TestGetSchema(unittest.TestCase):
         """
         client = mock.Mock()
         client.request.return_value = mock.Mock()
-        schema = get_schema(client=client, properties_flag=True, stream_name="revenue")
+        schema = get_schema(client=client, properties_flag=True, stream_name="annotations")
 
         # Verify that request method is not called
         self.assertFalse(client.request.called)

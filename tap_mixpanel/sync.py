@@ -15,7 +15,9 @@ def get_streams_to_sync(selected_streams):
 
     # Loop thru all selected streams
     for stream_name in selected_streams:
-        stream_obj = STREAMS[stream_name]
+        stream_obj = STREAMS.get(stream_name)
+        if stream_obj is None:
+            continue
         # If the stream has a parent_stream, then it is a child stream
         parent_stream = hasattr(stream_obj, "parent") and stream_obj.parent
 
