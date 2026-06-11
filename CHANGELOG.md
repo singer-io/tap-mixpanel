@@ -2,6 +2,10 @@
 
 ## 1.8.1
   * Exclude inaccessible streams (402/403/404) from catalog during discovery [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
+
+## 1.8.0
+  * Removes deprecated revenue stream [#73](https://github.com/singer-io/tap-mixpanel/pull/73)
+
 ## 1.7.3
   * Bump requests library version [#71](https://github.com/singer-io/tap-mixpanel/pull/71)
 

@@ -303,7 +303,7 @@ class MixPanel:
             # The data_key identifies the array/list of records below the <root> element
             transformed_data = []  # initialize the record list
 
-            # Endpoints: funnels, revenue return results as dictionary for each date
+            # Endpoint funnels return results as dictionary for each date
             # Standardize results to a list/array
             if self.date_dictionary and self.data_key in data:
                 results = {}
@@ -913,28 +913,11 @@ class Funnels(MixPanel):
     replication_method = "INCREMENTAL"
 
 
-class Revenue(MixPanel):
-    """
-    Get the revenue data.
-    """
-    tap_stream_id = "revenue"
-    path = "engage/revenue"
-    key_properties = ["date"]
-    data_key = "results"
-    date_dictionary = True
-    bookmark_query_field_from = "from_date"
-    bookmark_query_field_to = "to_date"
-    replication_keys = ["datetime"]
-    params = {"unit": "day"}
-    replication_method = "INCREMENTAL"
-
-
 STREAMS = {
     "export": Export,
     "engage": Engage,
     "funnels": Funnels,
     "cohorts": Cohorts,
     "cohort_members": CohortMembers,
-    "revenue": Revenue,
     "annotations": Annotations,
 }

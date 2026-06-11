@@ -70,12 +70,6 @@ class TestMixPanelBase(BaseCase):
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: True,
             },
-            "revenue": {
-                self.PRIMARY_KEYS: {"date"},
-                self.REPLICATION_METHOD: self.INCREMENTAL,
-                self.REPLICATION_KEYS: {"datetime"},
-                self.OBEYS_START_DATE: True,
-            },
             "annotations": {
                 self.PRIMARY_KEYS: {"date"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
@@ -155,7 +149,7 @@ class TestMixPanelBase(BaseCase):
         """A set of expected stream names, excluding forbidden and upgraded-plan streams."""
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
-        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels", "revenue"}
+        UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
 
         return {
             stream_name
