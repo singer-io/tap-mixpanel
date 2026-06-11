@@ -3,15 +3,15 @@
 from setuptools import setup, find_packages
 
 setup(name='tap-mixpanel',
-      version='1.8.0',
+      version='1.8.1',
       description='Singer.io tap for extracting data from the mixpanel API',
       author='jeff.huth@bytecode.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_mixpanel'],
       install_requires=[
           'backoff==2.2.1',
-          'requests==2.33.0',
-          'singer-python==6.0.1',
+          'requests==2.34.2',
+          'singer-python==6.8.0',
           'jsonlines==1.2.0'
       ],
       entry_points='''

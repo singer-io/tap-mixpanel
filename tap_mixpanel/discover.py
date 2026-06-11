@@ -45,14 +45,7 @@ def _apply_access_checks(client, schemas, field_metadata):
     _prune_inaccessible_children(schemas, field_metadata)
 
     if inaccessible_streams:
-        total_parent_streams = len(
-            [
-                name
-                for name, s in STREAMS.items()
-                if not s.parent and (name in schemas or name in inaccessible_streams)
-            ]
-        )
-        if len(inaccessible_streams) == total_parent_streams:
+        if not schemas:
             raise MixpanelForbiddenError(
                 "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
                 "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
