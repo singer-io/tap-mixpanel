@@ -30,6 +30,7 @@ class TestMixPanelBase(BaseCase):
     API_LIMIT = 250
     TYPE = "platform.mixpanel"
     OBEYS_START_DATE = "obey-start-date"
+    IS_FORBIDDEN_STREAM = "is-forbidden-stream"
     start_date = ""
     end_date = ""
     eu_residency = True
@@ -145,20 +146,17 @@ class TestMixPanelBase(BaseCase):
         return credentials_dict
 
     def expected_streams(self):
-        """A set of expected stream names."""
-
-        # Skip `export` stream for EU residency server as
-        # export stream endpoint returns 200 terminated early response.
-        # So, as per discussion decided that let the customer come with the issues
-        # that these streams are not working. Skip the streams in the circleci.
+        """A set of expected stream names, excluding forbidden and upgraded-plan streams."""
 
         # Below are the streams for which we need to skip the tests as we need an upgraded plan to make API calls
         UPGRADED_PLAN_STREAMS = {"annotations", "cohort_members", "cohorts", "export", "funnels"}
 
-        if self.eu_residency:
-            return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
-
-        return set(self.expected_metadata().keys()) - UPGRADED_PLAN_STREAMS
+        return {
+            stream_name
+            for stream_name, metadata in self.expected_metadata().items()
+            if stream_name not in UPGRADED_PLAN_STREAMS
+            and not metadata.get(self.IS_FORBIDDEN_STREAM, False)
+        }
 
     def expected_pks(self):
         """Return a dictionary with key of table name and value as a set of primary key fields"""
