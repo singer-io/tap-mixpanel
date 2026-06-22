@@ -13,8 +13,10 @@ import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
 
-from tap_mixpanel.client import (MixpanelClient, MixpanelForbiddenError,
-                                MixpanelNotFoundError, MixpanelPaymentRequiredError)
+from tap_mixpanel.client import (MixpanelClient,
+                                 MixpanelForbiddenError,
+                                 MixpanelNotFoundError,
+                                 MixpanelPaymentRequiredError)
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
