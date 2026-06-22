@@ -44,15 +44,15 @@ def _apply_access_checks(client, schemas, field_metadata):
 
     _prune_inaccessible_children(schemas, field_metadata)
 
+    if not schemas:
+        raise MixpanelForbiddenError(
+            "No streams are accessible. Ensure the credentials have read permission for at least one stream."
+        )
+    
     if inaccessible_streams:
-        if not schemas:
-            raise MixpanelForbiddenError(
-                "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
-                "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
-            )
+        
         LOGGER.warning(
-            "The account credentials supplied do not have 'read' access to the following stream(s): %s. "
-            "These streams have been excluded from the catalog.",
+            "These streams have been excluded due to HTTP-Error-Code:403 Forbidden: %s",
             ", ".join(inaccessible_streams),
         )
 

@@ -4,7 +4,7 @@ from parameterized import parameterized
 from singer.catalog import Catalog
 from tap_mixpanel.discover import discover, _apply_access_checks, _prune_inaccessible_children
 from tap_mixpanel.schema import get_schema, get_schemas
-from tap_mixpanel.client import MixpanelForbiddenError, MixpanelPaymentRequiredError
+from tap_mixpanel.client import MixpanelForbiddenError, MixpanelNotFoundError, MixpanelPaymentRequiredError
 from tap_mixpanel.streams import STREAMS
 
 @mock.patch("tap_mixpanel.schema.get_schema")
@@ -142,6 +142,42 @@ class TestCheckAccess(unittest.TestCase):
 
         self.assertFalse(result)
 
+    @mock.patch("tap_mixpanel.streams.LOGGER")
+    def test_check_access_logs_http_error_message(self, mock_logger):
+        """Test that check_access logs the actual HTTP error message from the API."""
+        client = mock.Mock()
+        error_msg = "HTTP-error-code: 402, Error: Your plan does not allow API calls. Upgrade at mixpanel.com/pricing"
+        client.request.side_effect = MixpanelPaymentRequiredError(error_msg)
+
+        stream_cls = STREAMS["funnels"]
+        stream = stream_cls(client=client)
+        result = stream.check_access()
+
+        self.assertFalse(result)
+        mock_logger.warning.assert_called_once_with(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "funnels",
+            error_msg,
+        )
+
+    @mock.patch("tap_mixpanel.streams.LOGGER")
+    def test_check_access_not_found_logs_http_error_message(self, mock_logger):
+        """Test that check_access logs the actual HTTP error message for 404."""
+        client = mock.Mock()
+        error_msg = "HTTP-error-code: 404, Error: Invalid endpoint: revenue"
+        client.request.side_effect = MixpanelNotFoundError(error_msg)
+
+        stream_cls = STREAMS["annotations"]
+        stream = stream_cls(client=client)
+        result = stream.check_access()
+
+        self.assertFalse(result)
+        mock_logger.warning.assert_called_once_with(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "annotations",
+            error_msg,
+        )
+
     def test_check_access_child_stream_always_true(self):
         """Test that child streams always return True without making a request."""
         client = mock.Mock()
@@ -216,8 +252,40 @@ class TestApplyAccessChecks(unittest.TestCase):
         schemas = {"stream_a": {"type": "object"}, "stream_b": {"type": "object"}}
         field_metadata = {"stream_a": [], "stream_b": []}
 
-        with self.assertRaises(MixpanelForbiddenError):
+        with self.assertRaises(MixpanelForbiddenError) as ctx:
             _apply_access_checks(mock.Mock(), schemas, field_metadata)
+
+        self.assertEqual(
+            str(ctx.exception),
+            "No streams are accessible. Ensure the credentials have read permission for at least one stream.",
+        )
+
+    @mock.patch("tap_mixpanel.discover.LOGGER")
+    @mock.patch("tap_mixpanel.discover.STREAMS")
+    def test_partial_access_logs_excluded_streams(self, mock_streams, mock_logger):
+        """Test that _apply_access_checks logs a warning listing excluded streams."""
+        accessible_cls = mock.Mock()
+        accessible_cls.parent = None
+        accessible_cls.return_value.check_access.return_value = True
+
+        inaccessible_cls = mock.Mock()
+        inaccessible_cls.parent = None
+        inaccessible_cls.return_value.check_access.return_value = False
+
+        mock_streams.items.return_value = [
+            ("stream_a", accessible_cls),
+            ("stream_b", inaccessible_cls),
+        ]
+
+        schemas = {"stream_a": {"type": "object"}, "stream_b": {"type": "object"}}
+        field_metadata = {"stream_a": [], "stream_b": []}
+
+        _apply_access_checks(mock.Mock(), schemas, field_metadata)
+
+        mock_logger.warning.assert_called_once_with(
+            "These streams have been excluded due to HTTP-Error-Code:403 Forbidden: %s",
+            "stream_b",
+        )
 
 
 class TestPruneInaccessibleChildren(unittest.TestCase):

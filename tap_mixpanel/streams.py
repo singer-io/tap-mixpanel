@@ -86,10 +86,11 @@ class MixPanel:
                 endpoint=self.tap_stream_id,
             )
             return True
-        except (MixpanelForbiddenError, MixpanelNotFoundError, MixpanelPaymentRequiredError):
+        except (MixpanelForbiddenError, MixpanelNotFoundError, MixpanelPaymentRequiredError) as exc:
             LOGGER.warning(
-                "Stream '%s' does not have read permission, excluding from catalog.",
+                "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
                 self.tap_stream_id,
+                str(exc),
             )
             return False
 
