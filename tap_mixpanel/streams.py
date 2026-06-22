@@ -95,6 +95,10 @@ class MixPanel:
                 str(exc),
             )
             return False
+        except requests.exceptions.JSONDecodeError:
+            # HTTP request succeeded (2xx) but response body is empty or non-JSON
+            # (e.g. the export endpoint). The stream is accessible.
+            return True
 
     def write_schema(self, catalog, stream_name):
         """Writes the schema of the stream form the catalog.
