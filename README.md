@@ -17,10 +17,9 @@ This tap:
   - Annotations
   - Cohorts
   - Cohort Members
-  - Revenue
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
-- Uses date-windowing to chunk/loop through `export`, `revenue`, `funnels`.
+- Uses date-windowing to chunk/loop through `export`, `funnels`.
 - Incorporates attribution window for latency look-back to accommodate delays in data reconciliation.
 
 
@@ -57,17 +56,6 @@ This tap:
   - Bookmark: `date`
   - Bookmark query field: `from_date`, `to_date`
 - Transformations: Combine Endpoint 1 & 2 results, convert `date` keys to list to `results` list-array.
-
-**[revenue](https://developer.mixpanel.com/docs/data-export-api#section-hr-span-style-font-family-courier-revenue-span)**
-- Standard Server endpoint: https://mixpanel.com/api/2.0/engage/revenue
-- EU Residency Server endpoint: https://eu.mixpanel.com/api/2.0/engage/revenue
-- Primary key fields: `date`
-- Parameters:
-  - `unit`: day
-- Replication strategy: INCREMENTAL (query filtered)
-  - Bookmark: `date`
-  - Bookmark query field: `from_date`, `to_date`
-- Transformations: Convert `date` keys to list to `results` list-array.
 
 **[annotations](https://developer.mixpanel.com/docs/data-export-api#section-annotations)**
 - Standard Server endpoint: https://mixpanel.com/api/2.0/annotations
@@ -169,8 +157,7 @@ More details may be found in the [Mixpanel API Authentication](https://developer
         "currently_syncing": "engage",
         "bookmarks": {
             "export": "2019-09-27T22:34:39.000000Z",
-            "funnels": "2019-09-28T15:30:26.000000Z",
-            "revenue": "2019-09-28T18:23:53Z"
+            "funnels": "2019-09-28T15:30:26.000000Z"
         }
     }
     ```
@@ -231,7 +218,6 @@ More details may be found in the [Mixpanel API Authentication](https://developer
     +----------------+---------+---------+
     | stream         | records | schemas |
     +----------------+---------+---------+
-    | revenue        | 134     | 1       |
     | export         | 2811    | 1       |
     | funnels        | 132     | 1       |
     | cohort_members | 454     | 1       |

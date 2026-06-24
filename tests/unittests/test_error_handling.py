@@ -71,7 +71,7 @@ class TestMixpanelErrorHandling(unittest.TestCase):
     """
 
     timeout_400_error = {
-        "request": "/api/2.0/engage/revenue?from_date=2020-02-01&to_date=2020-03-01",
+        "request": "/api/2.0/export?from_date=2020-02-01&to_date=2020-03-01",
         "error": "Timeout Error.",
     }
 

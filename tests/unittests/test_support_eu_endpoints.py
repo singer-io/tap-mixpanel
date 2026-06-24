@@ -3,7 +3,7 @@ from unittest import mock
 
 from tap_mixpanel.__init__ import main
 from tap_mixpanel.client import MixpanelClient
-from tap_mixpanel.streams import Export, Revenue
+from tap_mixpanel.streams import Export
 
 EU_CONFIG = {
     "api_secret": "dummy_secret",
@@ -79,61 +79,6 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
     """
     Test that europe domain support is working.
     """
-
-    @mock.patch("tap_mixpanel.client.MixpanelClient.request")
-    @mock.patch("tap_mixpanel.streams.MixPanel.write_bookmark")
-    @mock.patch("tap_mixpanel.streams.MixPanel.write_schema")
-    def test_support_eu_endpoints_except_export(
-        self, mock_write_schema, mock_write_bookmark, mock_request
-    ):
-        """
-        Test case for the streams other than export stream that,
-        For eu_residency europe domain base url is called.
-        And for eu_residency 'false' in the config, default domain URL is called.
-        """
-        mock_request.return_value = {}
-        mock_write_schema.return_value = ""
-        mock_write_bookmark.return_value = ""
-
-        state = {}
-        catalog = MockCatalog("revenue")
-
-        client = MixpanelClient("", "", "")
-        revenue_obj = Revenue(client)
-        revenue_obj.sync(
-            catalog=catalog,
-            state=state,
-            config=EU_CONFIG,
-            start_date="2020-02-01T00:00:00Z",
-            selected_streams=["revenue"],
-        )
-
-        # Verify that with EU config, base url has eu-domain.
-        mock_request.assert_called_with(
-            method="GET",
-            url="https://eu.mixpanel.com/api/2.0",
-            path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
-            endpoint="revenue",
-        )
-
-        revenue_obj = Revenue(client)
-        revenue_obj.sync(
-            catalog=catalog,
-            state=state,
-            config=STANDARD_CONFIG,
-            start_date="2020-02-01T00:00:00Z",
-            selected_streams=["revenue"],
-        )
-
-        # Verify that with standard config, base URL has default domain.
-        mock_request.assert_called_with(
-            method="GET",
-            url="https://mixpanel.com/api/2.0",
-            path="engage/revenue",
-            params="unit=day&from_date=2020-02-01&to_date=2020-03-02",
-            endpoint="revenue",
-        )
 
     @mock.patch("tap_mixpanel.client.MixpanelClient.request_export")
     @mock.patch("tap_mixpanel.streams.MixPanel.write_bookmark")
