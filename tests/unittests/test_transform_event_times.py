@@ -25,7 +25,7 @@ class TestTransformEventTimes(unittest.TestCase):
 
         actual = transform_event_times(record, project_timezone)
         expected = {
-            "time": input_time.astimezone(UTC).strftime("%04Y-%m-%dT%H:%M:%S.000000Z")
+            "time": input_time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
         }
 
         # Verify that record uis converted as expected.
@@ -45,7 +45,7 @@ class TestTransformEventTimes(unittest.TestCase):
         actual = transform_event_times(record, project_timezone)
 
         expected = {
-            "time": input_time.astimezone(UTC).strftime("%04Y-%m-%dT%H:%M:%S.000000Z")
+            "time": input_time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
         }
 
         # Verify that record uis converted as expected.
