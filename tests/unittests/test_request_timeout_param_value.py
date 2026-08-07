@@ -51,7 +51,7 @@ HEADER = {
 }
 
 
-@mock.patch("requests.Session.request", return_value=Mockresponse("", status_code=200))
+@mock.patch("requests.Session.get", return_value=Mockresponse("", status_code=200))
 @mock.patch("singer.utils.parse_args")
 @mock.patch("tap_mixpanel.__init__.do_discover", return_value="")
 class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
@@ -72,9 +72,7 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
 
         # Verify that request method called with expected parameter value when"request_timeout" is None
         mock_request.assert_called_with(
-            "GET",
-            "https://mixpanel.com/api/2.0/engage",
-            allow_redirects=True,
+            url="https://mixpanel.com/api/2.0/engage",
             headers=HEADER,
             timeout=REQUEST_TIMEOUT_DEFAULT,
         )
@@ -102,9 +100,7 @@ class TestMixpanelRequestTimeoutParameterValue(unittest.TestCase):
 
         # Verify that request method called with expected parameter value
         mock_request.assert_called_with(
-            "GET",
-            "https://mixpanel.com/api/2.0/engage",
-            allow_redirects=True,
+            url="https://mixpanel.com/api/2.0/engage",
             headers=HEADER,
             timeout=expected_value,
         )
