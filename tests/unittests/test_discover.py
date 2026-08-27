@@ -161,22 +161,17 @@ class TestCheckAccess(unittest.TestCase):
         )
 
     @mock.patch("tap_mixpanel.streams.LOGGER")
-    def test_check_access_not_found_logs_http_error_message(self, mock_logger):
-        """Test that check_access logs the actual HTTP error message for 404."""
+    def test_check_access_not_found_raises(self, mock_logger):
+        """Test that check_access lets MixpanelNotFoundError propagate."""
         client = mock.Mock()
         error_msg = "HTTP-error-code: 404, Error: Invalid endpoint: revenue"
         client.request.side_effect = MixpanelNotFoundError(error_msg)
 
         stream_cls = STREAMS["annotations"]
         stream = stream_cls(client=client)
-        result = stream.check_access()
 
-        self.assertFalse(result)
-        mock_logger.warning.assert_called_once_with(
-            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
-            "annotations",
-            error_msg,
-        )
+        with self.assertRaises(MixpanelNotFoundError):
+            stream.check_access()
 
     def test_check_access_child_stream_always_true(self):
         """Test that child streams always return True without making a request."""
