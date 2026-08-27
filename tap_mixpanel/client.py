@@ -144,6 +144,10 @@ class MixpanelClient:
         self.__verified = False
         self.disable_engage_endpoint = False
 
+    @property
+    def api_domain(self):
+        return self.__api_domain
+
     def __enter__(self):
         self.__verified = self.check_access()
         return self

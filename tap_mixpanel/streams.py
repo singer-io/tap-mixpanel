@@ -79,7 +79,7 @@ class MixPanel:
             params[self.bookmark_query_field_to] = probe_date
 
         try:
-            url = f"https://{self.client.__api_domain}/api/2.0"
+            url = f"https://{self.client.api_domain}/api/2.0"
             self.client.request(
                 method="GET",
                 url=url,
