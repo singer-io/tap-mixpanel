@@ -15,8 +15,7 @@ from singer.utils import strptime_to_utc
 
 from tap_mixpanel.client import (MixpanelClient,
                                  MixpanelForbiddenError,
-                                 MixpanelNotFoundError,
-                                 MixpanelPaymentRequiredError)
+                                 MixpanelPaymentRequiredError, MixpanelUnauthorizedError)
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
@@ -88,9 +87,16 @@ class MixPanel:
                 endpoint=self.tap_stream_id,
             )
             return True
-        except (MixpanelForbiddenError, MixpanelNotFoundError, MixpanelPaymentRequiredError) as exc:
+        except (MixpanelForbiddenError, MixpanelUnauthorizedError) as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+                self.tap_stream_id,
+                str(exc),
+            )
+            return False
+        except MixpanelPaymentRequiredError as exc:
+            LOGGER.warning(
+                "Payment Required for Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
                 self.tap_stream_id,
                 str(exc),
             )
@@ -731,10 +737,6 @@ class Engage(MixPanel):
     bookmark_query_field_to = None
     params = {}
     replication_keys = []
-
-    def check_access(self):
-        """Engage access is validated during schema discovery via engage_properties."""
-        return True
 
 
 class Export(MixPanel):

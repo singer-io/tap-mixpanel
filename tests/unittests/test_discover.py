@@ -155,7 +155,7 @@ class TestCheckAccess(unittest.TestCase):
 
         self.assertFalse(result)
         mock_logger.warning.assert_called_once_with(
-            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "Payment Required for Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
             "funnels",
             error_msg,
         )
