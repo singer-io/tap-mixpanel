@@ -79,9 +79,10 @@ class MixPanel:
             params[self.bookmark_query_field_to] = probe_date
 
         try:
+            url = f"https://{self.client.__api_domain}/api/2.0"
             self.client.request(
                 method="GET",
-                url=self.url,
+                url=url,
                 path=path,
                 params=params,
                 endpoint=self.tap_stream_id,
