@@ -13,7 +13,9 @@ import singer
 from singer import Transformer, metadata, metrics, utils
 from singer.utils import strptime_to_utc
 
-from tap_mixpanel.client import MixpanelClient
+from tap_mixpanel.client import (MixpanelClient,
+                                 MixpanelForbiddenError,
+                                 MixpanelPaymentRequiredError, MixpanelUnauthorizedError)
 from tap_mixpanel.transform import transform_datetime, transform_record
 
 LOGGER = singer.get_logger()
@@ -45,6 +47,65 @@ class MixPanel:
 
     def __init__(self, client: MixpanelClient):
         self.client = client
+
+    def check_access(self) -> bool:
+        """Verify that the API credentials have read access to this stream.
+
+        Returns True if accessible, False if a 402 (Payment Required) or
+        403 (Forbidden) error is raised. Child streams always return True
+        (access is governed by the parent check).
+        """
+        if self.parent:
+            return True
+
+        # Determine the endpoint to probe
+        path = self.parent_path if self.parent_path else self.path
+
+        # Build minimal params:
+        # - When probing a parent/list endpoint, no extra params needed.
+        # - When probing the stream's own endpoint, include static params
+        #   (e.g. Revenue's "unit") but exclude placeholders like "[parent_id]".
+        if path == self.path:
+            params = {k: v for k, v in (self.params or {}).items()
+                      if "[parent_id]" not in str(v)}
+        else:
+            params = {}
+
+        # Add date params only when probing the stream's own endpoint
+        if path == self.path and self.bookmark_query_field_from and self.bookmark_query_field_to:
+            # Use UTC yesterday to avoid future-date errors across timezones
+            probe_date = (datetime.now(tz=pytz.UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
+            params[self.bookmark_query_field_from] = probe_date
+            params[self.bookmark_query_field_to] = probe_date
+
+        try:
+            url = f"https://{self.client.api_domain}/api/2.0"
+            self.client.request(
+                method="GET",
+                url=url,
+                path=path,
+                params=params,
+                endpoint=self.tap_stream_id,
+            )
+            return True
+        except (MixpanelForbiddenError, MixpanelUnauthorizedError) as exc:
+            LOGGER.warning(
+                "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+                self.tap_stream_id,
+                str(exc),
+            )
+            return False
+        except MixpanelPaymentRequiredError as exc:
+            LOGGER.warning(
+                "Payment Required for Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+                self.tap_stream_id,
+                str(exc),
+            )
+            return False
+        except requests.exceptions.JSONDecodeError:
+            # HTTP request succeeded (2xx) but response body is empty or non-JSON
+            # (e.g. the export endpoint). The stream is accessible.
+            return True
 
     def write_schema(self, catalog, stream_name):
         """Writes the schema of the stream form the catalog.
