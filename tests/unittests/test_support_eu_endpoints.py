@@ -135,7 +135,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
             endpoint="export",
         )
 
-    @mock.patch("requests.Session.request")
+    @mock.patch("requests.Session.get")
     @mock.patch("singer.utils.parse_args")
     @mock.patch("tap_mixpanel.__init__.do_discover")
     def test_support_eu_endpoint_in_discover(
@@ -162,9 +162,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
 
         # Verify that with EU config, base url has eu-domain.
         mock_request.assert_called_with(
-            "GET",
-            "https://eu.mixpanel.com/api/2.0/engage",
-            allow_redirects=True,
+            url="https://eu.mixpanel.com/api/2.0/engage",
             headers=header,
             timeout=300,
         )
@@ -176,9 +174,7 @@ class TestMixpanelSupportEuEndpoints(unittest.TestCase):
 
         # Verify that with standard config, base URL has default domain.
         mock_request.assert_called_with(
-            "GET",
-            "https://mixpanel.com/api/2.0/engage",
-            allow_redirects=True,
+            url="https://mixpanel.com/api/2.0/engage",
             headers=header,
             timeout=300,
         )

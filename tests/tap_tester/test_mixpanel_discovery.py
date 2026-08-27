@@ -75,6 +75,7 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                 expected_replication_keys = self.expected_replication_keys()[stream]
                 expected_automatic_fields = self.expected_automatic_fields().get(stream)
                 expected_replication_method = self.expected_replication_method()[stream]
+                expected_parent_stream_id = self.expected_parent_stream_ids().get(stream)
 
                 # Collecting actual values...
                 schema_and_metadata = menagerie.get_annotated_schema(
@@ -104,6 +105,11 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                     for item in metadata
                     if item.get("metadata").get("inclusion") == "automatic"
                 }
+                actual_parent_stream_id = (
+                    stream_properties[0]
+                    .get("metadata", {})
+                    .get(self.PARENT_STREAM_ID)
+                )
 
                 actual_fields = []
                 for md_entry in metadata:
@@ -169,6 +175,13 @@ class MixPanelDiscoverTest(TestMixPanelBase):
                     expected_automatic_fields,
                     actual_automatic_fields,
                     logging=f"asserting primary and replication keys {expected_automatic_fields} are automatic",
+                )
+
+                # Verify parent-tap-stream-id metadata if applicable
+                self.assertEqual(
+                    expected_parent_stream_id,
+                    actual_parent_stream_id,
+                    logging=f"asserting {self.PARENT_STREAM_ID} is {expected_parent_stream_id}",
                 )
 
                 # Verify that all other fields have inclusion of available.

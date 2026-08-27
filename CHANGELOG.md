@@ -1,8 +1,11 @@
 # Changelog
 
-## 1.8.1
+## 1.8.2
   * Exclude inaccessible streams (402/403/404) from catalog during discovery [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
 
+## 1.8.1
+  * Add `parent-tap-stream-id` field to stream metadata for child streams [#70](https://github.com/singer-io/tap-mixpanel/pull/70)
+  
 ## 1.8.0
   * Removes deprecated revenue stream [#73](https://github.com/singer-io/tap-mixpanel/pull/73)
 
