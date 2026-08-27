@@ -13,6 +13,7 @@ def _prune_inaccessible_children(schemas, field_metadata):
 
     Mutates schemas and field_metadata in place.
     """
+    to_remove = set()
     for name, stream_cls in list(STREAMS.items()):
         if name in schemas and stream_cls.parent and stream_cls.parent not in schemas:
             LOGGER.warning(
@@ -22,6 +23,8 @@ def _prune_inaccessible_children(schemas, field_metadata):
             )
             schemas.pop(name, None)
             field_metadata.pop(name, None)
+            to_remove.add(name)
+    return to_remove
 
 
 def _apply_access_checks(client, schemas, field_metadata):
@@ -42,7 +45,7 @@ def _apply_access_checks(client, schemas, field_metadata):
         schemas.pop(stream_name, None)
         field_metadata.pop(stream_name, None)
 
-    _prune_inaccessible_children(schemas, field_metadata)
+    inaccessible_streams.extend(_prune_inaccessible_children(schemas, field_metadata))
 
     if not schemas:
         raise MixpanelForbiddenError(
@@ -50,9 +53,8 @@ def _apply_access_checks(client, schemas, field_metadata):
         )
     
     if inaccessible_streams:
-        
         LOGGER.warning(
-            "These streams have been excluded due to HTTP-Error-Code:403 Forbidden: %s",
+            "Unauthorized streams excluded from catalog: %s",
             ", ".join(inaccessible_streams),
         )
 
