@@ -262,7 +262,7 @@ class TestMixPanelBase(BaseCase):
         return sync_record_count
 
     def perform_and_verify_table_and_field_selection(
-        self, conn_id, test_catalogs, select_all_fields=True
+        self, conn_id, test_catalogs, select_all_fields=True, excluded_fields=None
     ):
         """
         Perform table and field selection based off of the streams to select
@@ -272,7 +272,10 @@ class TestMixPanelBase(BaseCase):
         """
 
         # Select all available fields or select no fields from all testable streams
-        self.select_all_streams_and_fields(conn_id, test_catalogs, select_all_fields)
+        excluded_fields = excluded_fields or {}
+        self.select_all_streams_and_fields(
+            conn_id, test_catalogs, select_all_fields, excluded_fields
+        )
 
         catalogs = menagerie.get_catalogs(conn_id)
 
@@ -301,7 +304,10 @@ class TestMixPanelBase(BaseCase):
                         f"\tValidating selection on {cat['stream_name']}.{field}: {field_selected}"
                     )
 
-                    self.assertTrue(field_selected, msg="Field not selected.")
+                    field_should_be_selected = field not in excluded_fields.get(
+                        cat["stream_name"], set()
+                    )
+                    self.assertEqual(field_should_be_selected, field_selected)
             else:
                 # Verify only automatic fields are selected
                 expected_automatic_fields = self.expected_automatic_fields().get(
@@ -325,16 +331,19 @@ class TestMixPanelBase(BaseCase):
         return selected_fields
 
     def select_all_streams_and_fields(
-        self, conn_id, catalogs, select_all_fields: bool = True
+        self, conn_id, catalogs, select_all_fields: bool = True, excluded_fields=None
     ):
         """Select all streams and all fields within streams."""
+        excluded_fields = excluded_fields or {}
         for catalog in catalogs:
             schema = menagerie.get_annotated_schema(conn_id, catalog["stream_id"])
 
-            non_selected_properties = []
+            non_selected_properties = set(
+                excluded_fields.get(catalog["stream_name"], set())
+            )
             if not select_all_fields:
                 # get a list of all properties so that none are selected
-                non_selected_properties = (
+                non_selected_properties.update(
                     schema.get("annotated-schema", {}).get("properties", {}).keys()
                 )
 
