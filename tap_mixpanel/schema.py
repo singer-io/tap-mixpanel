@@ -96,14 +96,13 @@ def get_schema(client, properties_flag, stream_name):
                 }
 
                 if property_type in types:
-                    # Make the types a list containing all types starting with the one returned to us by the API
-                    this_type = [types.pop(property_type)]
-                    this_type += list(types.values())
-
+                    schema["properties"][new_key] = (
+                        types[property_type]
+                    )
                 else:
-                    this_type = list(types.values())
-
-                schema["properties"][new_key] = {"anyOf": this_type}
+                    schema["properties"][new_key] = {
+                        "type": ["null", "string"]
+                    }
 
     if stream_name == "export":
         # Event properties endpoint:
