@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.3
+  * Update Mixpanel Engage schema generation to use the property type returned by the Mixpanel API instead of assigning all supported types via `anyOf`, preventing scalar fields from being unnecessarily mapped to Snowflake `VARIANT` columns [#75](https://github.com/singer-io/tap-mixpanel/pull/75)
+
+
 ## 1.8.2
   * Exclude inaccessible streams (402/403/404) from catalog during discovery [#72](https://github.com/singer-io/tap-mixpanel/pull/72)
 
