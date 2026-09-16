@@ -52,6 +52,25 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
             excluded_fields={"engage": {"Last Seen"}},
         )
 
+        # The live fixture returns non-date values for Last Seen, which causes
+        # transform validation to fail against its discovered date-time schema.
+        engage_catalog = next(
+            catalog for catalog in test_catalogs_all_fields
+            if catalog.get("stream_name") == "engage"
+        )
+        engage_schema = menagerie.get_annotated_schema(
+            conn_id, engage_catalog["stream_id"]
+        )
+        self.assertIn(
+            "Last Seen",
+            engage_schema["annotated-schema"]["properties"],
+        )
+        self.assertFalse(
+            engage_schema["annotated-schema"]["properties"]["Last Seen"].get(
+                "selected"
+            )
+        )
+
         # Grab metadata after performing table-and-field selection to set expectations
         # used for asserting all fields are replicated
         stream_to_all_catalog_fields = dict()

@@ -65,6 +65,47 @@ class TestGetSchema(unittest.TestCase):
         # Verify that field with '$' is written with 'mp_reserved_'
         self.assertIn("mp_reserved_last_seen", schema["properties"])
 
+    def test_engage_dynamic_schema_type_mappings(self):
+        """Test that Engage dynamic property types map to Singer schemas."""
+        client = mock.Mock()
+        client.request.return_value = {
+            "status": "ok",
+            "results": {
+                "boolean_field": {"type": "boolean"},
+                "number_field": {"type": "number"},
+                "datetime_field": {"type": "datetime"},
+                "object_field": {"type": "object"},
+                "list_field": {"type": "list"},
+                "unknown_field": {"type": "unsupported"},
+            },
+        }
+
+        schema = get_schema(client, True, "engage")
+        properties = schema["properties"]
+
+        self.assertEqual(properties["boolean_field"], {
+            "type": ["null", "boolean"],
+        })
+        self.assertEqual(properties["number_field"], {
+            "type": ["null", "string"],
+            "format": "singer.decimal",
+        })
+        self.assertEqual(properties["datetime_field"], {
+            "type": ["null", "string"],
+            "format": "date-time",
+        })
+        self.assertEqual(properties["object_field"], {
+            "type": ["null", "object"],
+            "additionalProperties": True,
+        })
+        self.assertEqual(properties["list_field"], {
+            "type": ["null", "array"],
+            "items": {},
+        })
+        self.assertEqual(properties["unknown_field"], {
+            "type": ["null", "string"],
+        })
+
     def test_other_schema(self):
         """
         Test for standard stream function is not making http call to get schema.
