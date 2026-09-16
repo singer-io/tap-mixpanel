@@ -49,10 +49,10 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
         self.perform_and_verify_table_and_field_selection(
             conn_id,
             test_catalogs_all_fields,
-            excluded_fields={"engage": {"Last Seen"}},
+            excluded_fields={"engage": {"mp_reserved_last_seen"}},
         )
 
-        # The live fixture returns non-date values for Last Seen, which causes
+        # The live fixture returns non-date values for $last_seen, which causes
         # transform validation to fail against its discovered date-time schema.
         engage_catalog = next(
             catalog for catalog in test_catalogs_all_fields
@@ -62,13 +62,13 @@ class MixPanelPaginationAllFieldsTest(TestMixPanelBase):
             conn_id, engage_catalog["stream_id"]
         )
         self.assertIn(
-            "Last Seen",
+            "mp_reserved_last_seen",
             engage_schema["annotated-schema"]["properties"],
         )
         self.assertFalse(
-            engage_schema["annotated-schema"]["properties"]["Last Seen"].get(
-                "selected"
-            )
+            engage_schema["annotated-schema"]["properties"][
+                "mp_reserved_last_seen"
+            ].get("selected")
         )
 
         # Grab metadata after performing table-and-field selection to set expectations
